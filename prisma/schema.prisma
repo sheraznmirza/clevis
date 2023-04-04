@@ -10,33 +10,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  email String @unique
-  hash  String
-
-  firstName String?
-  lastName  String?
-  
-  bookmarks  Bookmark[]
-
-  @@map("users")
+model UserAddress {
+  userAddressId BigInt   @id @default(autoincrement())
+  fullAddress   String
+  city          City     @relation(fields: [cityId], references: [cityId])
+  cityId        Int
+  createdAt     DateTime
+  createdBy     Int
+  Users         Users?   @relation(fields: [userId], references: [userId])
+  userId        Int?
 }
 
-model Bookmark {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Users {
+  userId      Int           @id @default(autoincrement())
+  email       String        @unique
+  password    String
+  userType    UserType      @default(CUSTOMER)
+  fullname    String
+  phone       String
+  location    String
+  UserAddress UserAddress[]
+}
 
-  title       String
-  description String?
-  link        String
+model Vendor {
+  vendorId   Int    @id @default(autoincrement())
+  vendorName String
+  email      String @unique
+  password   String
+  phone      String
+  location   String
+  address    String
+  city       City   @relation(fields: [cityId], references: [cityId])
+  cityId     Int
+}
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id]) // many bookmarks can belong to one user i.e many to one
+model Country {
+  countryId   Int     @id @default(autoincrement())
+  countryName String
+  State       State[]
+}
 
-  @@map("bookmarks")
+model State {
+  stateId   Int     @id @default(autoincrement())
+  stateName String
+  country   Country @relation(fields: [countryId], references: [countryId])
+  countryId Int
+  City      City[]
+}
+
+model City {
+  cityId      Int           @id @default(autoincrement())
+  cityName    String
+  state       State         @relation(fields: [stateId], references: [stateId])
+  stateId     Int
+  UserAddress UserAddress[]
+  Vendor      Vendor[]
+}
+
+model Services {
+  serviceId   Int         @id @default(autoincrement())
+  serviceName String
+  serviceType ServiceType @default(LAUNDRY)
+  isActive    Boolean
+  createdAt   DateTime    @default(now())
+  createdBy   Int
+}
+
+enum UserType {
+  CUSTOMER
+  VENDOR
+  ADMIN
+  RIDER
+}
+
+enum ServiceType {
+  CAR_WASH
+  LAUNDRY
 }
