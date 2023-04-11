@@ -1,4 +1,4 @@
-image: koderlabsllc/node18:beta
+image: koderlabsllc/node18:alpha
 
 pipelines:
   branches:
