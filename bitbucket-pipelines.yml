@@ -1,4 +1,4 @@
-image: koderlabsllc/kl_node:18.15.0
+image: koderlabsllc/node18:beta
 
 pipelines:
   branches:
