@@ -13,7 +13,6 @@ pipelines:
             #cat .env
           - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.dumy.yml docker-compose.yml SECRETS
             #cat docker-compose.yml
-          - apt-get install rsync
           - yarn install
           - yarn run build
           - ssh ubuntu@54.151.24.157 "mkdir -p ~/clevis-be-stg"
