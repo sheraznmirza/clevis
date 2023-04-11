@@ -10,9 +10,9 @@ pipelines:
             - node
           script:
           - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s .env.example .env SECRETS
-          - cat .env
-          - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.example.yml docker-compose.yml SECRETS
-          - cat docker-compose.yml
+            #cat .env
+          - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.dummy.yml docker-compose.yml SECRETS
+            #cat docker-compose.yml
           - yarn install
           - yarn run build
           - ssh ubuntu@54.151.24.157 "mkdir -p ~/clevis-be-stg"
