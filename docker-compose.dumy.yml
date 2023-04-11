@@ -6,7 +6,7 @@ services:
     ports:
       - 5434:5432
     volumes: 
-      - db:/var/lib/postgresql/data
+      - pgdb-clevis:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: click123$
@@ -16,5 +16,5 @@ services:
 networks:
   freecodecamp:
 volumes:
-  db:
-    driver: local
+  pgdb-clevis:
+    external: true

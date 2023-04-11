@@ -1,0 +1,15 @@
+image: node:18
+
+pipelines:
+  branches:
+    staging:
+      - step:
+          name: Deployment to QA server
+          deployment: Staging
+          caches:
+            - node
+          script:
+          - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s .env.example .env SECRETS
+          - cat .env
+          - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.example.yml docker-compose.yml SECRETS
+          - cat docker-compose.yml
