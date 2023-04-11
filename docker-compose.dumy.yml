@@ -8,9 +8,9 @@ services:
     volumes: 
       - pgdb-clevis:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: click123$
-      POSTGRES_DB: nest
+      POSTGRES_USER: SECRETS_POSTGRES_USER
+      POSTGRES_PASSWORD: SECRETS_POSTGRES_PASSWORD
+      POSTGRES_DB: SECRETS_POSTGRES_DB
     networks:
       - freecodecamp
 networks:
