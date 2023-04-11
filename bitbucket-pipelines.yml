@@ -11,7 +11,7 @@ pipelines:
           script:
           - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s .env.example .env SECRETS
             #cat .env
-          - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.dummy.yml docker-compose.yml SECRETS
+          - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.dumy.yml docker-compose.yml SECRETS
             #cat docker-compose.yml
           - yarn install
           - yarn run build
