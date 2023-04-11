@@ -17,7 +17,8 @@ pipelines:
           - yarn run build
           - ssh ubuntu@54.151.24.157 "mkdir -p ~/clevis-be-stg"
           - rsync -av ./package.json ./yarn.lock ./.env ./dist ./docker-compose.yml -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
-          - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn ci --production"
+          - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn install"
+          - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn build"
           - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg  && sudo docker-compose -p STAGING up -d"
           - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn prisma:dev:deploy"
           #- ssh ubuntu@54.151.24.157 "~/clevis-be-stg && pm2 start ecosystem.config.js
