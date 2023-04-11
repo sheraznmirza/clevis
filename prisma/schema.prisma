@@ -22,6 +22,12 @@ enum ServiceType {
   LAUNDRY
 }
 
+enum Status {
+  APPROVED
+  PENDING
+  REJECTED
+}
+
 model UserMaster {
   userMasterId    Int            @id @default(autoincrement())
   email           String
@@ -40,6 +46,16 @@ model UserMaster {
   rider           Rider?
   hashedRt        String?
   refreshToken    RefreshToken[]
+  User            User?
+}
+
+model User {
+  userId       Int           @id @default(autoincrement())
+  email        String        @unique
+  userMasterId Int           @unique
+  userMaster   UserMaster    @relation(fields: userMasterId, references: userMasterId)
+  fullName     String
+  userAddress  UserAddress[]
 }
 
 model Customer {
@@ -61,9 +77,10 @@ model Vendor {
   companyEmail    String
   logo            String
   workspaceImages String[]
-  businessLicense String
+  businessLicense String[]
   description     String
   userAddress     UserAddress[]
+  status          Status        @default(PENDING)
 }
 
 model Rider {
@@ -76,9 +93,10 @@ model Rider {
   companyEmail    String
   logo            String
   workspaceImages String[]
-  businessLicense String
+  businessLicense String[]
   description     String
   userAddress     UserAddress[]
+  status          Status        @default(PENDING)
 }
 
 model Services {
@@ -91,7 +109,7 @@ model Services {
 }
 
 model UserAddress {
-  userAddressId BigInt    @id @default(autoincrement())
+  userAddressId Int       @id @default(autoincrement())
   fullAddress   String?
   city          City?     @relation(fields: [cityId], references: [cityId])
   createdAt     DateTime  @default(now())
@@ -106,6 +124,8 @@ model UserAddress {
   latitude      String?
   Rider         Rider?    @relation(fields: [riderId], references: [riderId])
   riderId       Int?
+  User          User?     @relation(fields: [userUserId], references: [userId])
+  userUserId    Int?
 }
 
 model Country {
@@ -123,19 +143,18 @@ model State {
 }
 
 model City {
-  cityId        Int           @id
-  cityName      String
-  State         State?        @relation(fields: [stateId], references: [stateId])
-  stateId       Int?          @unique
-  userAddressId BigInt
-  UserAddress   UserAddress[]
+  cityId      Int           @id
+  cityName    String
+  State       State?        @relation(fields: [stateId], references: [stateId])
+  stateId     Int?          @unique
+  UserAddress UserAddress[]
 }
 
 model RefreshToken {
   tokenId      String     @id @default(uuid())
   userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
-  refreshToken String
-  userMasterId Int
+  refreshToken String     @unique
+  userMasterId Int        @unique
   createdAt    DateTime   @default(now())
   deleted      Boolean    @default(false)
 }

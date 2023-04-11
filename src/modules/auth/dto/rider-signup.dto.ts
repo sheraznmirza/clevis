@@ -1,4 +1,4 @@
-import { ServiceType, UserType } from '@prisma/client';
+import { ServiceType } from '@prisma/client';
 import {
   IsEmail,
   IsString,
@@ -34,10 +34,6 @@ export class RiderSignUpDto {
   @IsString()
   @IsNotEmpty()
   userAddress: string;
-
-  @IsString()
-  @IsNotEmpty()
-  userType: UserType;
 
   @IsString()
   @IsNotEmpty()

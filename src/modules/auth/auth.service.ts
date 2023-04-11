@@ -1,13 +1,20 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { CustomerSignUpDto } from './dto';
+import {
+  CustomerSignUpDto,
+  VendorSignUpDto,
+  LoginDto,
+  RiderSignUpDto,
+  RefreshDto,
+} from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
-import { UserMaster, UserType } from '@prisma/client';
-import { VendorSignUpDto } from './dto/vendor-signup.dto';
-import { LoginDto } from './dto/login.dto';
-import { RiderSignUpDto } from './dto/rider-signup.dto';
+import { UserType } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -35,16 +42,30 @@ export class AuthService {
               userAddress: {
                 create: {
                   fullAddress: dto.userAddress,
-                  // cityId: dto.cityId,
                 },
               },
             },
           },
         },
-        include: {
+        select: {
+          userMasterId: true,
+          profileImage: true,
+          email: true,
+          isEmailVerified: true,
+          phone: true,
+          userType: true,
+          location: true,
           customer: {
             select: {
-              userAddress: true,
+              userAddress: {
+                select: {
+                  userAddressId: true,
+                  fullAddress: true,
+                  cityId: true,
+                  longitude: true,
+                  latitude: true,
+                },
+              },
               fullName: true,
               customerId: true,
             },
@@ -52,7 +73,7 @@ export class AuthService {
         },
       });
       const response = await this.signToken(user.userMasterId, user.email);
-      await this.updateRtHash(user.userMasterId, response.refreshToken);
+      await this.updateRt(user.userMasterId, response.refreshToken);
       return {
         tokens: response,
         ...user,
@@ -77,6 +98,7 @@ export class AuthService {
           password,
           phone: dto.phone,
           location: dto.location,
+          userType: UserType.VENDOR,
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -96,19 +118,44 @@ export class AuthService {
             },
           },
         },
-        include: {
-          customer: {
+        select: {
+          userMasterId: true,
+          profileImage: true,
+          email: true,
+          isEmailVerified: true,
+          phone: true,
+          userType: true,
+          location: true,
+          vendor: {
             select: {
-              userAddress: true,
+              userAddress: {
+                select: {
+                  userAddressId: true,
+                  fullAddress: true,
+                  cityId: true,
+                  longitude: true,
+                  latitude: true,
+                },
+              },
               fullName: true,
-              customerId: true,
+              vendorId: true,
+              companyEmail: true,
+              companyName: true,
+              logo: true,
+              workspaceImages: true,
+              businessLicense: true,
+              description: true,
+              serviceType: true,
             },
           },
         },
       });
       const response = await this.signToken(user.userMasterId, user.email);
-      await this.updateRtHash(user.userMasterId, response.refreshToken);
-      return response;
+      await this.updateRt(user.userMasterId, response.refreshToken);
+      return {
+        tokens: response,
+        ...user,
+      };
     } catch (error) {
       console.log('error: ', error);
       if (error.code === 'P2002') {
@@ -129,7 +176,8 @@ export class AuthService {
           password,
           phone: dto.phone,
           location: dto.location,
-          vendor: {
+          userType: UserType.RIDER,
+          rider: {
             create: {
               fullName: dto.fullName,
               companyEmail: dto.companyEmail,
@@ -148,19 +196,37 @@ export class AuthService {
             },
           },
         },
-        include: {
-          customer: {
+        select: {
+          userMasterId: true,
+          profileImage: true,
+          email: true,
+          isEmailVerified: true,
+          phone: true,
+          userType: true,
+          location: true,
+          rider: {
             select: {
-              userAddress: true,
+              userAddress: {
+                select: {
+                  userAddressId: true,
+                  fullAddress: true,
+                  cityId: true,
+                  longitude: true,
+                  latitude: true,
+                },
+              },
               fullName: true,
-              customerId: true,
+              riderId: true,
             },
           },
         },
       });
       const response = await this.signToken(user.userMasterId, user.email);
-      await this.updateRtHash(user.userMasterId, response.refreshToken);
-      return response;
+      await this.updateRt(user.userMasterId, response.refreshToken);
+      return {
+        tokens: response,
+        ...user,
+      };
     } catch (error) {
       console.log('error: ', error);
       if (error.code === 'P2002') {
@@ -171,28 +237,35 @@ export class AuthService {
   }
 
   async signinCustomer(dto: LoginDto) {
-    const user: UserMaster = await this.prisma.userMaster.findFirst({
+    const user = await this.prisma.userMaster.findFirst({
       where: {
         email: dto.email,
         userType: UserType.CUSTOMER,
       },
-    });
-    if (!user) throw new ForbiddenException('Credentials incorrect');
-
-    const pwMatches = await argon.verify(user.password, dto.password);
-
-    if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
-
-    const response = await this.signToken(user.userMasterId, user.email);
-    await this.updateRtHash(user.userMasterId, response.refreshToken);
-    return { ...response, ...user };
-  }
-
-  async signinVendor(dto: LoginDto) {
-    const user: UserMaster = await this.prisma.userMaster.findFirst({
-      where: {
-        email: dto.email,
-        userType: UserType.VENDOR,
+      select: {
+        userMasterId: true,
+        profileImage: true,
+        email: true,
+        isEmailVerified: true,
+        phone: true,
+        userType: true,
+        location: true,
+        password: true,
+        customer: {
+          select: {
+            userAddress: {
+              select: {
+                userAddressId: true,
+                fullAddress: true,
+                cityId: true,
+                longitude: true,
+                latitude: true,
+              },
+            },
+            fullName: true,
+            customerId: true,
+          },
+        },
       },
     });
 
@@ -203,20 +276,111 @@ export class AuthService {
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
     const response = await this.signToken(user.userMasterId, user.email);
-    await this.updateRtHash(user.userMasterId, response.refreshToken);
+    await this.updateRt(user.userMasterId, response.refreshToken);
+    delete user.password;
+    return { tokens: response, ...user };
+  }
+
+  async signinVendor(dto: LoginDto) {
+    const user = await this.prisma.userMaster.findFirst({
+      where: {
+        email: dto.email,
+        userType: UserType.VENDOR,
+      },
+      select: {
+        userMasterId: true,
+        profileImage: true,
+        email: true,
+        isEmailVerified: true,
+        phone: true,
+        userType: true,
+        location: true,
+        password: true,
+        vendor: {
+          select: {
+            vendorId: true,
+            fullName: true,
+            serviceType: true,
+            companyName: true,
+            companyEmail: true,
+            logo: true,
+            workspaceImages: true,
+            businessLicense: true,
+            description: true,
+            userAddress: {
+              select: {
+                userAddressId: true,
+                fullAddress: true,
+                cityId: true,
+                longitude: true,
+                latitude: true,
+              },
+            },
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!user) throw new ForbiddenException('Credentials incorrect');
+
+    const pwMatches = await argon.verify(user.password, dto.password);
+
+    if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
+
+    const response = await this.signToken(user.userMasterId, user.email);
+    await this.updateRt(user.userMasterId, response.refreshToken);
     const vendor = await this.prisma.vendor.findUnique({
       where: {
         userMasterId: user.userMasterId,
       },
     });
-    return { ...response, ...vendor };
+    delete user.password;
+    return {
+      tokens: response,
+      ...user,
+      ...vendor,
+    };
   }
 
   async signinRider(dto: LoginDto) {
-    const user: UserMaster = await this.prisma.userMaster.findFirst({
+    const user = await this.prisma.userMaster.findFirst({
       where: {
         email: dto.email,
         userType: UserType.RIDER,
+      },
+      select: {
+        userMasterId: true,
+        profileImage: true,
+        email: true,
+        isEmailVerified: true,
+        phone: true,
+        userType: true,
+        location: true,
+        password: true,
+        rider: {
+          select: {
+            riderId: true,
+            fullName: true,
+            serviceType: true,
+            companyName: true,
+            companyEmail: true,
+            logo: true,
+            workspaceImages: true,
+            businessLicense: true,
+            description: true,
+            userAddress: {
+              select: {
+                userAddressId: true,
+                fullAddress: true,
+                cityId: true,
+                longitude: true,
+                latitude: true,
+              },
+            },
+            status: true,
+          },
+        },
       },
     });
 
@@ -227,20 +391,63 @@ export class AuthService {
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
     const response = await this.signToken(user.userMasterId, user.email);
-    await this.updateRtHash(user.userMasterId, response.refreshToken);
+    await this.updateRt(user.userMasterId, response.refreshToken);
     const rider = await this.prisma.rider.findUnique({
       where: {
         userMasterId: user.userMasterId,
       },
     });
-    return { ...response, ...rider };
+    delete user.password;
+    return {
+      tokens: response,
+      ...user,
+      ...rider,
+    };
   }
 
-  // async forgotPassword(dto: { email: string }) {}
+  async refreshTokens({ refreshToken }: RefreshDto) {
+    console.log('rt: ', refreshToken);
+    try {
+      const previousRefreshToken = await this.prisma.refreshToken.findFirst({
+        where: {
+          refreshToken,
+          deleted: false,
+        },
+      });
+      console.log('previousRefreshToken: ', previousRefreshToken);
+      if (!previousRefreshToken)
+        throw new UnauthorizedException('Refresh token invalid');
 
-  // async refreshTokens(rt: string) {
+      console.log('previousRefreshToken: ', previousRefreshToken);
 
-  // }
+      const user = await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: previousRefreshToken.userMasterId,
+        },
+        select: {
+          email: true,
+        },
+      });
+
+      const tokens = await this.signToken(
+        previousRefreshToken.userMasterId,
+        user.email,
+      );
+      await this.updateRt(
+        previousRefreshToken.userMasterId,
+        tokens.refreshToken,
+        previousRefreshToken.refreshToken,
+      );
+      return {
+        tokens,
+      };
+    } catch (error) {
+      console.log('error: ', error);
+      throw error;
+    }
+
+    // const refreshMatches = await argon.verify(user.password, dto.password);
+  }
 
   // async logout() {}
 
@@ -302,18 +509,23 @@ export class AuthService {
   //   }
   // }
 
-  async updateRtHash(userId: number, rt: string) {
-    const hash = await argon.hash(rt);
-
+  async updateRt(userId: number, currentRt: string, previousRt?: string) {
     await this.prisma.refreshToken.create({
-      // where: {
-      //   userMasterId: userId,
-      // },
       data: {
-        refreshToken: hash,
+        refreshToken: currentRt,
         userMasterId: userId,
       },
     });
+    if (previousRt) {
+      await this.prisma.refreshToken.update({
+        where: {
+          refreshToken: previousRt,
+        },
+        data: {
+          deleted: true,
+        },
+      });
+    }
   }
 
   async updatePassword(userId: number, password: string) {

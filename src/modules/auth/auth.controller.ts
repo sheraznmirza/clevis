@@ -1,17 +1,13 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Post,
-  Get,
-} from '@nestjs/common/decorators';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common/decorators';
 import { AuthService } from './auth.service';
-import { CustomerSignUpDto } from './dto';
 import { HttpStatus } from '@nestjs/common';
-import { VendorSignUpDto } from './dto/vendor-signup.dto';
-import { LoginDto } from './dto/login.dto';
-import { RiderSignUpDto } from './dto/rider-signup.dto';
-
+import {
+  RiderSignUpDto,
+  VendorSignUpDto,
+  LoginDto,
+  CustomerSignUpDto,
+  RefreshDto,
+} from './dto';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -49,10 +45,10 @@ export class AuthController {
   //   return this.authService.forgotPassword(dto);
   // }
 
-  // @Get('/refresh')
-  // refreshTokens(@Body() rt: string) {
-  //   this.authService.refreshTokens(rt);
-  // }
+  @Post('/refresh')
+  refreshTokens(@Body() refreshToken: RefreshDto) {
+    return this.authService.refreshTokens(refreshToken);
+  }
 
   // @Post('/logout')
   // logout() {
