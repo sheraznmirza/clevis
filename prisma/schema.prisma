@@ -10,72 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model UserAddress {
-  userAddressId BigInt   @id @default(autoincrement())
-  fullAddress   String
-  city          City     @relation(fields: [cityId], references: [cityId])
-  cityId        Int
-  createdAt     DateTime
-  createdBy     Int
-  Users         Users?   @relation(fields: [userId], references: [userId])
-  userId        Int?
-}
-
-model Users {
-  userId      Int           @id @default(autoincrement())
-  email       String        @unique
-  password    String
-  userType    UserType      @default(CUSTOMER)
-  fullname    String
-  phone       String
-  location    String
-  UserAddress UserAddress[]
-}
-
-model Vendor {
-  vendorId   Int    @id @default(autoincrement())
-  vendorName String
-  email      String @unique
-  password   String
-  phone      String
-  location   String
-  address    String
-  city       City   @relation(fields: [cityId], references: [cityId])
-  cityId     Int
-}
-
-model Country {
-  countryId   Int     @id @default(autoincrement())
-  countryName String
-  State       State[]
-}
-
-model State {
-  stateId   Int     @id @default(autoincrement())
-  stateName String
-  country   Country @relation(fields: [countryId], references: [countryId])
-  countryId Int
-  City      City[]
-}
-
-model City {
-  cityId      Int           @id @default(autoincrement())
-  cityName    String
-  state       State         @relation(fields: [stateId], references: [stateId])
-  stateId     Int
-  UserAddress UserAddress[]
-  Vendor      Vendor[]
-}
-
-model Services {
-  serviceId   Int         @id @default(autoincrement())
-  serviceName String
-  serviceType ServiceType @default(LAUNDRY)
-  isActive    Boolean
-  createdAt   DateTime    @default(now())
-  createdBy   Int
-}
-
 enum UserType {
   CUSTOMER
   VENDOR
@@ -86,4 +20,191 @@ enum UserType {
 enum ServiceType {
   CAR_WASH
   LAUNDRY
+}
+
+enum Status {
+  APPROVED
+  PENDING
+  REJECTED
+}
+
+model UserMaster {
+  userMasterId    Int            @id @default(autoincrement())
+  email           String
+  isEmailVerified Boolean        @default(false)
+  password        String
+  profileImage    String?
+  userType        UserType       @default(CUSTOMER)
+  phone           String
+  location        String
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
+  isDeleted       Boolean        @default(false)
+  customer        Customer?
+  vendor          Vendor?
+  rider           Rider?
+  hashedRt        String?
+  refreshToken    RefreshToken[]
+  User            User?
+}
+
+model User {
+  userId       Int           @id @default(autoincrement())
+  email        String        @unique
+  userMasterId Int           @unique
+  userMaster   UserMaster    @relation(fields: userMasterId, references: userMasterId)
+  fullName     String
+  userAddress  UserAddress[]
+}
+
+model Customer {
+  customerId   Int           @id @default(autoincrement())
+  email        String        @unique
+  userMasterId Int           @unique
+  userMaster   UserMaster    @relation(fields: userMasterId, references: userMasterId)
+  fullName     String
+  userAddress  UserAddress[]
+}
+
+model Vendor {
+  vendorId        Int           @id @default(autoincrement())
+  userMasterId    Int           @unique
+  userMaster      UserMaster    @relation(fields: userMasterId, references: userMasterId)
+  fullName        String
+  serviceType     ServiceType
+  companyName     String
+  companyEmail    String
+  logo            String
+  workspaceImages String[]
+  businessLicense String[]
+  description     String
+  userAddress     UserAddress[]
+  status          Status        @default(PENDING)
+}
+
+model Rider {
+  riderId         Int           @id @default(autoincrement())
+  userMasterId    Int           @unique
+  userMaster      UserMaster    @relation(fields: userMasterId, references: userMasterId)
+  fullName        String
+  serviceType     ServiceType
+  companyName     String
+  companyEmail    String
+  logo            String
+  workspaceImages String[]
+  businessLicense String[]
+  description     String
+  userAddress     UserAddress[]
+  status          Status        @default(PENDING)
+}
+
+model Services {
+  serviceId   Int         @id @default(autoincrement())
+  serviceName String
+  serviceType ServiceType
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now()) @updatedAt
+  isDeleted   Boolean     @default(false)
+}
+
+model UserAddress {
+  userAddressId Int       @id @default(autoincrement())
+  fullAddress   String?
+  city          City?     @relation(fields: [cityId], references: [cityId])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  isDeleted     Boolean   @default(false)
+  vendor        Vendor?   @relation(fields: vendorId, references: vendorId)
+  vendorId      Int?
+  customerId    Int?
+  customer      Customer? @relation(fields: customerId, references: customerId)
+  cityId        Int?
+  longitude     String?
+  latitude      String?
+  Rider         Rider?    @relation(fields: [riderId], references: [riderId])
+  riderId       Int?
+  User          User?     @relation(fields: [userUserId], references: [userId])
+  userUserId    Int?
+}
+
+model Country {
+  countryId   Int     @id
+  countryName String
+  states      State[]
+}
+
+model State {
+  stateId   Int     @id
+  stateName String
+  countryId Int     @unique
+  country   Country @relation(fields: [countryId], references: [countryId])
+  cities    City[]
+}
+
+model City {
+  cityId      Int           @id
+  cityName    String
+  State       State?        @relation(fields: [stateId], references: [stateId])
+  stateId     Int?          @unique
+  UserAddress UserAddress[]
+}
+
+model RefreshToken {
+  tokenId      String     @id @default(uuid())
+  userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
+  refreshToken String     @unique
+  userMasterId Int        @unique
+  createdAt    DateTime   @default(now())
+  deleted      Boolean    @default(false)
+}
+
+model Role {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  createdAt             DateTime                @default(now()) @db.Timestamptz()
+  updatedAt             DateTime                @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt             DateTime?               @db.Timestamptz()
+  rolePermissionMapping RolePermissionMapping[]
+  Routes                Routes[]
+}
+
+enum DefaultActions {
+  ALL
+  READ
+  CREATE
+  UPDATE
+  DELETE
+}
+
+// Objects are models or database_tables name you can add as per your requirement.
+
+model Permission {
+  id                    Int                     @id @default(autoincrement())
+  action                DefaultActions
+  createdAt             DateTime                @default(now()) @db.Timestamptz()
+  updatedAt             DateTime                @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt             DateTime?               @db.Timestamptz()
+  RolePermissionMapping RolePermissionMapping[]
+}
+
+model Routes {
+  id                    Int                     @id @default(autoincrement())
+  Route                 String
+  role                  Role                    @relation(fields: [roleId], references: [id])
+  roleId                Int
+  RolePermissionMapping RolePermissionMapping[]
+}
+
+model RolePermissionMapping {
+  id           Int        @id @default(autoincrement())
+  permissionId Int
+  routeId      Int
+  createdAt    DateTime   @default(now()) @db.Timestamptz()
+  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt    DateTime?  @db.Timestamptz()
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  route        Routes     @relation(fields: [routeId], references: [id])
+  Role         Role?      @relation(fields: [roleId], references: [id])
+  roleId       Int?
 }
