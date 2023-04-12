@@ -7,6 +7,7 @@ import {
   LoginDto,
   CustomerSignUpDto,
   RefreshDto,
+  VerifyEmailDto,
 } from './dto';
 @Controller('auth')
 export class AuthController {
@@ -48,6 +49,11 @@ export class AuthController {
   @Post('/refresh')
   refreshTokens(@Body() refreshToken: RefreshDto) {
     return this.authService.refreshTokens(refreshToken);
+  }
+
+  @Post('/forgot-password')
+  forgotPassword(@Body() data: VerifyEmailDto) {
+    return this.authService.forgotPassword(data);
   }
 
   // @Post('/logout')

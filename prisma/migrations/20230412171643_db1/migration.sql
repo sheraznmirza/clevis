@@ -5,6 +5,9 @@ CREATE TYPE "UserType" AS ENUM ('CUSTOMER', 'VENDOR', 'ADMIN', 'RIDER');
 CREATE TYPE "ServiceType" AS ENUM ('CAR_WASH', 'LAUNDRY');
 
 -- CreateEnum
+CREATE TYPE "Status" AS ENUM ('APPROVED', 'PENDING', 'REJECTED');
+
+-- CreateEnum
 CREATE TYPE "DefaultActions" AS ENUM ('ALL', 'READ', 'CREATE', 'UPDATE', 'DELETE');
 
 -- CreateTable
@@ -27,6 +30,16 @@ CREATE TABLE "UserMaster" (
 );
 
 -- CreateTable
+CREATE TABLE "User" (
+    "userId" SERIAL NOT NULL,
+    "email" TEXT NOT NULL,
+    "userMasterId" INTEGER NOT NULL,
+    "fullName" TEXT NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("userId")
+);
+
+-- CreateTable
 CREATE TABLE "Customer" (
     "customerId" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
@@ -46,8 +59,9 @@ CREATE TABLE "Vendor" (
     "companyEmail" TEXT NOT NULL,
     "logo" TEXT NOT NULL,
     "workspaceImages" TEXT[],
-    "businessLicense" TEXT NOT NULL,
+    "businessLicense" TEXT[],
     "description" TEXT NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'PENDING',
 
     CONSTRAINT "Vendor_pkey" PRIMARY KEY ("vendorId")
 );
@@ -62,8 +76,9 @@ CREATE TABLE "Rider" (
     "companyEmail" TEXT NOT NULL,
     "logo" TEXT NOT NULL,
     "workspaceImages" TEXT[],
-    "businessLicense" TEXT NOT NULL,
+    "businessLicense" TEXT[],
     "description" TEXT NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'PENDING',
 
     CONSTRAINT "Rider_pkey" PRIMARY KEY ("riderId")
 );
@@ -93,6 +108,7 @@ CREATE TABLE "UserAddress" (
     "longitude" TEXT,
     "latitude" TEXT,
     "riderId" INTEGER,
+    "userUserId" INTEGER,
 
     CONSTRAINT "UserAddress_pkey" PRIMARY KEY ("userAddressId")
 );
@@ -132,6 +148,16 @@ CREATE TABLE "RefreshToken" (
     "deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "RefreshToken_pkey" PRIMARY KEY ("tokenId")
+);
+
+-- CreateTable
+CREATE TABLE "Otp" (
+    "otpId" TEXT NOT NULL,
+    "userMasterId" INTEGER NOT NULL,
+    "otp" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Otp_pkey" PRIMARY KEY ("otpId")
 );
 
 -- CreateTable
@@ -179,6 +205,12 @@ CREATE TABLE "RolePermissionMapping" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_userMasterId_key" ON "User"("userMasterId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Customer_email_key" ON "Customer"("email");
 
 -- CreateIndex
@@ -198,6 +230,18 @@ CREATE UNIQUE INDEX "City_stateId_key" ON "City"("stateId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RefreshToken_refreshToken_key" ON "RefreshToken"("refreshToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RefreshToken_userMasterId_key" ON "RefreshToken"("userMasterId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Otp_userMasterId_key" ON "Otp"("userMasterId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Otp_otp_key" ON "Otp"("otp");
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Customer" ADD CONSTRAINT "Customer_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -221,6 +265,9 @@ ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_customerId_fkey" FOREIGN K
 ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_riderId_fkey" FOREIGN KEY ("riderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_userUserId_fkey" FOREIGN KEY ("userUserId") REFERENCES "User"("userId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "State" ADD CONSTRAINT "State_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "Country"("countryId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -228,6 +275,9 @@ ALTER TABLE "City" ADD CONSTRAINT "City_stateId_fkey" FOREIGN KEY ("stateId") RE
 
 -- AddForeignKey
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Otp" ADD CONSTRAINT "Otp_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Routes" ADD CONSTRAINT "Routes_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
