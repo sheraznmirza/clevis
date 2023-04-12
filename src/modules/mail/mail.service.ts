@@ -38,9 +38,25 @@ export class MailService {
   ) {
     try {
       console.log('hello');
+      // await this.mailerService.sendMail({
+      //   to: resetPasswordDataDto.email,
+      //   // from: this.configService.get('MAIL_FROM'),
+      //   subject: `${this.configService.get('APP_NAME')} - Reset Your Password`,
+      //   template: 'reset-password', // `.hbs` extension is appended automatically
+      //   context: {
+      //     app_name: this.configService.get('APP_NAME'),
+      //     app_url: this.configService.get('APP_URL'),
+      //     copyright_year: MAIL_ENV.COPYRIGHT_YEAR,
+      //     otp,
+      //     //   reset_password_link: `${
+      //     //     this.configService.get('APP_URL') || process.env.APP_URL
+      //     //   }/reset/${user_row.id}/${user_row.register_hash}`,
+      //   },
+      // });
+
       await this.mailerService.sendMail({
         to: resetPasswordDataDto.email,
-        // from: this.configService.get('MAIL_FROM'),
+        from: this.configService.get('MAIL_FROM'),
         subject: `${this.configService.get('APP_NAME')} - Reset Your Password`,
         template: 'reset-password', // `.hbs` extension is appended automatically
         context: {
@@ -53,7 +69,9 @@ export class MailService {
           //   }/reset/${user_row.id}/${user_row.register_hash}`,
         },
       });
+      // console.log('hello final');
     } catch (error) {
+      console.log('error: ', error);
       throw new ServiceUnavailableException('Unable to send email');
       // throwExceptionErrorUtil(error)
     }
