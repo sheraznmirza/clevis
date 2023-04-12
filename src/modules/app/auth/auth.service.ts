@@ -2,6 +2,8 @@ import {
   Injectable,
   ForbiddenException,
   UnauthorizedException,
+  NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -11,10 +13,12 @@ import {
   LoginDto,
   RiderSignUpDto,
   RefreshDto,
+  VerifyEmailDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { UserType } from '@prisma/client';
+import { MailService } from 'src/modules/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +26,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private mail: MailService,
   ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
@@ -406,7 +411,6 @@ export class AuthService {
   }
 
   async refreshTokens({ refreshToken }: RefreshDto) {
-    console.log('rt: ', refreshToken);
     try {
       const previousRefreshToken = await this.prisma.refreshToken.findFirst({
         where: {
@@ -417,8 +421,6 @@ export class AuthService {
       console.log('previousRefreshToken: ', previousRefreshToken);
       if (!previousRefreshToken)
         throw new UnauthorizedException('Refresh token invalid');
-
-      console.log('previousRefreshToken: ', previousRefreshToken);
 
       const user = await this.prisma.userMaster.findUnique({
         where: {
@@ -445,8 +447,32 @@ export class AuthService {
       console.log('error: ', error);
       throw error;
     }
+  }
 
-    // const refreshMatches = await argon.verify(user.password, dto.password);
+  async forgotPassword(data: VerifyEmailDto) {
+    try {
+      const randomOtp = Math.floor(Math.random() * 100000000);
+      const user = await this.prisma.userMaster.findFirst({
+        where: {
+          email: data.email,
+          userType: data.userType,
+        },
+      });
+
+      if (!user) throw new NotFoundException('Email does not exist.');
+
+      await this.expireOtp(user.userMasterId);
+
+      await this.prisma.otp.create({
+        data: {
+          userMasterId: user.userMasterId,
+          otp: randomOtp,
+        },
+      });
+      await this.mail.sendResetPasswordEmail(data, randomOtp);
+    } catch (error) {
+      throw error;
+    }
   }
 
   // async logout() {}
@@ -537,6 +563,18 @@ export class AuthService {
       },
       data: {
         password: hash,
+      },
+    });
+  }
+
+  async expireOtp(userId: number) {
+    await this.prisma.otp.updateMany({
+      where: {
+        userMasterId: userId,
+        expired: false,
+      },
+      data: {
+        expired: true,
       },
     });
   }
