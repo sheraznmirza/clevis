@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   UnauthorizedException,
   NotFoundException,
-  ServiceUnavailableException,
+  ConflictException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -13,12 +13,13 @@ import {
   LoginDto,
   RiderSignUpDto,
   RefreshDto,
-  VerifyEmailDto,
+  ForgotPasswordDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { UserType } from '@prisma/client';
 import { MailService } from 'src/modules/mail/mail.service';
+import { createCipheriv, createDecipheriv } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -79,6 +80,9 @@ export class AuthService {
       });
       const response = await this.signToken(user.userMasterId, user.email);
       await this.updateRt(user.userMasterId, response.refreshToken);
+      console.log(this.decryptData('ae3bc27c6bd85fa97c8ae3a62e0b7549'));
+      await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
+      // await this.mail.sendUserVerificationEmail(user, UserType.CUSTOMER);
       return {
         tokens: response,
         ...user,
@@ -157,6 +161,7 @@ export class AuthService {
       });
       const response = await this.signToken(user.userMasterId, user.email);
       await this.updateRt(user.userMasterId, response.refreshToken);
+      await this.sendEncryptedDataToMail(user, UserType.VENDOR);
       return {
         tokens: response,
         ...user,
@@ -228,6 +233,8 @@ export class AuthService {
       });
       const response = await this.signToken(user.userMasterId, user.email);
       await this.updateRt(user.userMasterId, response.refreshToken);
+      await this.sendEncryptedDataToMail(user, UserType.RIDER);
+      // await this.mail.sendUserVerificationEmail(user, UserType.RIDER);
       return {
         tokens: response,
         ...user,
@@ -449,7 +456,7 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(data: VerifyEmailDto) {
+  async forgotPassword(data: ForgotPasswordDto) {
     try {
       const randomOtp = Math.floor(Math.random() * 100000000);
       const user = await this.prisma.userMaster.findFirst({
@@ -470,6 +477,36 @@ export class AuthService {
         },
       });
       await this.mail.sendResetPasswordEmail(data, randomOtp);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async verifyEmail(id: string) {
+    const masterId: number = parseInt(this.decryptData(id));
+    try {
+      const user = await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: masterId,
+        },
+      });
+
+      if (user.isEmailVerified) {
+        throw new ConflictException('Email is already verified');
+      } else {
+        await this.prisma.userMaster.update({
+          where: {
+            userMasterId: masterId,
+          },
+          data: {
+            isEmailVerified: true,
+          },
+        });
+        return {
+          statusCode: 202,
+          message: 'Email successfully verified!',
+        };
+      }
     } catch (error) {
       throw error;
     }
@@ -504,36 +541,6 @@ export class AuthService {
       refreshToken: rt,
     };
   }
-
-  // async saveUserType(dto: CustomerSignUpDto, user: UserMaster) {
-  //   switch (dto.userType) {
-  //     case 'CUSTOMER':
-  //       const customer = await this.prisma.customer.create({
-  //         data: {
-  //           fullName: dto.fullName,
-  //           userMasterId: user.userMasterId,
-  //         },
-  //       });
-  //       return customer;
-  //       break;
-
-  //     case 'VENDOR':
-  //       // const vendor = await this.prisma.vendor.create({
-  //       //   data: {
-  //       //     fullName: dto.fullName,
-  //       //     userMasterId: user.userMasterId,
-  //       //   },
-  //       // });
-  //       // return vendor;
-  //       break;
-
-  //     case 'RIDER':
-  //       break;
-
-  //     default:
-  //       break;
-  //   }
-  // }
 
   async updateRt(userId: number, currentRt: string, previousRt?: string) {
     await this.prisma.refreshToken.create({
@@ -577,5 +584,38 @@ export class AuthService {
         expired: true,
       },
     });
+  }
+
+  encryptData(data: string) {
+    const cipher = createCipheriv(
+      this.config.get('ALGORITHM'),
+      Buffer.from(this.config.get('KEY').slice(0, 32)),
+      this.config.get('IV'),
+    );
+    let encrypted = cipher.update(data);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return encrypted.toString('hex');
+  }
+
+  decryptData(data: string) {
+    const ivString: string = this.config.get('IV');
+    const encryptedText = Buffer.from(data, 'hex');
+
+    const decipher = createDecipheriv(
+      this.config.get('ALGORITHM'),
+      Buffer.from(this.config.get('KEY').slice(0, 32)),
+      ivString,
+    );
+
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+    return decrypted.toString();
+  }
+
+  async sendEncryptedDataToMail(user: any, userType: UserType) {
+    const encrypted = this.encryptData(user.userMasterId.toString());
+
+    await this.mail.sendUserVerificationEmail(user, userType, encrypted);
   }
 }

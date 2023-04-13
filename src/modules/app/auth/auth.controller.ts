@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common/decorators';
+import {
+  UseGuards,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common/decorators';
 import { AuthService } from './auth.service';
 import { HttpStatus } from '@nestjs/common';
 import {
@@ -7,8 +15,10 @@ import {
   LoginDto,
   CustomerSignUpDto,
   RefreshDto,
+  ForgotPasswordDto,
   VerifyEmailDto,
 } from './dto';
+import { JwtRefreshGuard } from './guard';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -46,14 +56,22 @@ export class AuthController {
   //   return this.authService.forgotPassword(dto);
   // }
 
+  @UseGuards(JwtRefreshGuard)
   @Post('/refresh')
   refreshTokens(@Body() refreshToken: RefreshDto) {
     return this.authService.refreshTokens(refreshToken);
   }
 
   @Post('/forgot-password')
-  forgotPassword(@Body() data: VerifyEmailDto) {
+  forgotPassword(@Body() data: ForgotPasswordDto) {
     return this.authService.forgotPassword(data);
+  }
+
+  // @HttpCode(HttpStatus.ACCEPTED)
+  @Get('/verify-email/:id')
+  verifyEmail(@Param('id') id: string) {
+    console.log(typeof id);
+    return this.authService.verifyEmail(id);
   }
 
   // @Post('/logout')

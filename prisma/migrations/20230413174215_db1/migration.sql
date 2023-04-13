@@ -8,6 +8,9 @@ CREATE TYPE "ServiceType" AS ENUM ('CAR_WASH', 'LAUNDRY');
 CREATE TYPE "Status" AS ENUM ('APPROVED', 'PENDING', 'REJECTED');
 
 -- CreateEnum
+CREATE TYPE "EmailTemplates" AS ENUM ('resetPassword', 'userRegistration');
+
+-- CreateEnum
 CREATE TYPE "DefaultActions" AS ENUM ('ALL', 'READ', 'CREATE', 'UPDATE', 'DELETE');
 
 -- CreateTable
@@ -27,6 +30,28 @@ CREATE TABLE "UserMaster" (
     "hashedRt" TEXT,
 
     CONSTRAINT "UserMaster_pkey" PRIMARY KEY ("userMasterId")
+);
+
+-- CreateTable
+CREATE TABLE "RefreshToken" (
+    "tokenId" TEXT NOT NULL,
+    "refreshToken" TEXT NOT NULL,
+    "userMasterId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "RefreshToken_pkey" PRIMARY KEY ("tokenId")
+);
+
+-- CreateTable
+CREATE TABLE "Otp" (
+    "otpId" TEXT NOT NULL,
+    "userMasterId" INTEGER NOT NULL,
+    "otp" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expired" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "Otp_pkey" PRIMARY KEY ("otpId")
 );
 
 -- CreateTable
@@ -84,18 +109,6 @@ CREATE TABLE "Rider" (
 );
 
 -- CreateTable
-CREATE TABLE "Services" (
-    "serviceId" SERIAL NOT NULL,
-    "serviceName" TEXT NOT NULL,
-    "serviceType" "ServiceType" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-
-    CONSTRAINT "Services_pkey" PRIMARY KEY ("serviceId")
-);
-
--- CreateTable
 CREATE TABLE "UserAddress" (
     "userAddressId" SERIAL NOT NULL,
     "fullAddress" TEXT,
@@ -140,24 +153,80 @@ CREATE TABLE "City" (
 );
 
 -- CreateTable
-CREATE TABLE "RefreshToken" (
-    "tokenId" TEXT NOT NULL,
-    "refreshToken" TEXT NOT NULL,
-    "userMasterId" INTEGER NOT NULL,
+CREATE TABLE "Services" (
+    "serviceId" SERIAL NOT NULL,
+    "serviceName" TEXT NOT NULL,
+    "serviceType" "ServiceType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
-    CONSTRAINT "RefreshToken_pkey" PRIMARY KEY ("tokenId")
+    CONSTRAINT "Services_pkey" PRIMARY KEY ("serviceId")
 );
 
 -- CreateTable
-CREATE TABLE "Otp" (
-    "otpId" TEXT NOT NULL,
-    "userMasterId" INTEGER NOT NULL,
-    "otp" INTEGER NOT NULL,
+CREATE TABLE "Category" (
+    "categoryId" SERIAL NOT NULL,
+    "categoryName" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "serviceId" INTEGER NOT NULL,
 
-    CONSTRAINT "Otp_pkey" PRIMARY KEY ("otpId")
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("categoryId")
+);
+
+-- CreateTable
+CREATE TABLE "SubCategory" (
+    "subCategoryId" SERIAL NOT NULL,
+    "subCategoryName" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "categoryId" INTEGER NOT NULL,
+
+    CONSTRAINT "SubCategory_pkey" PRIMARY KEY ("subCategoryId")
+);
+
+-- CreateTable
+CREATE TABLE "VendorService" (
+    "vendorServiceId" SERIAL NOT NULL,
+    "vendorId" INTEGER NOT NULL,
+    "serviceId" INTEGER NOT NULL,
+    "description" TEXT NOT NULL,
+    "serviceImage" TEXT[],
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "VendorService_pkey" PRIMARY KEY ("vendorServiceId")
+);
+
+-- CreateTable
+CREATE TABLE "VendorServiceCategory" (
+    "vendorServiceCategoryId" SERIAL NOT NULL,
+    "vendorServiceId" INTEGER NOT NULL,
+    "categoryId" INTEGER NOT NULL,
+    "price" DOUBLE PRECISION,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "VendorServiceCategory_pkey" PRIMARY KEY ("vendorServiceCategoryId")
+);
+
+-- CreateTable
+CREATE TABLE "VendorServiceSubcategory" (
+    "vendorServiceSubcategoryId" SERIAL NOT NULL,
+    "vendorServiceCategoryId" INTEGER NOT NULL,
+    "subCategoryId" INTEGER NOT NULL,
+    "categoryId" INTEGER NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "VendorServiceSubcategory_pkey" PRIMARY KEY ("vendorServiceSubcategoryId")
 );
 
 -- CreateTable
@@ -187,6 +256,10 @@ CREATE TABLE "Routes" (
     "id" SERIAL NOT NULL,
     "Route" TEXT NOT NULL,
     "roleId" INTEGER NOT NULL,
+    "label" TEXT NOT NULL,
+    "linkTo" TEXT NOT NULL,
+    "selectedOptionKey" TEXT NOT NULL,
+    "icon" TEXT NOT NULL,
 
     CONSTRAINT "Routes_pkey" PRIMARY KEY ("id")
 );
@@ -203,6 +276,12 @@ CREATE TABLE "RolePermissionMapping" (
 
     CONSTRAINT "RolePermissionMapping_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RefreshToken_refreshToken_key" ON "RefreshToken"("refreshToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Otp_otp_key" ON "Otp"("otp");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
@@ -228,17 +307,11 @@ CREATE UNIQUE INDEX "State_countryId_key" ON "State"("countryId");
 -- CreateIndex
 CREATE UNIQUE INDEX "City_stateId_key" ON "City"("stateId");
 
--- CreateIndex
-CREATE UNIQUE INDEX "RefreshToken_refreshToken_key" ON "RefreshToken"("refreshToken");
+-- AddForeignKey
+ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "RefreshToken_userMasterId_key" ON "RefreshToken"("userMasterId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Otp_userMasterId_key" ON "Otp"("userMasterId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Otp_otp_key" ON "Otp"("otp");
+-- AddForeignKey
+ALTER TABLE "Otp" ADD CONSTRAINT "Otp_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -274,10 +347,31 @@ ALTER TABLE "State" ADD CONSTRAINT "State_countryId_fkey" FOREIGN KEY ("countryI
 ALTER TABLE "City" ADD CONSTRAINT "City_stateId_fkey" FOREIGN KEY ("stateId") REFERENCES "State"("stateId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Category" ADD CONSTRAINT "Category_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Services"("serviceId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Otp" ADD CONSTRAINT "Otp_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "SubCategory" ADD CONSTRAINT "SubCategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorService" ADD CONSTRAINT "VendorService_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Services"("serviceId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorService" ADD CONSTRAINT "VendorService_vendorId_fkey" FOREIGN KEY ("vendorId") REFERENCES "Vendor"("vendorId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorServiceCategory" ADD CONSTRAINT "VendorServiceCategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorServiceCategory" ADD CONSTRAINT "VendorServiceCategory_vendorServiceId_fkey" FOREIGN KEY ("vendorServiceId") REFERENCES "VendorService"("vendorServiceId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_subCategoryId_fkey" FOREIGN KEY ("subCategoryId") REFERENCES "SubCategory"("subCategoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_vendorServiceCategoryId_fkey" FOREIGN KEY ("vendorServiceCategoryId") REFERENCES "VendorServiceCategory"("vendorServiceCategoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Routes" ADD CONSTRAINT "Routes_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
