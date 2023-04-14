@@ -5,4 +5,5 @@ export * from './rider-signup.dto';
 export * from './vendor-signup.dto';
 export * from './refresh-token-dto';
 export * from './reset-password.dto';
+export * from './forgot-password.dto';
 export * from './verify-email.dto';

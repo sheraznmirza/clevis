@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common/decorators';
+import {
+  UseGuards,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common/decorators';
 import { AuthService } from './auth.service';
 import { HttpStatus } from '@nestjs/common';
 import {
@@ -7,8 +15,10 @@ import {
   LoginDto,
   CustomerSignUpDto,
   RefreshDto,
-  VerifyEmailDto,
+  ForgotPasswordDto,
 } from './dto';
+import { JwtRefreshGuard } from './guard';
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -40,20 +50,27 @@ export class AuthController {
     return this.authService.signinVendor(dto);
   }
 
-  // @HttpCode(HttpStatus.OK)
-  // @Post('forgot/password')
-  // forgotPassword(@Body() dto: { email: string }) {
-  //   return this.authService.forgotPassword(dto);
-  // }
+  @HttpCode(HttpStatus.OK)
+  @Post('rider/login')
+  signinRider(@Body() dto: LoginDto) {
+    return this.authService.signinRider(dto);
+  }
 
+  @UseGuards(JwtRefreshGuard)
   @Post('/refresh')
   refreshTokens(@Body() refreshToken: RefreshDto) {
     return this.authService.refreshTokens(refreshToken);
   }
 
   @Post('/forgot-password')
-  forgotPassword(@Body() data: VerifyEmailDto) {
+  forgotPassword(@Body() data: ForgotPasswordDto) {
     return this.authService.forgotPassword(data);
+  }
+
+  @HttpCode(HttpStatus.ACCEPTED)
+  @Get('/verify-email/:id')
+  verifyEmail(@Param('id') id: string) {
+    return this.authService.verifyEmail(id);
   }
 
   // @Post('/logout')

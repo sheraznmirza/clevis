@@ -28,6 +28,11 @@ enum Status {
   REJECTED
 }
 
+enum EmailTemplates {
+  resetPassword
+  userRegistration
+}
+
 model UserMaster {
   userMasterId    Int            @id @default(autoincrement())
   email           String
@@ -44,10 +49,28 @@ model UserMaster {
   customer        Customer?
   vendor          Vendor?
   rider           Rider?
+  User            User?
   hashedRt        String?
   refreshToken    RefreshToken[]
-  User            User?
   Otp             Otp[]
+}
+
+model RefreshToken {
+  tokenId      String     @id @default(uuid())
+  userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
+  refreshToken String     @unique
+  userMasterId Int
+  createdAt    DateTime   @default(now())
+  deleted      Boolean    @default(false)
+}
+
+model Otp {
+  otpId        String     @id @default(uuid())
+  userMasterId Int
+  userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
+  otp          Int        @unique
+  createdAt    DateTime   @default(now())
+  expired      Boolean    @default(false)
 }
 
 model User {
@@ -69,9 +92,9 @@ model Customer {
 }
 
 model Vendor {
-  vendorId        Int           @id @default(autoincrement())
-  userMasterId    Int           @unique
-  userMaster      UserMaster    @relation(fields: userMasterId, references: userMasterId)
+  vendorId        Int             @id @default(autoincrement())
+  userMasterId    Int             @unique
+  userMaster      UserMaster      @relation(fields: userMasterId, references: userMasterId)
   fullName        String
   serviceType     ServiceType
   companyName     String
@@ -81,7 +104,8 @@ model Vendor {
   businessLicense String[]
   description     String
   userAddress     UserAddress[]
-  status          Status        @default(PENDING)
+  status          Status          @default(PENDING)
+  VendorService   VendorService[]
 }
 
 model Rider {
@@ -98,15 +122,6 @@ model Rider {
   description     String
   userAddress     UserAddress[]
   status          Status        @default(PENDING)
-}
-
-model Services {
-  serviceId   Int         @id @default(autoincrement())
-  serviceName String
-  serviceType ServiceType
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @default(now()) @updatedAt
-  isDeleted   Boolean     @default(false)
 }
 
 model UserAddress {
@@ -151,22 +166,80 @@ model City {
   UserAddress UserAddress[]
 }
 
-model RefreshToken {
-  tokenId      String     @id @default(uuid())
-  userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
-  refreshToken String     @unique
-  userMasterId Int        @unique
-  createdAt    DateTime   @default(now())
-  deleted      Boolean    @default(false)
+model Services {
+  serviceId     Int             @id @default(autoincrement())
+  serviceName   String          @unique
+  serviceType   ServiceType
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  isDeleted     Boolean         @default(false)
+  category      Category[]
+  VendorService VendorService[]
 }
 
-model Otp {
-  otpId        String     @id @default(uuid())
-  userMasterId Int
-  userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
-  otp          Int        @unique
-  createdAt    DateTime   @default(now())
-  expired      Boolean    @default(false)
+model Category {
+  categoryId               Int                        @id @default(autoincrement())
+  categoryName             String
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @default(now()) @updatedAt
+  isDeleted                Boolean                    @default(false)
+  serviceId                Int
+  service                  Services                   @relation(fields: [serviceId], references: [serviceId])
+  subCategory              SubCategory[]
+  vendorServiceCategory    VendorServiceCategory[]
+  VendorServiceSubcategory VendorServiceSubcategory[]
+}
+
+model SubCategory {
+  subCategoryId            Int                        @id @default(autoincrement())
+  subCategoryName          String
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @default(now()) @updatedAt
+  isDeleted                Boolean                    @default(false)
+  categoryId               Int
+  category                 Category                   @relation(fields: [categoryId], references: [categoryId])
+  VendorServiceSubcategory VendorServiceSubcategory[]
+}
+
+model VendorService {
+  vendorServiceId       Int                     @id @default(autoincrement())
+  vendorId              Int
+  serviceId             Int
+  description           String
+  serviceImage          String[]
+  service               Services                @relation(fields: [serviceId], references: [serviceId])
+  vendor                Vendor                  @relation(fields: [vendorId], references: [vendorId])
+  vendorServiceCategory VendorServiceCategory[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @default(now()) @updatedAt
+  isDeleted             Boolean                 @default(false)
+}
+
+model VendorServiceCategory {
+  vendorServiceCategoryId  Int                        @id @default(autoincrement())
+  vendorServiceId          Int
+  categoryId               Int
+  price                    Float?
+  Category                 Category                   @relation(fields: [categoryId], references: [categoryId])
+  VendorService            VendorService              @relation(fields: [vendorServiceId], references: [vendorServiceId])
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @default(now()) @updatedAt
+  isDeleted                Boolean                    @default(false)
+  VendorServiceSubcategory VendorServiceSubcategory[]
+}
+
+model VendorServiceSubcategory {
+  vendorServiceSubcategoryId Int                   @id @default(autoincrement())
+  vendorServiceCategoryId    Int
+  subCategoryId              Int
+  categoryId                 Int
+  price                      Float
+  category                   Category              @relation(fields: [categoryId], references: [categoryId])
+  subCategory                SubCategory           @relation(fields: [subCategoryId], references: [subCategoryId])
+  vendorServiceCategory      VendorServiceCategory @relation(fields: [vendorServiceCategoryId], references: [vendorServiceCategoryId])
+  createdAt                  DateTime              @default(now())
+  updatedAt                  DateTime              @default(now()) @updatedAt
+  isDeleted                  Boolean               @default(false)
 }
 
 model Role {
@@ -204,6 +277,10 @@ model Routes {
   role                  Role                    @relation(fields: [roleId], references: [id])
   roleId                Int
   RolePermissionMapping RolePermissionMapping[]
+  label                 String
+  linkTo                String
+  selectedOptionKey     String
+  icon                  String
 }
 
 model RolePermissionMapping {

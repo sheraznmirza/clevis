@@ -2,7 +2,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MAIL_ENV } from './mailconstant';
-import { VerifyEmailDto } from '../app/auth/dto';
+import { ForgotPasswordDto } from '../app/auth/dto';
+import { UserType } from '@prisma/client';
 
 @Injectable()
 export class MailService {
@@ -33,16 +34,15 @@ export class MailService {
   }
 
   async sendResetPasswordEmail(
-    resetPasswordDataDto: VerifyEmailDto,
+    resetPasswordDataDto: ForgotPasswordDto,
     otp: number,
   ) {
     try {
-      console.log('hello');
       await this.mailerService.sendMail({
         to: resetPasswordDataDto.email,
-        // from: this.configService.get('MAIL_FROM'),
+        from: this.configService.get('MAIL_FROM'),
         subject: `${this.configService.get('APP_NAME')} - Reset Your Password`,
-        template: 'reset-password', // `.hbs` extension is appended automatically
+        template: 'resetPassword', // `.hbs` extension is appended automatically
         context: {
           app_name: this.configService.get('APP_NAME'),
           app_url: this.configService.get('APP_URL'),
@@ -54,6 +54,7 @@ export class MailService {
         },
       });
     } catch (error) {
+      console.log('error: ', error);
       throw new ServiceUnavailableException('Unable to send email');
       // throwExceptionErrorUtil(error)
     }
@@ -79,24 +80,31 @@ export class MailService {
     }
   }
 
-  async sendUserRegistrationEmail(user) {
+  async sendUserVerificationEmail(
+    user: any,
+    userType: UserType,
+    encrypted: string,
+  ) {
     try {
       await this.mailerService.sendMail({
         to: user.email,
         from: MAIL_ENV.MAIL_FROM,
-        subject: `${
-          this.configService.get('APP_NAME') || process.env.APP_NAME
-        } - Registration Complete`,
-        template: 'user-registration', // `.hbs` extension is appended automatically
+        subject: `${this.configService.get(
+          'APP_NAME',
+        )} - Registration Complete`,
+        template: 'userRegistration', // `.hbs` extension is appended automatically
         context: {
-          app_name: this.configService.get('APP_NAME') || process.env.APP_NAME,
-          app_url: this.configService.get('APP_URL') || process.env.APP_URL,
-          first_name: user?.first_name,
+          app_name: this.configService.get('APP_NAME'),
+          app_url: `${this.configService.get(
+            'APP_URL',
+          )}/auth/verify-email/${encrypted}`,
+          first_name: user[userType.toLowerCase()].fullName,
           copyright_year: MAIL_ENV.COPYRIGHT_YEAR,
         },
       });
     } catch (error) {
-      // throwExceptionErrorUtil(error)
+      console.log('error: ', error);
+      throw new ServiceUnavailableException('Unable to send email');
     }
   }
 }
