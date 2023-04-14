@@ -307,6 +307,9 @@ CREATE UNIQUE INDEX "State_countryId_key" ON "State"("countryId");
 -- CreateIndex
 CREATE UNIQUE INDEX "City_stateId_key" ON "City"("stateId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
+
 -- AddForeignKey
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 

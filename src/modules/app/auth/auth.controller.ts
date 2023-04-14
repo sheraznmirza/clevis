@@ -16,9 +16,9 @@ import {
   CustomerSignUpDto,
   RefreshDto,
   ForgotPasswordDto,
-  VerifyEmailDto,
 } from './dto';
 import { JwtRefreshGuard } from './guard';
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -50,11 +50,11 @@ export class AuthController {
     return this.authService.signinVendor(dto);
   }
 
-  // @HttpCode(HttpStatus.OK)
-  // @Post('forgot/password')
-  // forgotPassword(@Body() dto: { email: string }) {
-  //   return this.authService.forgotPassword(dto);
-  // }
+  @HttpCode(HttpStatus.OK)
+  @Post('rider/login')
+  signinRider(@Body() dto: LoginDto) {
+    return this.authService.signinRider(dto);
+  }
 
   @UseGuards(JwtRefreshGuard)
   @Post('/refresh')
@@ -67,10 +67,9 @@ export class AuthController {
     return this.authService.forgotPassword(data);
   }
 
-  // @HttpCode(HttpStatus.ACCEPTED)
+  @HttpCode(HttpStatus.ACCEPTED)
   @Get('/verify-email/:id')
   verifyEmail(@Param('id') id: string) {
-    console.log(typeof id);
     return this.authService.verifyEmail(id);
   }
 

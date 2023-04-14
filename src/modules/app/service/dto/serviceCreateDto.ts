@@ -5,6 +5,11 @@ type SubCategoryType = {
   subCategoryName: string;
 };
 
+type CategoryType = {
+  categoryName: string;
+  subCategories?: SubCategoryType[];
+};
+
 export class ServiceCreateDto {
   @IsString()
   @IsNotEmpty()
@@ -14,11 +19,7 @@ export class ServiceCreateDto {
   @IsNotEmpty()
   serviceType: ServiceType;
 
-  @IsString()
-  @IsNotEmpty()
-  categoryName: string;
-
   @IsArray()
   @IsNotEmpty()
-  subCategory?: SubCategoryType[];
+  category: CategoryType[];
 }

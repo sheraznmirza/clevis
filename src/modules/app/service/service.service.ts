@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ServiceRepository } from './service.repository';
-import { ServiceCreateDto } from './dto';
+import { ServiceCreateDto, ServiceUpdateDto } from './dto';
 
 @Injectable()
 export class ServiceService {
@@ -10,5 +10,23 @@ export class ServiceService {
     private config: ConfigService,
   ) {}
 
-  async createService(data: ServiceCreateDto) {}
+  async createService(data: ServiceCreateDto) {
+    try {
+      const service = await this.repository.createService(data);
+      if (!service) {
+        throw new BadRequestException('Unable to create this service');
+      }
+      return { statusCode: 201, message: 'Service Successfully Created' };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateService(data: ServiceUpdateDto) {
+    try {
+      // await this.repository.updateService
+    } catch (error) {
+      throw error;
+    }
+  }
 }

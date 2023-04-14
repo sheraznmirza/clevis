@@ -14,6 +14,7 @@ import {
   RiderSignUpDto,
   RefreshDto,
   ForgotPasswordDto,
+  VerifyEmailDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -80,9 +81,7 @@ export class AuthService {
       });
       const response = await this.signToken(user.userMasterId, user.email);
       await this.updateRt(user.userMasterId, response.refreshToken);
-      console.log(this.decryptData('ae3bc27c6bd85fa97c8ae3a62e0b7549'));
       await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
-      // await this.mail.sendUserVerificationEmail(user, UserType.CUSTOMER);
       return {
         tokens: response,
         ...user,
@@ -425,7 +424,6 @@ export class AuthService {
           deleted: false,
         },
       });
-      console.log('previousRefreshToken: ', previousRefreshToken);
       if (!previousRefreshToken)
         throw new UnauthorizedException('Refresh token invalid');
 
@@ -488,6 +486,9 @@ export class AuthService {
       const user = await this.prisma.userMaster.findUnique({
         where: {
           userMasterId: masterId,
+        },
+        select: {
+          isEmailVerified: true,
         },
       });
 
