@@ -64,7 +64,7 @@ export class ServiceRepository {
     }
   }
 
-  async getAllService(page: number, take: number, search: string) {
+  async getAllService(page: number, take: number, search?: string) {
     try {
       return await this.prisma.services.findMany({
         take,

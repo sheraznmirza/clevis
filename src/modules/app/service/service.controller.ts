@@ -13,7 +13,7 @@ import { ServiceService } from './service.service';
 import { ServiceCreateDto, ServiceUpdateDto } from './dto';
 import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
-import { Roles } from 'src/core/decorators';
+import { Roles, Authorized } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
 
 @Controller('service')
@@ -21,25 +21,25 @@ import { RolesGuard } from 'src/core/guards';
 export class ServiceController {
   constructor(private serviceService: ServiceService) {}
 
-  @Roles(UserType.ADMIN)
+  @Authorized(UserType.ADMIN)
   @Post()
   createService(@Body() data: ServiceCreateDto) {
     return this.serviceService.createService(data);
   }
 
-  @Roles(UserType.ADMIN)
+  @Authorized(UserType.ADMIN)
   @Patch('/:id')
   updateService(@Param('id') id: number, @Body() data: ServiceUpdateDto) {
     return this.serviceService.updateService(id, data);
   }
 
-  @Roles(UserType.ADMIN, UserType.VENDOR)
+  @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get('/:id')
   getService(@Param('id') id: number) {
     return this.serviceService.getService(id);
   }
 
-  @Roles(UserType.ADMIN, UserType.VENDOR)
+  @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get()
   getAllService(
     @Query('page') page: number,
@@ -49,7 +49,7 @@ export class ServiceController {
     return this.serviceService.getAllService(page, take, search);
   }
 
-  @Roles(UserType.ADMIN)
+  @Authorized(UserType.ADMIN)
   @Delete('/:id')
   deleteService(@Param('id') id: number) {
     return this.serviceService.deleteService(id);

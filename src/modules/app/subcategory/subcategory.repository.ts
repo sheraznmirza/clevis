@@ -54,7 +54,7 @@ export class SubcategoryRepository {
     }
   }
 
-  async getAllSubcategory(page: number, take: number, search: string) {
+  async getAllSubcategory(page: number, take: number, search?: string) {
     try {
       return await this.prisma.subCategory.findMany({
         take,

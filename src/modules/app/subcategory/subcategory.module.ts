@@ -7,4 +7,4 @@ import { SubcategoryController } from './subcategory.controller';
   providers: [SubcategoryService, SubcategoryRepository],
   controllers: [SubcategoryController],
 })
-export class ServiceModule {}
+export class SubcategoryModule {}

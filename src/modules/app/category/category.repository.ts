@@ -52,7 +52,7 @@ export class CategoryRepository {
     }
   }
 
-  async getAllCategory(page: number, take: number, search: string) {
+  async getAllCategory(page: number, take: number, search?: string) {
     try {
       return await this.prisma.category.findMany({
         take,
