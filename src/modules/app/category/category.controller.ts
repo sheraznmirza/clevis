@@ -1,34 +1,57 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  UseGuards,
+  Body,
+  Param,
+  Controller,
+  Post,
+  Patch,
+  Get,
+  Query,
+  Delete,
+} from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CategoryCreateDto, CategoryUpdateDto } from './dto';
+import { JwtGuard } from '../auth/guard';
+import { UserType } from '@prisma/client';
+import { Roles } from 'src/core/decorators';
+import { RolesGuard } from 'src/core/guards';
 
 @Controller('category')
+@UseGuards(JwtGuard, RolesGuard)
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(private categoryService: CategoryService) {}
 
+  @Roles(UserType.ADMIN)
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
+  createCategory(@Body() data: CategoryCreateDto) {
+    return this.categoryService.createCategory(data);
   }
 
+  @Roles(UserType.ADMIN)
+  @Patch('/:id')
+  updateCategory(@Param('id') id: number, @Body() data: CategoryUpdateDto) {
+    return this.categoryService.updateCategory(id, data);
+  }
+
+  @Roles(UserType.ADMIN, UserType.VENDOR)
+  @Get('/:id')
+  getCategory(@Param('id') id: number) {
+    return this.categoryService.getCategory(id);
+  }
+
+  @Roles(UserType.ADMIN, UserType.VENDOR)
   @Get()
-  findAll() {
-    return this.categoryService.findAll();
+  getAllCategory(
+    @Query('page') page: number,
+    @Query('take') take: number,
+    @Query('search') search?: string,
+  ) {
+    return this.categoryService.getAllCategory(page, take, search);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoryService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoryService.update(+id, updateCategoryDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(+id);
+  @Roles(UserType.ADMIN)
+  @Delete('/:id')
+  deleteCategory(@Param('id') id: number) {
+    return this.categoryService.deleteCategory(id);
   }
 }

@@ -1,12 +1,12 @@
 import { ServiceType } from '@prisma/client';
 import { IsString, IsNotEmpty } from 'class-validator';
 
-export class ServiceCreateDto {
+export class CategoryUpdateDto {
   @IsString()
   @IsNotEmpty()
-  serviceName: string;
+  categoryName?: string;
 
   @IsString()
   @IsNotEmpty()
-  serviceType: ServiceType;
+  serviceType?: ServiceType;
 }

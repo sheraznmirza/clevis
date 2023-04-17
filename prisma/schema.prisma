@@ -173,19 +173,16 @@ model Services {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @default(now()) @updatedAt
   isDeleted     Boolean         @default(false)
-  category      Category[]
   VendorService VendorService[]
 }
 
 model Category {
   categoryId               Int                        @id @default(autoincrement())
   categoryName             String
+  serviceType              ServiceType
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @default(now()) @updatedAt
   isDeleted                Boolean                    @default(false)
-  serviceId                Int
-  service                  Services                   @relation(fields: [serviceId], references: [serviceId])
-  subCategory              SubCategory[]
   vendorServiceCategory    VendorServiceCategory[]
   VendorServiceSubcategory VendorServiceSubcategory[]
 }
@@ -193,11 +190,10 @@ model Category {
 model SubCategory {
   subCategoryId            Int                        @id @default(autoincrement())
   subCategoryName          String
+  serviceType              ServiceType
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @default(now()) @updatedAt
   isDeleted                Boolean                    @default(false)
-  categoryId               Int
-  category                 Category                   @relation(fields: [categoryId], references: [categoryId])
   VendorServiceSubcategory VendorServiceSubcategory[]
 }
 
