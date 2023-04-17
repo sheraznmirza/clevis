@@ -1,22 +1,7 @@
 import { ServiceType } from '@prisma/client';
-import { IsString, IsNotEmpty, IsArray, IsNumber } from 'class-validator';
-
-type SubCategoryType = {
-  subCategoryId: number;
-  subCategoryName: string;
-};
-
-type CategoryType = {
-  categoryName: string;
-  categoryId: number;
-  subCategories?: SubCategoryType[];
-};
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class ServiceUpdateDto {
-  @IsNumber()
-  @IsNotEmpty()
-  serviceId: number;
-
   @IsString()
   @IsNotEmpty()
   serviceName?: string;
@@ -24,12 +9,4 @@ export class ServiceUpdateDto {
   @IsString()
   @IsNotEmpty()
   serviceType?: ServiceType;
-
-  @IsString()
-  @IsNotEmpty()
-  categoryName?: string;
-
-  @IsArray()
-  @IsNotEmpty()
-  subCategory?: SubCategoryType[];
 }

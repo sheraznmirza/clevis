@@ -9,8 +9,8 @@ import {
   Query,
   Delete,
 } from '@nestjs/common';
-import { ServiceService } from './service.service';
-import { ServiceCreateDto, ServiceUpdateDto } from './dto';
+import { SubcategoryService } from './subcategory.service';
+import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
 import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
 import { Roles } from 'src/core/decorators';
@@ -18,25 +18,25 @@ import { RolesGuard } from 'src/core/guards';
 
 @Controller('service')
 @UseGuards(JwtGuard, RolesGuard)
-export class ServiceController {
-  constructor(private serviceService: ServiceService) {}
+export class SubcategoryController {
+  constructor(private subcategoryService: SubcategoryService) {}
 
   @Roles(UserType.ADMIN)
   @Post()
-  createService(@Body() data: ServiceCreateDto) {
-    return this.serviceService.createService(data);
+  createService(@Body() data: SubcategoryCreateDto) {
+    return this.subcategoryService.createSubcategory(data);
   }
 
   @Roles(UserType.ADMIN)
   @Patch('/:id')
-  updateService(@Param('id') id: number, @Body() data: ServiceUpdateDto) {
-    return this.serviceService.updateService(id, data);
+  updateService(@Param('id') id: number, @Body() data: SubcategoryUpdateDto) {
+    return this.subcategoryService.updateSubcategory(id, data);
   }
 
   @Roles(UserType.ADMIN, UserType.VENDOR)
   @Get('/:id')
   getService(@Param('id') id: number) {
-    return this.serviceService.getService(id);
+    return this.subcategoryService.getSubcategory(id);
   }
 
   @Roles(UserType.ADMIN, UserType.VENDOR)
@@ -46,12 +46,12 @@ export class ServiceController {
     @Query('take') take: number,
     @Query('search') search?: string,
   ) {
-    return this.serviceService.getAllService(page, take, search);
+    return this.subcategoryService.getAllSubcategory(page, take, search);
   }
 
   @Roles(UserType.ADMIN)
   @Delete('/:id')
   deleteService(@Param('id') id: number) {
-    return this.serviceService.deleteService(id);
+    return this.subcategoryService.deleteSubcategory(id);
   }
 }

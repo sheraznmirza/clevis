@@ -1,14 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ServiceRepository } from './service.repository';
 import { ServiceCreateDto, ServiceUpdateDto } from './dto';
 
 @Injectable()
 export class ServiceService {
-  constructor(
-    private repository: ServiceRepository,
-    private config: ConfigService,
-  ) {}
+  constructor(private repository: ServiceRepository) {}
 
   async createService(data: ServiceCreateDto) {
     try {
@@ -22,9 +18,31 @@ export class ServiceService {
     }
   }
 
-  async updateService(data: ServiceUpdateDto) {
+  async updateService(id: number, data: ServiceUpdateDto) {
     try {
-      // await this.repository.updateService
+      return await this.repository.updateService(id, data);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getService(id: number) {
+    try {
+      return await this.repository.getService(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllService(page: number, take: number, search?: string) {
+    try {
+      return await this.repository.getAllService(page, take, search);
+    } catch (error) {}
+  }
+
+  async deleteService(id: number) {
+    try {
+      return await this.repository.deleteService(id);
     } catch (error) {
       throw error;
     }

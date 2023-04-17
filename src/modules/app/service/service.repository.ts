@@ -1,81 +1,102 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { ServiceCreateDto, ServiceUpdateDto } from './dto';
 
 @Injectable()
 export class ServiceRepository {
-  constructor(private prisma: PrismaService, private config: ConfigService) {}
+  constructor(private prisma: PrismaService) {}
 
   async createService(data: ServiceCreateDto) {
     try {
-      const service = await this.prisma.services.create({
+      await this.prisma.services.create({
         data: {
           serviceName: data.serviceName,
           serviceType: data.serviceType,
         },
-        select: { serviceId: true },
       });
 
-      data.category.forEach(async (ctx) => {
-        await this.prisma.category.create({
-          data: {
-            categoryName: ctx.categoryName,
-            serviceId: service.serviceId,
-            ...(ctx.subCategories.length && {
-              subCategory: { createMany: { data: ctx.subCategories } },
-            }),
-          },
-        });
-      });
+      // data.category.forEach(async (ctx) => {
+      //   await this.prisma.category.create({
+      //     data: {
+      //       categoryName: ctx.categoryName,
+      //       serviceId: service.serviceId,
+      //       ...(ctx.subCategories.length && {
+      //         subCategory: { createMany: { data: ctx.subCategories } },
+      //       }),
+      //     },
+      //   });
+      // });
 
       return true;
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ForbiddenException('Service is already created');
+      }
+      return false;
+    }
+  }
+
+  async updateService(id: number, data: ServiceUpdateDto) {
+    try {
+      await this.prisma.services.update({
+        where: {
+          serviceId: id,
+        },
+        data: {
+          ...(data.serviceName && { serviceName: data.serviceName }),
+          ...(data.serviceType && { serviceType: data.serviceType }),
+        },
+      });
     } catch (error) {
       return false;
     }
   }
 
-  async updateService(data: ServiceUpdateDto) {
+  async getService(id: number) {
     try {
-      // await this.prisma.services.update({
-      //   where: {
-      //     serviceId: data.serviceId
-      //   },
-      //   data: {
-      //     category: {
-      //       upsert: {
-      //         where: {
-      //           categoryId: data.
-      //         },
-      //         update: {
-      //         },
-      //         create: {
-      //         },
-      //       }
-      //     }
-      //   }
-      // })
-      // return await this.prisma.services.update({
-      //   data: {
-      //     serviceName: data.serviceName,
-      //     serviceType: data.serviceType,
-      //     category: {
-      //       update: {
-      //         categoryName: data.categoryName,
-      //         ...(data.subCategory.length && {
-      //           subCategory: {
-      //             updateMany: {
-      //               data: data.subCategory,
-      //             },
-      //           },
-      //         }),
-      //       },
-      //     },
-      //   },
-      //   where: {
-      //     serviceId: data.serviceId,
-      //   },
-      // });
+      return await this.prisma.services.findUnique({
+        where: {
+          serviceId: id,
+        },
+      });
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async getAllService(page: number, take: number, search: string) {
+    try {
+      return await this.prisma.services.findMany({
+        take,
+        skip: take * page,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        ...(search.length && {
+          where: {
+            isDeleted: false,
+            serviceName: {
+              contains: search,
+            },
+          },
+        }),
+      });
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async deleteService(id: number) {
+    try {
+      await this.prisma.services.update({
+        where: {
+          serviceId: id,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+      return true;
     } catch (error) {
       return false;
     }
