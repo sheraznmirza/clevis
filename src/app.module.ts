@@ -5,6 +5,8 @@ import { UserModule } from './modules/app/user/user.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { ServiceModule } from './modules/app/service/service.module';
 import { CategoryModule } from './modules/app/category/category.module';
+import { SubcategoryModule } from './modules/app/subcategory/subcategory.module';
+import { MediaModule } from './modules/app/media/media.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { CategoryModule } from './modules/app/category/category.module';
     PrismaModule,
     ServiceModule,
     CategoryModule,
+    SubcategoryModule,
+    MediaModule,
   ],
 })
 export class AppModule {}
