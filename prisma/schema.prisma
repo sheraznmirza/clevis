@@ -45,7 +45,7 @@ model UserMaster {
   email           String
   isEmailVerified Boolean        @default(false)
   password        String
-  profileImageId  Int?
+  profileImage    Int?
   userType        UserType       @default(CUSTOMER)
   phone           String
   location        String
@@ -106,9 +106,9 @@ model Vendor {
   serviceType     ServiceType
   companyName     String
   companyEmail    String
-  logo            String
-  workspaceImages String[]
-  businessLicense String[]
+  logo            Int
+  workspaceImages Int[]
+  businessLicense Int[]
   description     String
   userAddress     UserAddress[]
   status          Status          @default(PENDING)
@@ -123,9 +123,9 @@ model Rider {
   serviceType     ServiceType
   companyName     String
   companyEmail    String
-  logo            String
-  workspaceImages String[]
-  businessLicense String[]
+  logo            Int
+  workspaceImages Int[]
+  businessLicense Int[]
   description     String
   userAddress     UserAddress[]
   status          Status        @default(PENDING)

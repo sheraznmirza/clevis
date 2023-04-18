@@ -118,7 +118,7 @@ export class AuthService {
               logo: dto.logo,
               workspaceImages: dto.workspaceImages,
               businessLicense: dto.businessLicense,
-              description: dto.businessLicense,
+              description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
                 create: {
@@ -197,7 +197,7 @@ export class AuthService {
               logo: dto.logo,
               workspaceImages: dto.workspaceImages,
               businessLicense: dto.businessLicense,
-              description: dto.businessLicense,
+              description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
                 create: {

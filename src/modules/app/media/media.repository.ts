@@ -12,7 +12,7 @@ export class MediaRepository {
 
   async create(createMediaDto: CreateMediaDto) {
     try {
-      const data = this.prisma.media.create({
+      const data = await this.prisma.media.create({
         data: {
           path: createMediaDto.path,
           type: createMediaDto.type,
@@ -23,7 +23,22 @@ export class MediaRepository {
           type: true,
         },
       });
-      console.log('data: ', data);
+      return data;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async createMany(createMediaDto: CreateMediaDto) {
+    try {
+      const data = await this.prisma.media.createMany({
+        data: [
+          {
+            path: createMediaDto.path,
+            type: createMediaDto.type,
+          },
+        ],
+      });
       return data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
