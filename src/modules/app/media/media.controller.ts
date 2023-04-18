@@ -1,16 +1,9 @@
 import {
   Controller,
-  Get,
   Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
   UploadedFile,
   UseInterceptors,
   UploadedFiles,
-  Req,
-  UseGuards,
 } from '@nestjs/common';
 import { MediaService } from './media.service';
 import { Express } from 'express';
@@ -66,8 +59,7 @@ export class MediaController {
     return await Promise.all(
       files.map(async (file) => {
         const payload = getFileData(file);
-        const data = await this.mediaService.uploadFile(await payload);
-        // return successApiWrapper(mediaSingleMapper(data));
+        const data = await this.mediaService.uploadManyFiles(await payload);
         return data;
       }),
     );

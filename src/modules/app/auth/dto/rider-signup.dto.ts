@@ -6,6 +6,7 @@ import {
   MaxLength,
   MinLength,
   IsNumber,
+  IsArray,
 } from 'class-validator';
 
 export class RiderSignUpDto {
@@ -48,17 +49,17 @@ export class RiderSignUpDto {
   @IsNotEmpty()
   companyEmail: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  logo: string;
+  logo: number;
 
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  workspaceImages: string[];
+  workspaceImages: number[];
 
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
-  businessLicense: string;
+  businessLicense: number[];
 
   @IsString()
   @IsNotEmpty()

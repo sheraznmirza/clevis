@@ -4,6 +4,8 @@ import {
   UnauthorizedException,
   NotFoundException,
   ConflictException,
+  BadRequestException,
+  RequestTimeoutException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -14,13 +16,15 @@ import {
   RiderSignUpDto,
   RefreshDto,
   ForgotPasswordDto,
-  VerifyEmailDto,
+  ResetPasswordDataDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { UserType } from '@prisma/client';
 import { MailService } from 'src/modules/mail/mail.service';
 import { createCipheriv, createDecipheriv } from 'crypto';
+import * as dayjs from 'dayjs';
+import { successResponse } from 'src/helpers/response.helper';
 
 @Injectable()
 export class AuthService {
@@ -114,7 +118,7 @@ export class AuthService {
               logo: dto.logo,
               workspaceImages: dto.workspaceImages,
               businessLicense: dto.businessLicense,
-              description: dto.businessLicense,
+              description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
                 create: {
@@ -193,7 +197,7 @@ export class AuthService {
               logo: dto.logo,
               workspaceImages: dto.workspaceImages,
               businessLicense: dto.businessLicense,
-              description: dto.businessLicense,
+              description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
                 create: {
@@ -473,7 +477,9 @@ export class AuthService {
           otp: randomOtp,
         },
       });
+
       await this.mail.sendResetPasswordEmail(data, randomOtp);
+      return successResponse(200, 'OTP sent to your email');
     } catch (error) {
       throw error;
     }
@@ -507,6 +513,48 @@ export class AuthService {
           message: 'Email successfully verified!',
         };
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async resetPassword(data: ResetPasswordDataDto) {
+    try {
+      const otp = await this.prisma.otp.findUnique({
+        where: {
+          otp: data.otp,
+        },
+        select: {
+          expired: true,
+          createdAt: true,
+          userMasterId: true,
+        },
+      });
+
+      if (!otp) {
+        throw new NotFoundException('OTP does not exist');
+      }
+
+      if (otp.expired) {
+        throw new RequestTimeoutException('OTP has already expired');
+      }
+
+      if (dayjs().diff(otp.createdAt, 'minute') > 9) {
+        await this.prisma.otp.update({
+          where: {
+            otp: data.otp,
+          },
+          data: {
+            expired: true,
+          },
+        });
+
+        throw new RequestTimeoutException('OTP has already expired');
+      }
+
+      await this.updatePassword(otp.userMasterId, data.password);
+
+      return successResponse(200, 'Password successfully reset.');
     } catch (error) {
       throw error;
     }
