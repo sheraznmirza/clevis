@@ -1,7 +1,23 @@
-import { IsNotEmpty, IsEmail } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class ResetPasswordDataDto {
-  @IsEmail()
+  @IsString()
   @IsNotEmpty()
-  email: string;
+  @MinLength(6)
+  @MaxLength(50)
+  password: string;
+
+  @IsNumber()
+  @Min(10000000)
+  @Max(99999999)
+  otp: number;
 }

@@ -16,6 +16,7 @@ import {
   CustomerSignUpDto,
   RefreshDto,
   ForgotPasswordDto,
+  ResetPasswordDataDto,
 } from './dto';
 import { JwtRefreshGuard } from './guard';
 
@@ -62,9 +63,16 @@ export class AuthController {
     return this.authService.refreshTokens(refreshToken);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('/forgot-password')
   forgotPassword(@Body() data: ForgotPasswordDto) {
     return this.authService.forgotPassword(data);
+  }
+
+  @HttpCode(HttpStatus.ACCEPTED)
+  @Post('/reset-password')
+  resetPassword(@Body() data: ResetPasswordDataDto) {
+    return this.authService.resetPassword(data);
   }
 
   @HttpCode(HttpStatus.ACCEPTED)

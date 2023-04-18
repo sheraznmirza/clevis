@@ -45,7 +45,7 @@ model UserMaster {
   email           String
   isEmailVerified Boolean        @default(false)
   password        String
-  profileImage    String?
+  profileImageId  Int?
   userType        UserType       @default(CUSTOMER)
   phone           String
   location        String
