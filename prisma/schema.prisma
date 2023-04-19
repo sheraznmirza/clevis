@@ -75,7 +75,7 @@ model Otp {
   otpId        String     @id @default(uuid())
   userMasterId Int
   userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
-  otp          Int        @unique
+  otp          Int
   createdAt    DateTime   @default(now())
   expired      Boolean    @default(false)
 }
@@ -160,7 +160,7 @@ model Country {
 model State {
   stateId   Int     @id
   stateName String
-  countryId Int     @unique
+  countryId Int
   country   Country @relation(fields: [countryId], references: [countryId])
   cities    City[]
 }
@@ -169,7 +169,7 @@ model City {
   cityId      Int           @id
   cityName    String
   State       State?        @relation(fields: [stateId], references: [stateId])
-  stateId     Int?          @unique
+  stateId     Int?
   UserAddress UserAddress[]
 }
 
@@ -300,10 +300,14 @@ model RolePermissionMapping {
 }
 
 model Media {
-  id        Int       @id @default(autoincrement())
-  path      String    @unique
-  type      MediaType
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  isDeleted Boolean   @default(false)
+  id           Int       @id @default(autoincrement())
+  originalName String
+  fileName     String
+  encoding     String
+  size         Int
+  path         String    @unique
+  type         MediaType
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  isDeleted    Boolean   @default(false)
 }

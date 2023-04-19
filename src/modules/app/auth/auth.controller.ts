@@ -19,7 +19,9 @@ import {
   ResetPasswordDataDto,
 } from './dto';
 import { JwtRefreshGuard } from './guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}

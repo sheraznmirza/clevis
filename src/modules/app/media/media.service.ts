@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { MediaRepository } from './media.repository';
+import { CreateManyMediasDto } from './dto';
 
 @Injectable()
 export class MediaService {
@@ -16,10 +17,10 @@ export class MediaService {
     }
   }
 
-  async uploadManyFiles(createMediaDto: CreateMediaDto) {
+  async uploadManyFiles(dto: CreateManyMediasDto) {
+    console.log('dto: ', dto);
     try {
-      console.log('createMediaDto: ', createMediaDto);
-      const data = this.mediaRepository.createMany(createMediaDto);
+      const data = await this.mediaRepository.createMany(dto);
       return data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

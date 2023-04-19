@@ -15,7 +15,9 @@ import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
 import { Roles } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Category')
 @Controller('category')
 @UseGuards(JwtGuard, RolesGuard)
 export class CategoryController {

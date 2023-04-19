@@ -7,6 +7,7 @@ import { ServiceModule } from './modules/app/service/service.module';
 import { CategoryModule } from './modules/app/category/category.module';
 import { SubcategoryModule } from './modules/app/subcategory/subcategory.module';
 import { MediaModule } from './modules/app/media/media.module';
+import { AddressModule } from './modules/app/country/address.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MediaModule } from './modules/app/media/media.module';
     CategoryModule,
     SubcategoryModule,
     MediaModule,
+    AddressModule,
   ],
 })
 export class AppModule {}

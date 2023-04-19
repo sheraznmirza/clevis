@@ -15,31 +15,33 @@ import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
 import { Roles, Authorized } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Servicess')
 @Controller('service')
 @UseGuards(JwtGuard, RolesGuard)
 export class ServiceController {
   constructor(private serviceService: ServiceService) {}
 
-  @Authorized(UserType.ADMIN)
+  @Roles(UserType.ADMIN)
   @Post()
   createService(@Body() data: ServiceCreateDto) {
     return this.serviceService.createService(data);
   }
 
-  @Authorized(UserType.ADMIN)
+  @Roles(UserType.ADMIN)
   @Patch('/:id')
   updateService(@Param('id') id: number, @Body() data: ServiceUpdateDto) {
     return this.serviceService.updateService(id, data);
   }
 
-  @Authorized([UserType.ADMIN, UserType.VENDOR])
+  // @Roles([UserType.ADMIN, UserType.VENDOR])
   @Get('/:id')
   getService(@Param('id') id: number) {
     return this.serviceService.getService(id);
   }
 
-  @Authorized([UserType.ADMIN, UserType.VENDOR])
+  // @Roles([UserType.ADMIN, UserType.VENDOR])
   @Get()
   getAllService(
     @Query('page') page: number,
@@ -49,7 +51,7 @@ export class ServiceController {
     return this.serviceService.getAllService(page, take, search);
   }
 
-  @Authorized(UserType.ADMIN)
+  @Roles(UserType.ADMIN)
   @Delete('/:id')
   deleteService(@Param('id') id: number) {
     return this.serviceService.deleteService(id);

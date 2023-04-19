@@ -45,7 +45,7 @@ export class VendorSignUpDto {
   @MaxLength(50)
   companyName: string;
 
-  @IsString()
+  @IsEmail()
   @IsNotEmpty()
   companyEmail: string;
 
@@ -66,6 +66,6 @@ export class VendorSignUpDto {
   @MaxLength(100)
   description: string;
 
-  @IsNumber()
-  cityId: number;
+  // @IsNumber()
+  // cityId: number;
 }

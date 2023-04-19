@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { CreateMediaDto, UpdateMediaDto } from './dto';
+import { CreateManyMediasDto, CreateMediaDto, UpdateMediaDto } from './dto';
 
 @Injectable()
 export class MediaRepository {
@@ -16,6 +16,10 @@ export class MediaRepository {
         data: {
           path: createMediaDto.path,
           type: createMediaDto.type,
+          fileName: createMediaDto.fileName,
+          originalName: createMediaDto.originalName,
+          encoding: createMediaDto.encoding,
+          size: createMediaDto.size,
         },
         select: {
           id: true,
@@ -29,15 +33,11 @@ export class MediaRepository {
     }
   }
 
-  async createMany(createMediaDto: CreateMediaDto) {
+  async createMany(dto: CreateManyMediasDto) {
+    // dto.files.
     try {
       const data = await this.prisma.media.createMany({
-        data: [
-          {
-            path: createMediaDto.path,
-            type: createMediaDto.type,
-          },
-        ],
+        data: dto.files,
       });
       return data;
     } catch (error) {

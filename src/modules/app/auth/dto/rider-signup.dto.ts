@@ -45,7 +45,7 @@ export class RiderSignUpDto {
   @MaxLength(50)
   companyName: string;
 
-  @IsString()
+  @IsEmail()
   @IsNotEmpty()
   companyEmail: string;
 

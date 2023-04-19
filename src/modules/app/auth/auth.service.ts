@@ -20,7 +20,7 @@ import {
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
-import { UserType } from '@prisma/client';
+import { Status, UserType } from '@prisma/client';
 import { MailService } from 'src/modules/mail/mail.service';
 import { createCipheriv, createDecipheriv } from 'crypto';
 import * as dayjs from 'dayjs';
@@ -72,7 +72,7 @@ export class AuthService {
                 select: {
                   userAddressId: true,
                   fullAddress: true,
-                  cityId: true,
+                  // cityId: true,
                   longitude: true,
                   latitude: true,
                 },
@@ -123,7 +123,7 @@ export class AuthService {
               userAddress: {
                 create: {
                   fullAddress: dto.userAddress,
-                  cityId: dto.cityId,
+                  // cityId: dto.cityId,
                 },
               },
             },
@@ -143,7 +143,7 @@ export class AuthService {
                 select: {
                   userAddressId: true,
                   fullAddress: true,
-                  cityId: true,
+                  // cityId: true,
                   longitude: true,
                   latitude: true,
                 },
@@ -161,13 +161,17 @@ export class AuthService {
           },
         },
       });
-      const response = await this.signToken(user.userMasterId, user.email);
-      await this.updateRt(user.userMasterId, response.refreshToken);
+      // const response = await this.signToken(user.userMasterId, user.email);
+      // await this.updateRt(user.userMasterId, response.refreshToken);
       await this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      return {
-        tokens: response,
-        ...user,
-      };
+      // return {
+      //   tokens: response,
+      //   ...user,
+      // };
+      return successResponse(
+        201,
+        'Vendor successfully created, you will receive an email when the admin reviews and approves your profile.',
+      );
     } catch (error) {
       console.log('error: ', error);
       if (error.code === 'P2002') {
@@ -202,7 +206,7 @@ export class AuthService {
               userAddress: {
                 create: {
                   fullAddress: dto.userAddress,
-                  cityId: dto.cityId,
+                  // cityId: dto.cityId,
                 },
               },
             },
@@ -222,7 +226,7 @@ export class AuthService {
                 select: {
                   userAddressId: true,
                   fullAddress: true,
-                  cityId: true,
+                  // cityId: true,
                   longitude: true,
                   latitude: true,
                 },
@@ -291,8 +295,9 @@ export class AuthService {
 
     const response = await this.signToken(user.userMasterId, user.email);
     await this.updateRt(user.userMasterId, response.refreshToken);
+    const profileImage = await this.getImages(user.profileImage);
     delete user.password;
-    return { tokens: response, ...user };
+    return { tokens: response, ...user, profileImage };
   }
 
   async signinVendor(dto: LoginDto) {
@@ -325,7 +330,7 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                cityId: true,
+                // cityId: true,
                 longitude: true,
                 latitude: true,
               },
@@ -338,22 +343,35 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    if (user.vendor.status !== Status.APPROVED)
+      throw new UnauthorizedException(
+        `Vendor has ${
+          user.vendor.status === Status.PENDING
+            ? 'not yet been approved'
+            : 'been rejected'
+        } by the admin.`,
+      );
+
     const pwMatches = await argon.verify(user.password, dto.password);
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
     const response = await this.signToken(user.userMasterId, user.email);
     await this.updateRt(user.userMasterId, response.refreshToken);
-    const vendor = await this.prisma.vendor.findUnique({
-      where: {
-        userMasterId: user.userMasterId,
-      },
-    });
+    const profileImage = await this.getImages(user.profileImage);
+    const businessLicense = await this.getImages(user.vendor.businessLicense);
+    const workspaceImages = await this.getImages(user.vendor.workspaceImages);
+
     delete user.password;
     return {
       tokens: response,
       ...user,
-      ...vendor,
+      profileImage,
+      vendor: {
+        ...user.vendor,
+        businessLicense,
+        workspaceImages,
+      },
     };
   }
 
@@ -387,7 +405,7 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                cityId: true,
+                // cityId: true,
                 longitude: true,
                 latitude: true,
               },
@@ -400,22 +418,35 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    if (user.rider.status !== Status.APPROVED)
+      throw new UnauthorizedException(
+        `Rider has ${
+          user.rider.status === Status.PENDING
+            ? 'not yet been approved'
+            : 'been rejected'
+        } by the admin.`,
+      );
+
     const pwMatches = await argon.verify(user.password, dto.password);
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
     const response = await this.signToken(user.userMasterId, user.email);
     await this.updateRt(user.userMasterId, response.refreshToken);
-    const rider = await this.prisma.rider.findUnique({
-      where: {
-        userMasterId: user.userMasterId,
-      },
-    });
+    const profileImage = await this.getImages(user.profileImage);
+    const businessLicense = await this.getImages(user.rider.businessLicense);
+    const workspaceImages = await this.getImages(user.rider.workspaceImages);
     delete user.password;
+
     return {
       tokens: response,
       ...user,
-      ...rider,
+      profileImage,
+      rider: {
+        ...user.rider,
+        businessLicense,
+        workspaceImages,
+      },
     };
   }
 
@@ -459,7 +490,7 @@ export class AuthService {
 
   async forgotPassword(data: ForgotPasswordDto) {
     try {
-      const randomOtp = Math.floor(Math.random() * 100000000);
+      const randomOtp = Math.floor(Math.random() * 10000);
       const user = await this.prisma.userMaster.findFirst({
         where: {
           email: data.email,
@@ -477,7 +508,7 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-
+      await this.updatePassword(user.userMasterId, randomOtp.toString());
       await this.mail.sendResetPasswordEmail(data, randomOtp);
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
@@ -520,29 +551,27 @@ export class AuthService {
 
   async resetPassword(data: ResetPasswordDataDto) {
     try {
-      const otp = await this.prisma.otp.findUnique({
+      const otp = await this.prisma.otp.findFirst({
         where: {
           otp: data.otp,
+          expired: false,
         },
         select: {
           expired: true,
           createdAt: true,
           userMasterId: true,
+          otpId: true,
         },
       });
 
       if (!otp) {
-        throw new NotFoundException('OTP does not exist');
-      }
-
-      if (otp.expired) {
-        throw new RequestTimeoutException('OTP has already expired');
+        throw new NotFoundException('OTP does not exist or has expired');
       }
 
       if (dayjs().diff(otp.createdAt, 'minute') > 9) {
         await this.prisma.otp.update({
           where: {
-            otp: data.otp,
+            otpId: otp.otpId,
           },
           data: {
             expired: true,
@@ -632,6 +661,45 @@ export class AuthService {
         expired: true,
       },
     });
+  }
+
+  async getImages(imageId: number[] | number) {
+    try {
+      if (!imageId) return null;
+      const image = Array.isArray(imageId)
+        ? await this.prisma.media.findMany({
+            where: {
+              id: {
+                in: imageId,
+              },
+            },
+            select: {
+              id: true,
+              originalName: true,
+              fileName: true,
+              path: true,
+              type: true,
+              size: true,
+            },
+          })
+        : await this.prisma.media.findUnique({
+            where: {
+              id: imageId,
+            },
+            select: {
+              id: true,
+              originalName: true,
+              fileName: true,
+              path: true,
+              type: true,
+              size: true,
+            },
+          });
+
+      return image || null;
+    } catch (error) {
+      throw error;
+    }
   }
 
   encryptData(data: string) {

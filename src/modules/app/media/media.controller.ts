@@ -10,7 +10,9 @@ import { Express } from 'express';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { getFileData, storage } from 'src/helpers/file.helper';
 import { successResponse } from 'src/helpers/response.helper';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Media')
 @Controller('media')
 // @ApiTags('Media')
 export class MediaController {
@@ -56,12 +58,21 @@ export class MediaController {
   // })
   @UseInterceptors(FilesInterceptor('files', 20, { storage: storage }))
   async uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
-    return await Promise.all(
+    console.log('files: ', files);
+    const mappedFiles = await Promise.all(
       files.map(async (file) => {
-        const payload = getFileData(file);
-        const data = await this.mediaService.uploadManyFiles(await payload);
-        return data;
+        return await getFileData(file);
       }),
     );
+
+    console.log('mappedFiles: ', mappedFiles);
+    return await this.mediaService.uploadManyFiles({ files: mappedFiles });
+    // return await Promise.all(
+    //   files.map(async (file) => {
+    //     const payload = getFileData(file);
+    //     const data = await this.mediaService.uploadManyFiles(await mappedFiles);
+    //     return data;
+    //   }),
+    // );
   }
 }
