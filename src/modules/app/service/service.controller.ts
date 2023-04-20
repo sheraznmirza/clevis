@@ -15,9 +15,11 @@ import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
 import { Roles, Authorized } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Service')
 @Controller('service')
-@UseGuards(JwtGuard, RolesGuard)
+// @UseGuards(JwtGuard, RolesGuard)
 export class ServiceController {
   constructor(private serviceService: ServiceService) {}
 
@@ -39,14 +41,20 @@ export class ServiceController {
     return this.serviceService.getService(id);
   }
 
-  @Authorized([UserType.ADMIN, UserType.VENDOR])
+  // @Authorized([UserType.ADMIN, UserType.VENDOR])
+  // @Get()
+  // getAllService(
+  //   @Query('page') page: number,
+  //   @Query('take') take: number,
+  //   @Query('search') search?: string,
+  // ) {
+  //   return this.serviceService.getAllService(page, take, search);
+  // }
+
+  // @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get()
-  getAllService(
-    @Query('page') page: number,
-    @Query('take') take: number,
-    @Query('search') search?: string,
-  ) {
-    return this.serviceService.getAllService(page, take, search);
+  getAllService() {
+    return this.serviceService.getAllService();
   }
 
   @Authorized(UserType.ADMIN)

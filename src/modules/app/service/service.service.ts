@@ -34,9 +34,15 @@ export class ServiceService {
     }
   }
 
-  async getAllService(page: number, take: number, search?: string) {
+  // async getAllService(page: number, take: number, search?: string) {
+  //   try {
+  //     return await this.repository.getAllService(page, take, search);
+  //   } catch (error) {}
+  // }
+
+  async getAllService() {
     try {
-      return await this.repository.getAllService(page, take, search);
+      return await this.repository.getAllService();
     } catch (error) {}
   }
 

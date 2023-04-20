@@ -1,5 +1,6 @@
 import { applyDecorators, SetMetadata } from '@nestjs/common';
-// import { ApiSecurity } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
+
 import { UserType } from '@prisma/client';
 
 export const Authorized = (roleOrRoles?: UserType | Array<UserType>) => {
@@ -8,7 +9,7 @@ export const Authorized = (roleOrRoles?: UserType | Array<UserType>) => {
     authorizedRoles = Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
   return applyDecorators(
     SetMetadata('roles', authorizedRoles),
-    SetMetadata('authorization', true),
-    // ApiSecurity('authorization'),
+    // SetMetadata('authorization', true),
+    ApiBearerAuth('access-token'),
   );
 };

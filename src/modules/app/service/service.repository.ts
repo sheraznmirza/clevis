@@ -64,23 +64,31 @@ export class ServiceRepository {
     }
   }
 
-  async getAllService(page: number, take: number, search?: string) {
+  // async getAllService(page: number, take: number, search?: string) {
+  //   try {
+  //     return await this.prisma.services.findMany({
+  //       take,
+  //       skip: take * page,
+  //       orderBy: {
+  //         createdAt: 'desc',
+  //       },
+  //       ...(search.length && {
+  //         where: {
+  //           isDeleted: false,
+  //           serviceName: {
+  //             contains: search,
+  //           },
+  //         },
+  //       }),
+  //     });
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // }
+
+  async getAllService() {
     try {
-      return await this.prisma.services.findMany({
-        take,
-        skip: take * page,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        ...(search.length && {
-          where: {
-            isDeleted: false,
-            serviceName: {
-              contains: search,
-            },
-          },
-        }),
-      });
+      return await this.prisma.services.findMany();
     } catch (error) {
       return false;
     }
