@@ -54,23 +54,9 @@ export class SubcategoryRepository {
     }
   }
 
-  async getAllSubcategory(page: number, take: number, search?: string) {
+  async getAllSubcategory() {
     try {
-      return await this.prisma.subCategory.findMany({
-        take,
-        skip: take * page,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        ...(search.length && {
-          where: {
-            isDeleted: false,
-            subCategoryName: {
-              contains: search,
-            },
-          },
-        }),
-      });
+      return await this.prisma.subCategory.findMany();
     } catch (error) {
       return false;
     }

@@ -34,9 +34,15 @@ export class SubcategoryService {
     }
   }
 
-  async getAllSubcategory(page: number, take: number, search?: string) {
+  // async getAllSubcategory(page: number, take: number, search?: string) {
+  //   try {
+  //     return await this.repository.getAllSubcategory(page, take, search);
+  //   } catch (error) {}
+  // }
+
+  async getAllSubcategory() {
     try {
-      return await this.repository.getAllSubcategory(page, take, search);
+      return await this.repository.getAllSubcategory();
     } catch (error) {}
   }
 

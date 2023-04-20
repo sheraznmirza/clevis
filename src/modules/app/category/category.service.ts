@@ -34,9 +34,15 @@ export class CategoryService {
     }
   }
 
-  async getAllCategory(page: number, take: number, search?: string) {
+  // async getAllCategory(page: number, take: number, search?: string) {
+  //   try {
+  //     return await this.repository.getAllCategory(page, take, search);
+  //   } catch (error) {}
+  // }
+
+  async getAllCategory() {
     try {
-      return await this.repository.getAllCategory(page, take, search);
+      return await this.repository.getAllCategory();
     } catch (error) {}
   }
 

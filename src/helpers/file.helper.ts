@@ -17,11 +17,15 @@ export const storage = multer.diskStorage({
 export async function getFileData(
   file: Express.Multer.File,
 ): Promise<CreateMediaDto> {
-  const path = `${process.env.STORAGE_PATH}/${file.filename}`;
+  const path = `${process.env.APP_URL}/${file.filename}`;
   const fileType = file.mimetype;
   const fileData: CreateMediaDto = {
     type: MediaType.FILE,
     path: path,
+    originalName: file.originalname,
+    encoding: file.encoding,
+    size: file.size,
+    fileName: file.filename,
   };
   if (fileType.match(`application`)) {
     fileData.type = MediaType.FILE;

@@ -52,23 +52,31 @@ export class CategoryRepository {
     }
   }
 
-  async getAllCategory(page: number, take: number, search?: string) {
+  // async getAllCategory(page: number, take: number, search?: string) {
+  //   try {
+  //     return await this.prisma.category.findMany({
+  //       take,
+  //       skip: take * page,
+  //       orderBy: {
+  //         createdAt: 'desc',
+  //       },
+  //       ...(search.length && {
+  //         where: {
+  //           isDeleted: false,
+  //           categoryName: {
+  //             contains: search,
+  //           },
+  //         },
+  //       }),
+  //     });
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // }
+
+  async getAllCategory() {
     try {
-      return await this.prisma.category.findMany({
-        take,
-        skip: take * page,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        ...(search.length && {
-          where: {
-            isDeleted: false,
-            categoryName: {
-              contains: search,
-            },
-          },
-        }),
-      });
+      return await this.prisma.category.findMany();
     } catch (error) {
       return false;
     }
