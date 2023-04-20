@@ -46,6 +46,7 @@ model UserMaster {
   isEmailVerified Boolean        @default(false)
   password        String
   profileImage    Int?
+  roleId          Int
   userType        UserType       @default(CUSTOMER)
   phone           String
   location        String
@@ -56,10 +57,11 @@ model UserMaster {
   customer        Customer?
   vendor          Vendor?
   rider           Rider?
-  User            User?
+  admin           Admin?
   hashedRt        String?
   refreshToken    RefreshToken[]
   Otp             Otp[]
+  role            Role?          @relation(fields: [roleId], references: [id])
 }
 
 model RefreshToken {
@@ -80,13 +82,13 @@ model Otp {
   expired      Boolean    @default(false)
 }
 
-model User {
-  userId       Int           @id @default(autoincrement())
-  email        String        @unique
-  userMasterId Int           @unique
-  userMaster   UserMaster    @relation(fields: userMasterId, references: userMasterId)
+model Admin {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  userMasterId Int        @unique
+  userMaster   UserMaster @relation(fields: userMasterId, references: userMasterId)
   fullName     String
-  userAddress  UserAddress[]
+  // userAddress  UserAddress[]
 }
 
 model Customer {
@@ -147,8 +149,8 @@ model UserAddress {
   latitude      String?
   Rider         Rider?    @relation(fields: [riderId], references: [riderId])
   riderId       Int?
-  User          User?     @relation(fields: [userUserId], references: [userId])
-  userUserId    Int?
+  // User          Admin?    @relation(fields: [adminId], references: [id])
+  adminId       Int?
 }
 
 model Country {
@@ -192,6 +194,7 @@ model Category {
   isDeleted                Boolean                    @default(false)
   vendorServiceCategory    VendorServiceCategory[]
   VendorServiceSubcategory VendorServiceSubcategory[]
+  AllocatePrice            AllocatePrice[]
 }
 
 model SubCategory {
@@ -202,6 +205,7 @@ model SubCategory {
   updatedAt                DateTime                   @default(now()) @updatedAt
   isDeleted                Boolean                    @default(false)
   VendorServiceSubcategory VendorServiceSubcategory[]
+  AllocatePrice            AllocatePrice[]
 }
 
 model VendorService {
@@ -209,13 +213,55 @@ model VendorService {
   vendorId              Int
   serviceId             Int
   description           String
-  serviceImage          String[]
+  serviceImages         Int[]
   service               Services                @relation(fields: [serviceId], references: [serviceId])
   vendor                Vendor                  @relation(fields: [vendorId], references: [vendorId])
   vendorServiceCategory VendorServiceCategory[]
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @default(now()) @updatedAt
   isDeleted             Boolean                 @default(false)
+  AllocatePrice         AllocatePrice[]
+}
+
+// model VendorServiceDetail {
+//   id    
+// }
+
+// model CarWashService {
+//   id          Int             @id @default(autoincrement())
+//   allocations AllocatePrice[]
+// }
+
+// model LaundryService {
+//   id                     Int                    @id @default(autoincrement())
+//   laundryServiceDetailId Int                    @unique
+//   laundryServiceDetail   LaundryServiceDetail[]
+//   AllocatePrice          AllocatePrice[]
+// }
+
+// model LaundryServiceDetail {
+//   id               Int             @id @default(autoincrement())
+//   categoryid       Int
+//   allocations      AllocatePrice[]
+//   LaundryService   LaundryService? @relation(fields: [laundryServiceId], references: [id])
+//   laundryServiceId Int?
+// }
+
+model AllocatePrice {
+  id              Int           @id @default(autoincrement())
+  vendorServiceId Int
+  subcategoryId   Int?
+  categoryId      Int
+  category        Category      @relation(fields: [categoryId], references: [categoryId])
+  price           Float
+  subcategory     SubCategory?  @relation(fields: [subcategoryId], references: [subCategoryId])
+  vendorService   VendorService @relation(fields: [vendorServiceId], references: [vendorServiceId])
+  // CarWashService         CarWashService?       @relation(fields: [catWashServiceId], references: [id])
+  // catWashServiceId       Int?
+  // LaundryService         LaundryService?       @relation(fields: [laundryServiceId], references: [id])
+  // laundryServiceId       Int?
+  // LaundryServiceDetail   LaundryServiceDetail? @relation(fields: [laundryServiceDetailId], references: [id])
+  // laundryServiceDetailId Int?
 }
 
 model VendorServiceCategory {
@@ -248,11 +294,15 @@ model VendorServiceSubcategory {
 model Role {
   id                    Int                     @id @default(autoincrement())
   name                  String
+  userType              UserType
   createdAt             DateTime                @default(now()) @db.Timestamptz()
   updatedAt             DateTime                @default(now()) @updatedAt @db.Timestamptz()
   deletedAt             DateTime?               @db.Timestamptz()
+  isDeleted             Boolean                 @default(false)
+  isActive              Boolean                 @default(true)
   rolePermissionMapping RolePermissionMapping[]
-  Routes                Routes[]
+  userMaster            UserMaster[]
+  RoleRouteMapping      RoleRouteMapping[]
 }
 
 enum DefaultActions {
@@ -276,14 +326,21 @@ model Permission {
 
 model Routes {
   id                    Int                     @id @default(autoincrement())
-  Route                 String
-  role                  Role                    @relation(fields: [roleId], references: [id])
-  roleId                Int
+  routeName             String
   RolePermissionMapping RolePermissionMapping[]
   label                 String
   linkTo                String
   selectedOptionKey     String
   icon                  String
+  RoleRouteMapping      RoleRouteMapping[]
+}
+
+model RoleRouteMapping {
+  id      Int    @id @default(autoincrement())
+  roleId  Int
+  role    Role   @relation(fields: [roleId], references: [id])
+  routeId Int
+  route   Routes @relation(fields: [routeId], references: [id])
 }
 
 model RolePermissionMapping {

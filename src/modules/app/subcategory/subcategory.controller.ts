@@ -15,19 +15,21 @@ import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
 import { Roles } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('service')
-@UseGuards(JwtGuard, RolesGuard)
+@ApiTags('Subcategory')
+@Controller('subcategory')
+// @UseGuards(JwtGuard, RolesGuard)
 export class SubcategoryController {
   constructor(private subcategoryService: SubcategoryService) {}
 
-  @Roles(UserType.ADMIN)
+  // @Roles(UserType.ADMIN)
   @Post()
-  createService(@Body() data: SubcategoryCreateDto) {
+  createSubcategory(@Body() data: SubcategoryCreateDto) {
     return this.subcategoryService.createSubcategory(data);
   }
 
-  @Roles(UserType.ADMIN)
+  // @Roles(UserType.ADMIN)
   @Patch('/:id')
   updateService(@Param('id') id: number, @Body() data: SubcategoryUpdateDto) {
     return this.subcategoryService.updateSubcategory(id, data);
@@ -39,14 +41,20 @@ export class SubcategoryController {
     return this.subcategoryService.getSubcategory(id);
   }
 
-  @Roles(UserType.ADMIN, UserType.VENDOR)
+  // @Roles(UserType.ADMIN, UserType.VENDOR)
+  // @Get()
+  // getAllSubcategory(
+  //   @Query('page') page: number,
+  //   @Query('take') take: number,
+  //   @Query('search') search?: string,
+  // ) {
+  //   return this.subcategoryService.getAllSubcategory(page, take, search);
+  // }
+
+  // @Roles(UserType.ADMIN, UserType.VENDOR)
   @Get()
-  getAllService(
-    @Query('page') page: number,
-    @Query('take') take: number,
-    @Query('search') search?: string,
-  ) {
-    return this.subcategoryService.getAllSubcategory(page, take, search);
+  getAllSubcategory() {
+    return this.subcategoryService.getAllSubcategory();
   }
 
   @Roles(UserType.ADMIN)

@@ -10,7 +10,7 @@ import { Express } from 'express';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { getFileData, storage } from 'src/helpers/file.helper';
 import { successResponse } from 'src/helpers/response.helper';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Media')
 @Controller('media')
@@ -20,18 +20,18 @@ export class MediaController {
 
   @Post('file')
   // @ApiAuthPermission()
-  // @ApiConsumes('multipart/form-data')
-  // @ApiBody({
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       file: {
-  //         type: 'string',
-  //         format: 'binary',
-  //       },
-  //     },
-  //   },
-  // })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor('file', { storage: storage }))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     const payload = getFileData(file);
@@ -41,21 +41,21 @@ export class MediaController {
 
   @Post('files')
   // @ApiAuthPermission()
-  // @ApiConsumes('multipart/form-data')
-  // @ApiBody({
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       files: {
-  //         type: 'array',
-  //         items: {
-  //           type: 'string',
-  //           format: 'binary',
-  //         },
-  //       },
-  //     },
-  //   },
-  // })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
   @UseInterceptors(FilesInterceptor('files', 20, { storage: storage }))
   async uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>) {
     console.log('files: ', files);

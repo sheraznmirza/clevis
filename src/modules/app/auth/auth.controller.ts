@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Req,
 } from '@nestjs/common/decorators';
 import { AuthService } from './auth.service';
 import { HttpStatus } from '@nestjs/common';
@@ -18,8 +19,9 @@ import {
   ForgotPasswordDto,
   ResetPasswordDataDto,
 } from './dto';
-import { JwtRefreshGuard } from './guard';
+import { JwtGuard, JwtRefreshGuard } from './guard';
 import { ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -39,6 +41,12 @@ export class AuthController {
   @Post('rider/signup')
   signupAsRider(@Body() dto: RiderSignUpDto) {
     return this.authService.signupAsRider(dto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('admin/login')
+  signinAdmin(@Body() dto: LoginDto) {
+    return this.authService.signinAdmin(dto);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -83,8 +91,10 @@ export class AuthController {
     return this.authService.verifyEmail(id);
   }
 
-  // @Post('/logout')
-  // logout() {
-  //   this.authService.logout();
-  // }
+  @UseGuards(JwtGuard)
+  @Post('/logout')
+  logout(@Req() req: Request) {
+    console.log('req: ', req);
+    // this.authService.logout();
+  }
 }

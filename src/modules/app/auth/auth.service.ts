@@ -4,7 +4,6 @@ import {
   UnauthorizedException,
   NotFoundException,
   ConflictException,
-  BadRequestException,
   RequestTimeoutException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -40,12 +39,15 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const roleId = await this.getRoleByType(UserType.CUSTOMER);
+
       const user = await this.prisma.userMaster.create({
         data: {
           email: dto.email,
           password,
           phone: dto.phone,
           location: dto.location,
+          roleId: roleId,
           customer: {
             create: {
               email: dto.email,
@@ -53,6 +55,7 @@ export class AuthService {
               userAddress: {
                 create: {
                   fullAddress: dto.userAddress,
+                  cityId: dto.cityId,
                 },
               },
             },
@@ -103,6 +106,7 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const roleId = await this.getRoleByType(UserType.VENDOR);
       const user = await this.prisma.userMaster.create({
         data: {
           email: dto.email,
@@ -110,6 +114,7 @@ export class AuthService {
           phone: dto.phone,
           location: dto.location,
           userType: UserType.VENDOR,
+          roleId: roleId,
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -123,7 +128,7 @@ export class AuthService {
               userAddress: {
                 create: {
                   fullAddress: dto.userAddress,
-                  // cityId: dto.cityId,
+                  cityId: dto.cityId,
                 },
               },
             },
@@ -143,7 +148,7 @@ export class AuthService {
                 select: {
                   userAddressId: true,
                   fullAddress: true,
-                  // cityId: true,
+                  cityId: true,
                   longitude: true,
                   latitude: true,
                 },
@@ -186,6 +191,7 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const roleId = await this.getRoleByType(UserType.RIDER);
       const user = await this.prisma.userMaster.create({
         data: {
           email: dto.email,
@@ -193,6 +199,7 @@ export class AuthService {
           phone: dto.phone,
           location: dto.location,
           userType: UserType.RIDER,
+          roleId: roleId,
           rider: {
             create: {
               fullName: dto.fullName,
@@ -206,7 +213,7 @@ export class AuthService {
               userAddress: {
                 create: {
                   fullAddress: dto.userAddress,
-                  // cityId: dto.cityId,
+                  cityId: dto.cityId,
                 },
               },
             },
@@ -252,6 +259,52 @@ export class AuthService {
       }
       throw error;
     }
+  }
+
+  async signinAdmin(dto: LoginDto) {
+    const user = await this.prisma.userMaster.findFirst({
+      where: {
+        email: dto.email,
+        userType: UserType.ADMIN,
+      },
+      select: {
+        userMasterId: true,
+        profileImage: true,
+        email: true,
+        isEmailVerified: true,
+        phone: true,
+        userType: true,
+        location: true,
+        password: true,
+        admin: {
+          select: {
+            // userAddress: {
+            //   select: {
+            //     userAddressId: true,
+            //     fullAddress: true,
+            //     cityId: true,
+            //     longitude: true,
+            //     latitude: true,
+            //   },
+            // },
+            fullName: true,
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!user) throw new ForbiddenException('Credentials incorrect');
+
+    const pwMatches = await argon.verify(user.password, dto.password);
+
+    if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
+
+    const response = await this.signToken(user.userMasterId, user.email);
+    await this.updateRt(user.userMasterId, response.refreshToken);
+    const profileImage = await this.getImages(user.profileImage);
+    delete user.password;
+    return { tokens: response, ...user, profileImage };
   }
 
   async signinCustomer(dto: LoginDto) {
@@ -604,7 +657,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '15m',
+        expiresIn: '2 days',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {
@@ -663,9 +716,32 @@ export class AuthService {
     });
   }
 
+  async getRoleByType(userType: UserType) {
+    const userId = await this.prisma.role.findFirst({
+      where: {
+        userType: userType,
+        isDeleted: false,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        isActive: true,
+        name: true,
+      },
+    });
+
+    if (!userId)
+      throw new UnauthorizedException(
+        `All ${name} users are momentarily disabled`,
+      );
+
+    return userId.id;
+  }
+
   async getImages(imageId: number[] | number) {
     try {
       if (!imageId) return null;
+
       const image = Array.isArray(imageId)
         ? await this.prisma.media.findMany({
             where: {

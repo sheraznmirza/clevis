@@ -10,6 +10,17 @@ async function bootstrap() {
     .setTitle('Clevis')
     .setDescription('API documentation page for Clevis')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        description: `Please enter token in following format: Bearer <JWT>`,
+        name: 'Authorization',
+        bearerFormat: 'Bearer',
+        scheme: 'Bearer',
+        type: 'http',
+        in: 'Header',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -8,6 +8,11 @@ import { CategoryModule } from './modules/app/category/category.module';
 import { SubcategoryModule } from './modules/app/subcategory/subcategory.module';
 import { MediaModule } from './modules/app/media/media.module';
 import { AddressModule } from './modules/app/country/address.module';
+import { APP_GUARD, Reflector } from '@nestjs/core';
+import { JwtGuard } from './modules/app/auth/guard';
+import { VendorModule } from './modules/app/vendor/vendor.module';
+import { RoleModule } from './modules/app/role/role.module';
+import { RoleRouteModule } from './modules/app/roleRoute/role-route.module';
 
 @Module({
   imports: [
@@ -20,6 +25,16 @@ import { AddressModule } from './modules/app/country/address.module';
     SubcategoryModule,
     MediaModule,
     AddressModule,
+    VendorModule,
+    RoleModule,
+    RoleRouteModule,
   ],
+  // providers: [
+  //   {
+  //     provide: APP_GUARD,
+  //     useFactory: () => new JwtGuard(),
+  //     inject: [Reflector],
+  //   },
+  // ],
 })
 export class AppModule {}
