@@ -43,7 +43,7 @@ export class VendorRepository {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
-      await this.prisma.vendor.update({
+      return await this.prisma.vendor.update({
         where: {
           vendorId: id,
         },
@@ -52,7 +52,7 @@ export class VendorRepository {
         },
       });
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 
