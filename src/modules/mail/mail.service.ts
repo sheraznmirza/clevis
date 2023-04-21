@@ -85,7 +85,9 @@ export class MailService {
       await this.mailerService.sendMail({
         to: user.companyEmail,
         from: MAIL_ENV.MAIL_FROM,
-        subject: `${this.configService.get('APP_NAME')} - Vendor approved`,
+        subject: `${this.configService.get(
+          'APP_NAME',
+        )} - Vendor ${user.status.toLowerCase()}`,
         template: 'vendorApproved', // `.hbs` extension is appended automatically
         context: {
           app_name: this.configService.get('APP_NAME'),
