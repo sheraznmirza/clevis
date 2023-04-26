@@ -2,10 +2,15 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { successResponse } from 'src/helpers/response.helper';
+import { MailService } from 'src/modules/mail/mail.service';
+import { UserType, Vendor } from '@prisma/client';
 
 @Injectable()
 export class VendorService {
-  constructor(private repository: VendorRepository) {}
+  constructor(
+    private repository: VendorRepository,
+    private mail: MailService,
+  ) {}
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
     try {
@@ -24,7 +29,12 @@ export class VendorService {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
-      return await this.repository.approveVendor(id, dto);
+      const vendor: Vendor = await this.repository.approveVendor(id, dto);
+      await this.mail.sendVendorApprovalEmail(vendor);
+      return successResponse(
+        200,
+        `Vendor successfully ${vendor.status.toLowerCase()}.`,
+      );
     } catch (error) {
       throw error;
     }

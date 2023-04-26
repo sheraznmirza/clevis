@@ -19,11 +19,11 @@ import { RouteCreateDto } from './dto';
 
 @ApiTags('Route')
 @Controller('route')
-@UseGuards(JwtGuard, RolesGuard)
+// @UseGuards(JwtGuard, RolesGuard)
 export class RouteController {
   constructor(private routeService: RouteService) {}
 
-  @Authorized(UserType.ADMIN)
+  // @Authorized(UserType.ADMIN)
   @Post()
   createService(@Body() data: RouteCreateDto) {
     return this.routeService.createRoute(data);
@@ -41,7 +41,7 @@ export class RouteController {
   //     return this.routeService.getService(id);
   //   }
 
-  @Authorized(UserType.ADMIN)
+  // @Authorized(UserType.ADMIN)
   @Get()
   getAllRoute() {
     return this.routeService.getAllRoute();
