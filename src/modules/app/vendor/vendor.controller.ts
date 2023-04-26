@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -18,7 +20,7 @@ import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { VendorService } from './vendor.service';
 import { Request } from 'express';
 
-@UseGuards(JwtGuard, RolesGuard)
+// @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Vendor')
 @Controller('vendor')
 export class VendorController {
@@ -38,13 +40,13 @@ export class VendorController {
     return this.vendorService.createVendorService(dto, req.user?.userMasterId);
   }
 
-  @Authorized(UserType.ADMIN)
+  // @Authorized(UserType.ADMIN)
+  @HttpCode(HttpStatus.OK)
   @Patch('/approve/:vendorId')
   approveVendor(
     @Param('vendorId') vendorId: number,
     @Body() dto: VendorUpdateStatusDto,
   ) {
-    console.log('id,', vendorId, dto);
     return this.vendorService.approveVendor(vendorId, dto);
   }
 }

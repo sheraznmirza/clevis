@@ -3,7 +3,7 @@ import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MAIL_ENV } from './mailconstant';
 import { ForgotPasswordDto } from '../app/auth/dto';
-import { UserType } from '@prisma/client';
+import { Status, UserType } from '@prisma/client';
 
 @Injectable()
 export class MailService {
@@ -77,6 +77,32 @@ export class MailService {
       });
     } catch (error) {
       // throwExceptionErrorUtil(error)
+    }
+  }
+
+  async sendVendorApprovalEmail(user: any) {
+    try {
+      await this.mailerService.sendMail({
+        to: user.companyEmail,
+        from: MAIL_ENV.MAIL_FROM,
+        subject: `${this.configService.get(
+          'APP_NAME',
+        )} - Vendor ${user.status.toLowerCase()}`,
+        template: 'vendorApproved', // `.hbs` extension is appended automatically
+        context: {
+          app_name: this.configService.get('APP_NAME'),
+          app_url: `${this.configService.get('APP_URL')}`,
+          first_name: user.fullName,
+          message:
+            user.status === Status.APPROVED
+              ? 'Your account has been approved. You can now log in and start your journey with us!'
+              : 'Your account has been rejected. Please contact our support for further information.',
+          copyright_year: MAIL_ENV.COPYRIGHT_YEAR,
+        },
+      });
+    } catch (error) {
+      console.log('error: ', error);
+      throw new ServiceUnavailableException('Unable to send email');
     }
   }
 
