@@ -19,7 +19,7 @@ import {
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
-import { Status, UserType } from '@prisma/client';
+import { ServiceType, Status, UserType } from '@prisma/client';
 import { MailService } from 'src/modules/mail/mail.service';
 import { createCipheriv, createDecipheriv } from 'crypto';
 import * as dayjs from 'dayjs';
@@ -86,7 +86,11 @@ export class AuthService {
           },
         },
       });
-      const response = await this.signToken(user.userMasterId, user.email);
+      const response = await this.signToken(
+        user.userMasterId,
+        user.email,
+        user.userType,
+      );
       await this.updateRt(user.userMasterId, response.refreshToken);
       await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
       return {
@@ -209,7 +213,6 @@ export class AuthService {
               workspaceImages: dto.workspaceImages,
               businessLicense: dto.businessLicense,
               description: dto.description,
-              serviceType: dto.serviceType,
               userAddress: {
                 create: {
                   fullAddress: dto.userAddress,
@@ -244,14 +247,18 @@ export class AuthService {
           },
         },
       });
-      const response = await this.signToken(user.userMasterId, user.email);
-      await this.updateRt(user.userMasterId, response.refreshToken);
+      // const response = await this.signToken(user.userMasterId, user.email);
+      // await this.updateRt(user.userMasterId, response.refreshToken);
       await this.sendEncryptedDataToMail(user, UserType.RIDER);
       // await this.mail.sendUserVerificationEmail(user, UserType.RIDER);
-      return {
-        tokens: response,
-        ...user,
-      };
+      // return {
+      //   tokens: response,
+      //   ...user,
+      // };
+      return successResponse(
+        201,
+        'Rider successfully created, you will receive an email when the admin reviews and approves your profile.',
+      );
     } catch (error) {
       console.log('error: ', error);
       if (error.code === 'P2002') {
@@ -300,7 +307,11 @@ export class AuthService {
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
-    const response = await this.signToken(user.userMasterId, user.email);
+    const response = await this.signToken(
+      user.userMasterId,
+      user.email,
+      user.userType,
+    );
     await this.updateRt(user.userMasterId, response.refreshToken);
     const profileImage = await this.getImages(user.profileImage);
     delete user.password;
@@ -346,7 +357,11 @@ export class AuthService {
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
-    const response = await this.signToken(user.userMasterId, user.email);
+    const response = await this.signToken(
+      user.userMasterId,
+      user.email,
+      user.userType,
+    );
     await this.updateRt(user.userMasterId, response.refreshToken);
     const profileImage = await this.getImages(user.profileImage);
     delete user.password;
@@ -409,7 +424,12 @@ export class AuthService {
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
-    const response = await this.signToken(user.userMasterId, user.email);
+    const response = await this.signToken(
+      user.userMasterId,
+      user.email,
+      user.userType,
+      user.vendor.serviceType,
+    );
     await this.updateRt(user.userMasterId, response.refreshToken);
     const profileImage = await this.getImages(user.profileImage);
     const businessLicense = await this.getImages(user.vendor.businessLicense);
@@ -447,7 +467,6 @@ export class AuthService {
           select: {
             riderId: true,
             fullName: true,
-            serviceType: true,
             companyName: true,
             companyEmail: true,
             logo: true,
@@ -484,7 +503,11 @@ export class AuthService {
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
-    const response = await this.signToken(user.userMasterId, user.email);
+    const response = await this.signToken(
+      user.userMasterId,
+      user.email,
+      user.userType,
+    );
     await this.updateRt(user.userMasterId, response.refreshToken);
     const profileImage = await this.getImages(user.profileImage);
     const businessLicense = await this.getImages(user.rider.businessLicense);
@@ -520,12 +543,15 @@ export class AuthService {
         },
         select: {
           email: true,
+          vendor: true,
+          userType: true,
         },
       });
 
       const tokens = await this.signToken(
         previousRefreshToken.userMasterId,
         user.email,
+        user.userType,
       );
       await this.updateRt(
         previousRefreshToken.userMasterId,
@@ -561,7 +587,6 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-      await this.updatePassword(user.userMasterId, randomOtp.toString());
       await this.mail.sendResetPasswordEmail(data, randomOtp);
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
@@ -647,10 +672,14 @@ export class AuthService {
   async signToken(
     userId: number,
     email: string,
+    userType: UserType,
+    serviceType?: ServiceType,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = {
       sub: userId,
       email,
+      userType,
+      ...(serviceType && { serviceType }),
     };
     const jwtSecret = this.config.get('JWT_SECRET');
     const jwtRefreshSecret = this.config.get('JWT_REFRESH_SECRET');
