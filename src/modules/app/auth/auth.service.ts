@@ -6,6 +6,7 @@ import {
   ConflictException,
   RequestTimeoutException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -23,9 +24,11 @@ import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ServiceType, Status, UserType } from '@prisma/client';
 import { MailService } from 'src/modules/mail/mail.service';
+import { NotificationService } from '../notification/notification.service';
 import { createCipheriv, createDecipheriv } from 'crypto';
 import * as dayjs from 'dayjs';
 import { successResponse } from 'src/helpers/response.helper';
+import { CreateNotificationDto } from '../notification/dto';
 
 @Injectable()
 export class AuthService {
@@ -34,6 +37,7 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
     private mail: MailService,
+    private notification: NotificationService,
   ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
@@ -172,13 +176,17 @@ export class AuthService {
           },
         },
       });
-      // const response = await this.signToken(user.userMasterId, user.email);
-      // await this.updateRt(user.userMasterId, response.refreshToken);
+
       await this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      // return {
-      //   tokens: response,
-      //   ...user,
-      // };
+
+      const payload: CreateNotificationDto = {
+        toUser: 1,
+        fromUser: user.userMasterId,
+        message: 'message',
+        type: 'VendorCreated',
+      };
+
+      await this.notification.createNotification(payload);
       return successResponse(
         201,
         'Vendor successfully created, you will receive an email when the admin reviews and approves your profile.',
