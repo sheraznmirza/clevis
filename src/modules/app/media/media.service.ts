@@ -20,7 +20,12 @@ export class MediaService {
   async uploadManyFiles(dto: CreateManyMediasDto) {
     console.log('dto: ', dto);
     try {
-      const data = await this.mediaRepository.createMany(dto);
+      await this.mediaRepository.createMany(dto);
+      const data = [];
+      for (let i = 0; i < dto.files.length; i++) {
+        const temp = await this.mediaRepository.findOne(dto.files[i].path);
+        data.push(temp);
+      }
       return data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

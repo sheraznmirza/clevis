@@ -66,7 +66,15 @@ export class MediaController {
     );
 
     console.log('mappedFiles: ', mappedFiles);
-    return await this.mediaService.uploadManyFiles({ files: mappedFiles });
+    const data = await this.mediaService.uploadManyFiles({
+      files: mappedFiles,
+    });
+
+    console.log('data: ', data);
+    return {
+      ...successResponse(201, 'Files successfully uploaded'),
+      files: data,
+    };
     // return await Promise.all(
     //   files.map(async (file) => {
     //     const payload = getFileData(file);

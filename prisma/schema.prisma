@@ -40,27 +40,34 @@ enum MediaType {
   AUDIO
 }
 
+enum NotificationType {
+  VendorCreated
+  RiderCreated
+}
+
 model UserMaster {
-  userMasterId    Int            @id @default(autoincrement())
-  email           String
-  isEmailVerified Boolean        @default(false)
-  password        String
-  profileImage    Int?
-  roleId          Int
-  userType        UserType       @default(CUSTOMER)
-  phone           String
-  location        String
-  isActive        Boolean        @default(true)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @default(now()) @updatedAt
-  isDeleted       Boolean        @default(false)
-  customer        Customer?
-  vendor          Vendor?
-  rider           Rider?
-  admin           Admin?
-  refreshToken    RefreshToken[]
-  Otp             Otp[]
-  role            Role?          @relation(fields: [roleId], references: [id])
+  userMasterId     Int            @id @default(autoincrement())
+  email            String
+  isEmailVerified  Boolean        @default(false)
+  password         String
+  profileImage     Int?
+  roleId           Int
+  userType         UserType       @default(CUSTOMER)
+  phone            String
+  location         String
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+  isDeleted        Boolean        @default(false)
+  customer         Customer?
+  vendor           Vendor?
+  rider            Rider?
+  admin            Admin?
+  refreshToken     RefreshToken[]
+  Otp              Otp[]
+  role             Role?          @relation(fields: [roleId], references: [id])
+  ToNotification   Notification[] @relation("ToNotification")
+  FromNotification Notification[] @relation("FromNotification")
 }
 
 model RefreshToken {
@@ -352,6 +359,19 @@ model RolePermissionMapping {
   route        Routes     @relation(fields: [routeId], references: [id])
   Role         Role?      @relation(fields: [roleId], references: [id])
   roleId       Int?
+}
+
+model Notification {
+  id             Int              @id @default(autoincrement())
+  toUser         Int
+  fromUser       Int
+  toUserMaster   UserMaster       @relation("ToNotification", fields: [toUser], references: [userMasterId])
+  fromUserMaster UserMaster       @relation("FromNotification", fields: [fromUser], references: [userMasterId])
+  type           NotificationType
+  message        String
+  seen           Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
 }
 
 model Media {
