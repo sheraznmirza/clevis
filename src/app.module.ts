@@ -12,10 +12,12 @@ import { VendorModule } from './modules/app/vendor/vendor.module';
 import { RoleModule } from './modules/app/role/role.module';
 import { RoleRouteModule } from './modules/app/roleRoute/role-route.module';
 import { RouteModule } from './modules/app/route/route.module';
+import { NotificationModule } from './modules/app/notification/notification.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    NotificationModule,
     AuthModule,
     UserModule,
     PrismaModule,
