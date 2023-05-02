@@ -46,11 +46,6 @@ export class RiderSignUpDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  serviceType: ServiceType;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   @MaxLength(50)
   companyName: string;
 
