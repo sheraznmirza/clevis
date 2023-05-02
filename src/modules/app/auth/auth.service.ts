@@ -5,6 +5,7 @@ import {
   NotFoundException,
   ConflictException,
   RequestTimeoutException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -16,6 +17,7 @@ import {
   RefreshDto,
   ForgotPasswordDto,
   ResetPasswordDataDto,
+  ChangePasswordDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -662,6 +664,26 @@ export class AuthService {
       await this.updatePassword(otp.userMasterId, data.password);
 
       return successResponse(200, 'Password successfully reset.');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async changePassword(data: ChangePasswordDto, id: number) {
+    try {
+      const user = await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+      });
+
+      const pwMatches = await argon.verify(user.password, data.oldPassword);
+
+      if (!pwMatches) throw new BadRequestException('Incorrect password.');
+
+      await this.updatePassword(user.userMasterId, data.newPassword);
+
+      return successResponse(200, 'Password successfully changed.');
     } catch (error) {
       throw error;
     }
