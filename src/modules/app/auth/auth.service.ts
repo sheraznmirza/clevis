@@ -6,7 +6,6 @@ import {
   ConflictException,
   RequestTimeoutException,
   BadRequestException,
-  Inject,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';

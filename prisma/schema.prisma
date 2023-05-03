@@ -54,7 +54,7 @@ model UserMaster {
   roleId           Int
   userType         UserType       @default(CUSTOMER)
   phone            String
-  location         String
+  location         String?
   isActive         Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @default(now()) @updatedAt
@@ -94,7 +94,6 @@ model Admin {
   userMasterId Int        @unique
   userMaster   UserMaster @relation(fields: userMasterId, references: userMasterId)
   fullName     String
-  // userAddress  UserAddress[]
 }
 
 model Customer {
@@ -149,7 +148,7 @@ model UserAddress {
   vendorId      Int?
   customerId    Int?
   customer      Customer? @relation(fields: customerId, references: customerId)
-  cityId        Int?
+  cityId        String?
   longitude     String?
   latitude      String?
   Rider         Rider?    @relation(fields: [riderId], references: [riderId])
@@ -159,24 +158,24 @@ model UserAddress {
 }
 
 model Country {
-  countryId   Int     @id
+  countryId   String  @id
   countryName String
   states      State[]
 }
 
 model State {
-  stateId   Int     @id
+  stateId   String  @id
   stateName String
-  countryId Int
+  countryId String
   country   Country @relation(fields: [countryId], references: [countryId])
   cities    City[]
 }
 
 model City {
-  cityId      Int           @id
+  cityId      String        @id
   cityName    String
-  State       State?        @relation(fields: [stateId], references: [stateId])
-  stateId     Int?
+  State       State         @relation(fields: [stateId], references: [stateId])
+  stateId     String
   UserAddress UserAddress[]
 }
 
@@ -228,30 +227,6 @@ model VendorService {
   AllocatePrice         AllocatePrice[]
 }
 
-// model VendorServiceDetail {
-//   id    
-// }
-
-// model CarWashService {
-//   id          Int             @id @default(autoincrement())
-//   allocations AllocatePrice[]
-// }
-
-// model LaundryService {
-//   id                     Int                    @id @default(autoincrement())
-//   laundryServiceDetailId Int                    @unique
-//   laundryServiceDetail   LaundryServiceDetail[]
-//   AllocatePrice          AllocatePrice[]
-// }
-
-// model LaundryServiceDetail {
-//   id               Int             @id @default(autoincrement())
-//   categoryid       Int
-//   allocations      AllocatePrice[]
-//   LaundryService   LaundryService? @relation(fields: [laundryServiceId], references: [id])
-//   laundryServiceId Int?
-// }
-
 model AllocatePrice {
   id              Int           @id @default(autoincrement())
   vendorServiceId Int
@@ -261,12 +236,6 @@ model AllocatePrice {
   price           Float
   subcategory     SubCategory?  @relation(fields: [subcategoryId], references: [subCategoryId])
   vendorService   VendorService @relation(fields: [vendorServiceId], references: [vendorServiceId])
-  // CarWashService         CarWashService?       @relation(fields: [catWashServiceId], references: [id])
-  // catWashServiceId       Int?
-  // LaundryService         LaundryService?       @relation(fields: [laundryServiceId], references: [id])
-  // laundryServiceId       Int?
-  // LaundryServiceDetail   LaundryServiceDetail? @relation(fields: [laundryServiceDetailId], references: [id])
-  // laundryServiceDetailId Int?
 }
 
 model VendorServiceCategory {

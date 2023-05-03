@@ -3,7 +3,7 @@ import { VendorRepository } from './vendor.repository';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { successResponse } from 'src/helpers/response.helper';
 import { MailService } from 'src/modules/mail/mail.service';
-import { UserType, Vendor } from '@prisma/client';
+import { Vendor } from '@prisma/client';
 
 @Injectable()
 export class VendorService {

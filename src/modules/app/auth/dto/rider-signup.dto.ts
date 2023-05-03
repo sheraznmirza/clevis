@@ -77,5 +77,5 @@ export class RiderSignUpDto {
 
   @ApiProperty()
   @IsNumber()
-  cityId: number;
+  cityId: string;
 }
