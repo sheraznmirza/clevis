@@ -1,10 +1,6 @@
-import {
-  ForbiddenException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { CreateManyMediasDto, CreateMediaDto, UpdateMediaDto } from './dto';
+import { CreateManyMediasDto, CreateMediaDto } from './dto';
 
 @Injectable()
 export class MediaRepository {
@@ -25,6 +21,7 @@ export class MediaRepository {
           id: true,
           path: true,
           type: true,
+          originalName: true,
         },
       });
       return data;
@@ -34,11 +31,30 @@ export class MediaRepository {
   }
 
   async createMany(dto: CreateManyMediasDto) {
-    // dto.files.
     try {
       const data = await this.prisma.media.createMany({
         data: dto.files,
       });
+      return data;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async findOne(path: string) {
+    try {
+      const data = await this.prisma.media.findUnique({
+        where: {
+          path,
+        },
+        select: {
+          id: true,
+          path: true,
+          type: true,
+          originalName: true,
+        },
+      });
+
       return data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);

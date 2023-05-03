@@ -18,6 +18,7 @@ import {
   RefreshDto,
   ForgotPasswordDto,
   ResetPasswordDataDto,
+  ChangePasswordDto,
 } from './dto';
 import { JwtGuard, JwtRefreshGuard } from './guard';
 import { ApiTags } from '@nestjs/swagger';
@@ -89,6 +90,13 @@ export class AuthController {
   @Get('/verify-email/:id')
   verifyEmail(@Param('id') id: string) {
     return this.authService.verifyEmail(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('/change-password')
+  changePassword(@Body() data: ChangePasswordDto, @Req() req) {
+    return this.authService.changePassword(data, req.user.id);
   }
 
   @UseGuards(JwtGuard)

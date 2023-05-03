@@ -18,7 +18,6 @@ import { Authorized } from 'src/core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { VendorService } from './vendor.service';
-import { Request } from 'express';
 
 // @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Vendor')
