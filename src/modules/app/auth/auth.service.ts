@@ -6,7 +6,6 @@ import {
   ConflictException,
   RequestTimeoutException,
   BadRequestException,
-  Inject,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -225,8 +224,10 @@ export class AuthService {
               description: dto.description,
               userAddress: {
                 create: {
-                  fullAddress: dto.userAddress,
+                  fullAddress: dto.fullAddress,
                   cityId: dto.cityId,
+                  latitude: dto.latitude,
+                  longitude: dto.longitude,
                 },
               },
             },

@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { SubcategoryRepository } from './subcategory.repository';
 import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
+import { ListingParams } from 'src/core/dto';
 
 @Injectable()
 export class SubcategoryService {
@@ -34,17 +35,17 @@ export class SubcategoryService {
     }
   }
 
-  // async getAllSubcategory(page: number, take: number, search?: string) {
-  //   try {
-  //     return await this.repository.getAllSubcategory(page, take, search);
-  //   } catch (error) {}
-  // }
-
-  async getAllSubcategory() {
+  async getAllSubcategory(listingParams: ListingParams) {
     try {
-      return await this.repository.getAllSubcategory();
+      return await this.repository.getAllSubcategory(listingParams);
     } catch (error) {}
   }
+
+  // async getAllSubcategory() {
+  //   try {
+  //     return await this.repository.getAllSubcategory();
+  //   } catch (error) {}
+  // }
 
   async deleteSubcategory(id: number) {
     try {

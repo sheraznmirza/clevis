@@ -45,6 +45,17 @@ enum NotificationType {
   RiderCreated
 }
 
+enum MediaStatus {
+  UPLOADING
+  READY
+  STALE
+}
+
+enum MediaAccess {
+  PUBLIC
+  PRIVATE
+}
+
 model UserMaster {
   userMasterId     Int            @id @default(autoincrement())
   email            String
@@ -54,7 +65,7 @@ model UserMaster {
   roleId           Int
   userType         UserType       @default(CUSTOMER)
   phone            String
-  location         String
+  location         String?
   isActive         Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @default(now()) @updatedAt
@@ -68,6 +79,7 @@ model UserMaster {
   role             Role?          @relation(fields: [roleId], references: [id])
   ToNotification   Notification[] @relation("ToNotification")
   FromNotification Notification[] @relation("FromNotification")
+  Media            Media[]
 }
 
 model RefreshToken {
@@ -94,7 +106,6 @@ model Admin {
   userMasterId Int        @unique
   userMaster   UserMaster @relation(fields: userMasterId, references: userMasterId)
   fullName     String
-  // userAddress  UserAddress[]
 }
 
 model Customer {
@@ -149,9 +160,9 @@ model UserAddress {
   vendorId      Int?
   customerId    Int?
   customer      Customer? @relation(fields: customerId, references: customerId)
-  cityId        Int?
-  longitude     String?
-  latitude      String?
+  cityId        String?
+  longitude     Float?
+  latitude      Float?
   Rider         Rider?    @relation(fields: [riderId], references: [riderId])
   riderId       Int?
   // User          Admin?    @relation(fields: [adminId], references: [id])
@@ -159,24 +170,24 @@ model UserAddress {
 }
 
 model Country {
-  countryId   Int     @id
+  countryId   String  @id
   countryName String
   states      State[]
 }
 
 model State {
-  stateId   Int     @id
+  stateId   String  @id
   stateName String
-  countryId Int
+  countryId String
   country   Country @relation(fields: [countryId], references: [countryId])
   cities    City[]
 }
 
 model City {
-  cityId      Int           @id
+  cityId      String        @id
   cityName    String
-  State       State?        @relation(fields: [stateId], references: [stateId])
-  stateId     Int?
+  State       State         @relation(fields: [stateId], references: [stateId])
+  stateId     String
   UserAddress UserAddress[]
 }
 
@@ -228,30 +239,6 @@ model VendorService {
   AllocatePrice         AllocatePrice[]
 }
 
-// model VendorServiceDetail {
-//   id    
-// }
-
-// model CarWashService {
-//   id          Int             @id @default(autoincrement())
-//   allocations AllocatePrice[]
-// }
-
-// model LaundryService {
-//   id                     Int                    @id @default(autoincrement())
-//   laundryServiceDetailId Int                    @unique
-//   laundryServiceDetail   LaundryServiceDetail[]
-//   AllocatePrice          AllocatePrice[]
-// }
-
-// model LaundryServiceDetail {
-//   id               Int             @id @default(autoincrement())
-//   categoryid       Int
-//   allocations      AllocatePrice[]
-//   LaundryService   LaundryService? @relation(fields: [laundryServiceId], references: [id])
-//   laundryServiceId Int?
-// }
-
 model AllocatePrice {
   id              Int           @id @default(autoincrement())
   vendorServiceId Int
@@ -261,12 +248,6 @@ model AllocatePrice {
   price           Float
   subcategory     SubCategory?  @relation(fields: [subcategoryId], references: [subCategoryId])
   vendorService   VendorService @relation(fields: [vendorServiceId], references: [vendorServiceId])
-  // CarWashService         CarWashService?       @relation(fields: [catWashServiceId], references: [id])
-  // catWashServiceId       Int?
-  // LaundryService         LaundryService?       @relation(fields: [laundryServiceId], references: [id])
-  // laundryServiceId       Int?
-  // LaundryServiceDetail   LaundryServiceDetail? @relation(fields: [laundryServiceDetailId], references: [id])
-  // laundryServiceDetailId Int?
 }
 
 model VendorServiceCategory {
@@ -374,15 +355,39 @@ model Notification {
   updatedAt      DateTime         @default(now()) @updatedAt
 }
 
+// model Media {
+//   id           Int       @id @default(autoincrement())
+//   originalName String
+//   fileName     String
+//   encoding     String
+//   size         Int
+//   path         String    @unique
+//   type         MediaType
+//   createdAt    DateTime  @default(now())
+//   updatedAt    DateTime  @default(now()) @updatedAt
+//   isDeleted    Boolean   @default(false)
+// }
+
 model Media {
-  id           Int       @id @default(autoincrement())
-  originalName String
-  fileName     String
-  encoding     String
-  size         Int
-  path         String    @unique
-  type         MediaType
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @default(now()) @updatedAt
-  isDeleted    Boolean   @default(false)
+  id             Int         @id @default(autoincrement())
+  name           String
+  extension      String
+  type           MediaType
+  access         MediaAccess
+  size           Float?
+  location       String?
+  path           String
+  thumbPath      String?
+  status         MediaStatus @default(UPLOADING)
+  meta           Json?       @db.JsonB
+  profileImageId Int?
+  createdAt      DateTime    @default(now()) @db.Timestamptz()
+  updatedAt      DateTime    @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt      DateTime?   @db.Timestamptz()
+  user           UserMaster? @relation("ProfileImage", fields: [profileImageId], references: [profileImage])
+  // chatEventAttachment ChatEventAttachment?
+  // category            Category?
+  // vendorCategory      VendorCategory?
+  // productImage        ProductImage?
+  // Store               Store?
 }

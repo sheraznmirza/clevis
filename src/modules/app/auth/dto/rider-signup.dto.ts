@@ -41,7 +41,7 @@ export class RiderSignUpDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  userAddress: string;
+  fullAddress: string;
 
   @ApiProperty()
   @IsString()
@@ -77,5 +77,13 @@ export class RiderSignUpDto {
 
   @ApiProperty()
   @IsNumber()
-  cityId: number;
+  cityId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  latitude: number;
+
+  @ApiProperty()
+  @IsNumber()
+  longitude: number;
 }

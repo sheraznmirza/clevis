@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { CategoryCreateDto, CategoryUpdateDto } from './dto';
+import { ListingParams } from 'src/core/dto';
 
 @Injectable()
 export class CategoryRepository {
@@ -52,35 +53,36 @@ export class CategoryRepository {
     }
   }
 
-  // async getAllCategory(page: number, take: number, search?: string) {
-  //   try {
-  //     return await this.prisma.category.findMany({
-  //       take,
-  //       skip: take * page,
-  //       orderBy: {
-  //         createdAt: 'desc',
-  //       },
-  //       ...(search.length && {
-  //         where: {
-  //           isDeleted: false,
-  //           categoryName: {
-  //             contains: search,
-  //           },
-  //         },
-  //       }),
-  //     });
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // }
-
-  async getAllCategory() {
+  async getAllCategory(listingParams: ListingParams) {
+    const { page = 1, take = 10, search } = listingParams;
     try {
-      return await this.prisma.category.findMany();
+      return await this.prisma.category.findMany({
+        take: take,
+        skip: take * (page - 1),
+        orderBy: {
+          createdAt: 'desc',
+        },
+        ...(search.length && {
+          where: {
+            isDeleted: false,
+            categoryName: {
+              contains: search,
+            },
+          },
+        }),
+      });
     } catch (error) {
       return false;
     }
   }
+
+  // async getAllCategory() {
+  //   try {
+  //     return await this.prisma.category.findMany();
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // }
 
   async deleteCategory(id: number) {
     try {

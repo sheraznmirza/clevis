@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
+import { ListingParams } from 'src/core/dto';
 
 @Injectable()
 export class SubcategoryRepository {
@@ -54,9 +55,25 @@ export class SubcategoryRepository {
     }
   }
 
-  async getAllSubcategory() {
+  async getAllSubcategory(listingParams: ListingParams) {
+    const { page = 1, take = 10, search } = listingParams;
+
     try {
-      return await this.prisma.subCategory.findMany();
+      return await this.prisma.subCategory.findMany({
+        take: take,
+        skip: take * (page - 1),
+        orderBy: {
+          subCategoryName: 'asc',
+        },
+        ...(search.length && {
+          where: {
+            isDeleted: false,
+            subCategoryName: {
+              contains: search,
+            },
+          },
+        }),
+      });
     } catch (error) {
       return false;
     }

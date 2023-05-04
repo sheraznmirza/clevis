@@ -82,5 +82,5 @@ export class VendorSignUpDto {
 
   @ApiProperty()
   @IsNumber()
-  cityId: number;
+  cityId: string;
 }
