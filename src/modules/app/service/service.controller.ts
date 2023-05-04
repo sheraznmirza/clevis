@@ -16,6 +16,7 @@ import { UserType } from '@prisma/client';
 import { Roles, Authorized } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
 import { ApiTags } from '@nestjs/swagger';
+import { ListingParams } from 'src/core/dto';
 
 @ApiTags('Service')
 @Controller('service')
@@ -42,20 +43,16 @@ export class ServiceController {
   }
 
   // @Authorized([UserType.ADMIN, UserType.VENDOR])
-  // @Get()
-  // getAllService(
-  //   @Query('page') page: number,
-  //   @Query('take') take: number,
-  //   @Query('search') search?: string,
-  // ) {
-  //   return this.serviceService.getAllService(page, take, search);
-  // }
+  @Get()
+  getAllService(@Query() listingParams: ListingParams) {
+    return this.serviceService.getAllService(listingParams);
+  }
 
   // @Authorized([UserType.ADMIN, UserType.VENDOR])
-  @Get()
-  getAllService() {
-    return this.serviceService.getAllService();
-  }
+  // @Get()
+  // getAllService() {
+  //   return this.serviceService.getAllService();
+  // }
 
   @Authorized(UserType.ADMIN)
   @Delete('/:id')

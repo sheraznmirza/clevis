@@ -11,6 +11,12 @@ CREATE TYPE "Status" AS ENUM ('APPROVED', 'PENDING', 'REJECTED');
 CREATE TYPE "EmailTemplates" AS ENUM ('resetPassword', 'userRegistration');
 
 -- CreateEnum
+CREATE TYPE "MediaType" AS ENUM ('FILE', 'IMAGE', 'VIDEO', 'AUDIO');
+
+-- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('VendorCreated', 'RiderCreated');
+
+-- CreateEnum
 CREATE TYPE "DefaultActions" AS ENUM ('ALL', 'READ', 'CREATE', 'UPDATE', 'DELETE');
 
 -- CreateTable
@@ -19,15 +25,15 @@ CREATE TABLE "UserMaster" (
     "email" TEXT NOT NULL,
     "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
     "password" TEXT NOT NULL,
-    "profileImage" TEXT,
+    "profileImage" INTEGER,
+    "roleId" INTEGER NOT NULL,
     "userType" "UserType" NOT NULL DEFAULT 'CUSTOMER',
     "phone" TEXT NOT NULL,
-    "location" TEXT NOT NULL,
+    "location" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-    "hashedRt" TEXT,
 
     CONSTRAINT "UserMaster_pkey" PRIMARY KEY ("userMasterId")
 );
@@ -55,13 +61,13 @@ CREATE TABLE "Otp" (
 );
 
 -- CreateTable
-CREATE TABLE "User" (
-    "userId" SERIAL NOT NULL,
+CREATE TABLE "Admin" (
+    "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
     "userMasterId" INTEGER NOT NULL,
     "fullName" TEXT NOT NULL,
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("userId")
+    CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -82,9 +88,9 @@ CREATE TABLE "Vendor" (
     "serviceType" "ServiceType" NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
-    "logo" TEXT NOT NULL,
-    "workspaceImages" TEXT[],
-    "businessLicense" TEXT[],
+    "logo" INTEGER NOT NULL,
+    "workspaceImages" INTEGER[],
+    "businessLicense" INTEGER[],
     "description" TEXT NOT NULL,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -96,12 +102,11 @@ CREATE TABLE "Rider" (
     "riderId" SERIAL NOT NULL,
     "userMasterId" INTEGER NOT NULL,
     "fullName" TEXT NOT NULL,
-    "serviceType" "ServiceType" NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
-    "logo" TEXT NOT NULL,
-    "workspaceImages" TEXT[],
-    "businessLicense" TEXT[],
+    "logo" INTEGER NOT NULL,
+    "workspaceImages" INTEGER[],
+    "businessLicense" INTEGER[],
     "description" TEXT NOT NULL,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -117,18 +122,18 @@ CREATE TABLE "UserAddress" (
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "vendorId" INTEGER,
     "customerId" INTEGER,
-    "cityId" INTEGER,
-    "longitude" TEXT,
-    "latitude" TEXT,
+    "cityId" TEXT,
+    "longitude" DOUBLE PRECISION,
+    "latitude" DOUBLE PRECISION,
     "riderId" INTEGER,
-    "userUserId" INTEGER,
+    "adminId" INTEGER,
 
     CONSTRAINT "UserAddress_pkey" PRIMARY KEY ("userAddressId")
 );
 
 -- CreateTable
 CREATE TABLE "Country" (
-    "countryId" INTEGER NOT NULL,
+    "countryId" TEXT NOT NULL,
     "countryName" TEXT NOT NULL,
 
     CONSTRAINT "Country_pkey" PRIMARY KEY ("countryId")
@@ -136,18 +141,18 @@ CREATE TABLE "Country" (
 
 -- CreateTable
 CREATE TABLE "State" (
-    "stateId" INTEGER NOT NULL,
+    "stateId" TEXT NOT NULL,
     "stateName" TEXT NOT NULL,
-    "countryId" INTEGER NOT NULL,
+    "countryId" TEXT NOT NULL,
 
     CONSTRAINT "State_pkey" PRIMARY KEY ("stateId")
 );
 
 -- CreateTable
 CREATE TABLE "City" (
-    "cityId" INTEGER NOT NULL,
+    "cityId" TEXT NOT NULL,
     "cityName" TEXT NOT NULL,
-    "stateId" INTEGER,
+    "stateId" TEXT NOT NULL,
 
     CONSTRAINT "City_pkey" PRIMARY KEY ("cityId")
 );
@@ -168,10 +173,10 @@ CREATE TABLE "Services" (
 CREATE TABLE "Category" (
     "categoryId" SERIAL NOT NULL,
     "categoryName" TEXT NOT NULL,
+    "serviceType" "ServiceType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-    "serviceId" INTEGER NOT NULL,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("categoryId")
 );
@@ -180,10 +185,10 @@ CREATE TABLE "Category" (
 CREATE TABLE "SubCategory" (
     "subCategoryId" SERIAL NOT NULL,
     "subCategoryName" TEXT NOT NULL,
+    "serviceType" "ServiceType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-    "categoryId" INTEGER NOT NULL,
 
     CONSTRAINT "SubCategory_pkey" PRIMARY KEY ("subCategoryId")
 );
@@ -194,12 +199,23 @@ CREATE TABLE "VendorService" (
     "vendorId" INTEGER NOT NULL,
     "serviceId" INTEGER NOT NULL,
     "description" TEXT NOT NULL,
-    "serviceImage" TEXT[],
+    "serviceImages" INTEGER[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "VendorService_pkey" PRIMARY KEY ("vendorServiceId")
+);
+
+-- CreateTable
+CREATE TABLE "AllocatePrice" (
+    "id" SERIAL NOT NULL,
+    "vendorServiceId" INTEGER NOT NULL,
+    "subcategoryId" INTEGER,
+    "categoryId" INTEGER NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "AllocatePrice_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -233,9 +249,12 @@ CREATE TABLE "VendorServiceSubcategory" (
 CREATE TABLE "Role" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "userType" "UserType" NOT NULL,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deletedAt" TIMESTAMPTZ,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
 );
@@ -254,14 +273,22 @@ CREATE TABLE "Permission" (
 -- CreateTable
 CREATE TABLE "Routes" (
     "id" SERIAL NOT NULL,
-    "Route" TEXT NOT NULL,
-    "roleId" INTEGER NOT NULL,
+    "routeName" TEXT NOT NULL,
     "label" TEXT NOT NULL,
     "linkTo" TEXT NOT NULL,
     "selectedOptionKey" TEXT NOT NULL,
     "icon" TEXT NOT NULL,
 
     CONSTRAINT "Routes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RoleRouteMapping" (
+    "id" SERIAL NOT NULL,
+    "roleId" INTEGER NOT NULL,
+    "routeId" INTEGER NOT NULL,
+
+    CONSTRAINT "RoleRouteMapping_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -277,17 +304,44 @@ CREATE TABLE "RolePermissionMapping" (
     CONSTRAINT "RolePermissionMapping_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" SERIAL NOT NULL,
+    "toUser" INTEGER NOT NULL,
+    "fromUser" INTEGER NOT NULL,
+    "type" "NotificationType" NOT NULL,
+    "message" TEXT NOT NULL,
+    "seen" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Media" (
+    "id" SERIAL NOT NULL,
+    "originalName" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "encoding" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "path" TEXT NOT NULL,
+    "type" "MediaType" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "Media_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "RefreshToken_refreshToken_key" ON "RefreshToken"("refreshToken");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Otp_otp_key" ON "Otp"("otp");
+CREATE UNIQUE INDEX "Admin_email_key" ON "Admin"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_userMasterId_key" ON "User"("userMasterId");
+CREATE UNIQUE INDEX "Admin_userMasterId_key" ON "Admin"("userMasterId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Customer_email_key" ON "Customer"("email");
@@ -302,13 +356,13 @@ CREATE UNIQUE INDEX "Vendor_userMasterId_key" ON "Vendor"("userMasterId");
 CREATE UNIQUE INDEX "Rider_userMasterId_key" ON "Rider"("userMasterId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "State_countryId_key" ON "State"("countryId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "City_stateId_key" ON "City"("stateId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Media_path_key" ON "Media"("path");
+
+-- AddForeignKey
+ALTER TABLE "UserMaster" ADD CONSTRAINT "UserMaster_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -317,7 +371,7 @@ ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userMasterId_fkey" FOREI
 ALTER TABLE "Otp" ADD CONSTRAINT "Otp_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Admin" ADD CONSTRAINT "Admin_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Customer" ADD CONSTRAINT "Customer_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -341,25 +395,25 @@ ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_customerId_fkey" FOREIGN K
 ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_riderId_fkey" FOREIGN KEY ("riderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_userUserId_fkey" FOREIGN KEY ("userUserId") REFERENCES "User"("userId") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "State" ADD CONSTRAINT "State_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "Country"("countryId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "City" ADD CONSTRAINT "City_stateId_fkey" FOREIGN KEY ("stateId") REFERENCES "State"("stateId") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Category" ADD CONSTRAINT "Category_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Services"("serviceId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SubCategory" ADD CONSTRAINT "SubCategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "City" ADD CONSTRAINT "City_stateId_fkey" FOREIGN KEY ("stateId") REFERENCES "State"("stateId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VendorService" ADD CONSTRAINT "VendorService_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Services"("serviceId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VendorService" ADD CONSTRAINT "VendorService_vendorId_fkey" FOREIGN KEY ("vendorId") REFERENCES "Vendor"("vendorId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AllocatePrice" ADD CONSTRAINT "AllocatePrice_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AllocatePrice" ADD CONSTRAINT "AllocatePrice_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "SubCategory"("subCategoryId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AllocatePrice" ADD CONSTRAINT "AllocatePrice_vendorServiceId_fkey" FOREIGN KEY ("vendorServiceId") REFERENCES "VendorService"("vendorServiceId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VendorServiceCategory" ADD CONSTRAINT "VendorServiceCategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -377,7 +431,10 @@ ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_
 ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_vendorServiceCategoryId_fkey" FOREIGN KEY ("vendorServiceCategoryId") REFERENCES "VendorServiceCategory"("vendorServiceCategoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Routes" ADD CONSTRAINT "Routes_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "RoleRouteMapping" ADD CONSTRAINT "RoleRouteMapping_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RoleRouteMapping" ADD CONSTRAINT "RoleRouteMapping_routeId_fkey" FOREIGN KEY ("routeId") REFERENCES "Routes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RolePermissionMapping" ADD CONSTRAINT "RolePermissionMapping_permissionId_fkey" FOREIGN KEY ("permissionId") REFERENCES "Permission"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -387,3 +444,9 @@ ALTER TABLE "RolePermissionMapping" ADD CONSTRAINT "RolePermissionMapping_routeI
 
 -- AddForeignKey
 ALTER TABLE "RolePermissionMapping" ADD CONSTRAINT "RolePermissionMapping_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_toUser_fkey" FOREIGN KEY ("toUser") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_fromUser_fkey" FOREIGN KEY ("fromUser") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;

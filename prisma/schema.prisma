@@ -45,6 +45,17 @@ enum NotificationType {
   RiderCreated
 }
 
+enum MediaStatus {
+  UPLOADING
+  READY
+  STALE
+}
+
+enum MediaAccess {
+  PUBLIC
+  PRIVATE
+}
+
 model UserMaster {
   userMasterId     Int            @id @default(autoincrement())
   email            String
@@ -68,6 +79,7 @@ model UserMaster {
   role             Role?          @relation(fields: [roleId], references: [id])
   ToNotification   Notification[] @relation("ToNotification")
   FromNotification Notification[] @relation("FromNotification")
+  Media            Media[]
 }
 
 model RefreshToken {
@@ -149,8 +161,8 @@ model UserAddress {
   customerId    Int?
   customer      Customer? @relation(fields: customerId, references: customerId)
   cityId        String?
-  longitude     String?
-  latitude      String?
+  longitude     Float?
+  latitude      Float?
   Rider         Rider?    @relation(fields: [riderId], references: [riderId])
   riderId       Int?
   // User          Admin?    @relation(fields: [adminId], references: [id])
@@ -343,15 +355,39 @@ model Notification {
   updatedAt      DateTime         @default(now()) @updatedAt
 }
 
+// model Media {
+//   id           Int       @id @default(autoincrement())
+//   originalName String
+//   fileName     String
+//   encoding     String
+//   size         Int
+//   path         String    @unique
+//   type         MediaType
+//   createdAt    DateTime  @default(now())
+//   updatedAt    DateTime  @default(now()) @updatedAt
+//   isDeleted    Boolean   @default(false)
+// }
+
 model Media {
-  id           Int       @id @default(autoincrement())
-  originalName String
-  fileName     String
-  encoding     String
-  size         Int
-  path         String    @unique
-  type         MediaType
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @default(now()) @updatedAt
-  isDeleted    Boolean   @default(false)
+  id             Int         @id @default(autoincrement())
+  name           String
+  extension      String
+  type           MediaType
+  access         MediaAccess
+  size           Float?
+  location       String?
+  path           String
+  thumbPath      String?
+  status         MediaStatus @default(UPLOADING)
+  meta           Json?       @db.JsonB
+  profileImageId Int?
+  createdAt      DateTime    @default(now()) @db.Timestamptz()
+  updatedAt      DateTime    @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt      DateTime?   @db.Timestamptz()
+  user           UserMaster? @relation("ProfileImage", fields: [profileImageId], references: [profileImage])
+  // chatEventAttachment ChatEventAttachment?
+  // category            Category?
+  // vendorCategory      VendorCategory?
+  // productImage        ProductImage?
+  // Store               Store?
 }

@@ -224,8 +224,10 @@ export class AuthService {
               description: dto.description,
               userAddress: {
                 create: {
-                  fullAddress: dto.userAddress,
+                  fullAddress: dto.fullAddress,
                   cityId: dto.cityId,
+                  latitude: dto.latitude,
+                  longitude: dto.longitude,
                 },
               },
             },

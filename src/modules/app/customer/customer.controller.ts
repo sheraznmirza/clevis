@@ -5,11 +5,16 @@ import { JwtGuard } from '../auth/guard';
 import { ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtGuard)
-@ApiTags('Users')
-@Controller('users')
-export class UserController {
+@ApiTags('Customers')
+@Controller('customer')
+export class CustomerController {
   @Get('me')
   getMe(@GetUser() user: UserMaster) {
+    return user;
+  }
+
+  @Get()
+  getAllCustomers(@GetUser() user: UserMaster) {
     return user;
   }
 }

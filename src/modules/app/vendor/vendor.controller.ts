@@ -19,7 +19,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { VendorService } from './vendor.service';
 
-// @UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Vendor')
 @Controller('vendor')
 export class VendorController {
@@ -31,7 +31,7 @@ export class VendorController {
     return user;
   }
 
-  // @Authorized(UserType.VENDOR)
+  @Authorized(UserType.VENDOR)
   @Post('/service')
   createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
     console.log('req: ', req.user?.userMasterId);
@@ -39,7 +39,7 @@ export class VendorController {
     return this.vendorService.createVendorService(dto, req.user?.userMasterId);
   }
 
-  // @Authorized(UserType.ADMIN)
+  @Authorized(UserType.ADMIN)
   @HttpCode(HttpStatus.OK)
   @Patch('/approve/:vendorId')
   approveVendor(

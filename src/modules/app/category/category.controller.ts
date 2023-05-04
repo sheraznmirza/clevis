@@ -16,6 +16,7 @@ import { UserType } from '@prisma/client';
 import { Authorized } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
 import { ApiTags } from '@nestjs/swagger';
+import { ListingParams } from 'src/core/dto';
 
 @ApiTags('Category')
 @Controller('category')
@@ -41,21 +42,17 @@ export class CategoryController {
     return this.categoryService.getCategory(id);
   }
 
-  // @Authorized([UserType.ADMIN, UserType.VENDOR])
-  // @Get()
-  // getAllCategory(
-  //   @Query('page') page: number,
-  //   @Query('take') take: number,
-  //   @Query('search') search?: string,
-  // ) {
-  //   return this.categoryService.getAllCategory(page, take, search);
-  // }
+  @Authorized([UserType.ADMIN, UserType.VENDOR])
+  @Get()
+  getAllCategory(@Query() listingParams: ListingParams) {
+    return this.categoryService.getAllCategory(listingParams);
+  }
 
   // @Authorized([UserType.ADMIN, UserType.VENDOR])
-  @Get()
-  getAllCategory() {
-    return this.categoryService.getAllCategory();
-  }
+  // @Get()
+  // getAllCategory() {
+  //   return this.categoryService.getAllCategory();
+  // }
 
   @Authorized(UserType.ADMIN)
   @Delete('/:id')
