@@ -58,7 +58,6 @@ export class AuthService {
               fullName: dto.fullName,
               userAddress: {
                 create: {
-                  fullAddress: dto.userAddress,
                   cityId: dto.cityId,
                 },
               },
@@ -95,7 +94,7 @@ export class AuthService {
         user.userType,
       );
       await this.updateRt(user.userMasterId, response.refreshToken);
-      await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
+      // await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
       return {
         tokens: response,
         ...user,
@@ -114,6 +113,27 @@ export class AuthService {
 
     try {
       const roleId = await this.getRoleByType(UserType.VENDOR);
+      const businesess = [];
+      const workspaces = [];
+      dto.businessLicense.forEach(async (business) => {
+        const result = await this.prisma.media.create({
+          data: business,
+          select: {
+            id: true,
+          },
+        });
+        businesess.push(result);
+      });
+
+      dto.workspaceImages.forEach(async (business) => {
+        const result = await this.prisma.media.create({
+          data: business,
+          select: {
+            id: true,
+          },
+        });
+        workspaces.push(result);
+      });
       const user = await this.prisma.userMaster.create({
         data: {
           email: dto.email,
@@ -135,18 +155,23 @@ export class AuthService {
               companyName: dto.companyName,
               logo: {
                 create: {
-                  location: dto.logo.Location,
-                  key: dto.logo.Key,
-                  name: dto.logo.ETag,
+                  location: dto.logo.location,
+                  key: dto.logo.key,
+                  name: dto.logo.name,
                 },
               },
+              // workspaceImages: {
+              //   createMany: {
+              //     data: dto.workspaceImages,
+              //   },
+              // },
               // workspaceImages: dto.workspaceImages,
               // businessLicense: dto.businessLicense,
               description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
                 create: {
-                  fullAddress: dto.userAddress,
+                  fullAddress: dto.fullAddress,
                   cityId: dto.cityId,
                 },
               },
@@ -184,9 +209,21 @@ export class AuthService {
           },
         },
       });
+      await this.prisma.businessLicense.createMany({
+        data: businesess.map((item) => ({
+          vendorVendorId: user.vendor.vendorId,
+          mediaId: item.id,
+        })),
+      });
 
-      await this.sendEncryptedDataToMail(user, UserType.VENDOR);
-
+      await this.prisma.workspaceImages.createMany({
+        data: workspaces.map((item) => ({
+          vendorVendorId: user.vendor.vendorId,
+          mediaId: item.id,
+        })),
+      });
+      // await this.sendEncryptedDataToMail(user, UserType.VENDOR);
+      // await this.mail.riderVendorCreationEmail(user);
       const payload: CreateNotificationDto = {
         toUser: 1,
         fromUser: user.userMasterId,
@@ -214,6 +251,27 @@ export class AuthService {
 
     try {
       const roleId = await this.getRoleByType(UserType.RIDER);
+      const businesess = [];
+      const workspaces = [];
+      dto.businessLicense.forEach(async (business) => {
+        const result = await this.prisma.media.create({
+          data: business,
+          select: {
+            id: true,
+          },
+        });
+        businesess.push(result);
+      });
+
+      dto.workspaceImages.forEach(async (business) => {
+        const result = await this.prisma.media.create({
+          data: business,
+          select: {
+            id: true,
+          },
+        });
+        workspaces.push(result);
+      });
       const user = await this.prisma.userMaster.create({
         data: {
           email: dto.email,
@@ -228,9 +286,9 @@ export class AuthService {
               companyName: dto.companyName,
               logo: {
                 create: {
-                  location: dto.logo.Location,
-                  key: dto.logo.Key,
-                  name: dto.logo.ETag,
+                  location: dto.logo.location,
+                  key: dto.logo.key,
+                  name: dto.logo.name,
                 },
               },
               // workspaceImages: dto.workspaceImages,
@@ -277,9 +335,23 @@ export class AuthService {
           },
         },
       });
+      await this.prisma.businessLicense.createMany({
+        data: businesess.map((item) => ({
+          riderRiderId: user.rider.riderId,
+          mediaId: item.id,
+        })),
+      });
+
+      await this.prisma.workspaceImages.createMany({
+        data: workspaces.map((item) => ({
+          riderRiderId: user.rider.riderId,
+          mediaId: item.id,
+        })),
+      });
       // const response = await this.signToken(user.userMasterId, user.email);
       // await this.updateRt(user.userMasterId, response.refreshToken);
-      await this.sendEncryptedDataToMail(user, UserType.RIDER);
+      // await this.sendEncryptedDataToMail(user, UserType.RIDER);
+      // await this.mail.riderVendorCreationEmail(user);
       // await this.mail.sendUserVerificationEmail(user, UserType.RIDER);
       // return {
       //   tokens: response,
@@ -634,7 +706,7 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-      await this.mail.sendResetPasswordEmail(data, randomOtp);
+      // await this.mail.sendResetPasswordEmail(data, randomOtp);
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
       throw error;

@@ -1,5 +1,5 @@
 export type Media = {
-  ETag: string;
-  Location: string;
-  Key: string;
+  name: string;
+  location: string;
+  key: string;
 };
