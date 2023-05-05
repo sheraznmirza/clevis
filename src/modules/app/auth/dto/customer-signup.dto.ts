@@ -43,5 +43,5 @@ export class CustomerSignUpDto {
 
   @ApiProperty()
   @IsNumber()
-  cityId: string;
+  cityId: number;
 }

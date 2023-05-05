@@ -22,14 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       select: {
         userMasterId: true,
         userType: true,
-
-        // createdAt: true,
-        // updatedAt: true,
         email: true,
-        // firstName: true,
-        // lastName: true,
-        // bookmarks: true,
-        // _count: true,
       },
     });
     return user;

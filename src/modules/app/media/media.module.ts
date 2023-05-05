@@ -1,12 +1,13 @@
-import { Module, Global } from '@nestjs/common';
-import { MediaService } from './media.service';
-import { MediaController } from './media.controller';
-import { MediaRepository } from './media.repository';
+// import { Module } from '@nestjs/common';
+// import DatabaseModule from 'src/database/database.module';
+// import MediaController from './media.controller';
+// import MediaService from './media.service';
+// import S3Service from './s3.service';
 
-@Global()
-@Module({
-  providers: [MediaService, MediaRepository],
-  controllers: [MediaController],
-  exports: [MediaService],
-})
-export class MediaModule {}
+// @Module({
+//   imports: [DatabaseModule],
+//   exports: [MediaService, S3Service],
+//   providers: [MediaService, S3Service],
+//   controllers: [MediaController],
+// })
+// export default class MediaModule {}

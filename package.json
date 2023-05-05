@@ -9,8 +9,8 @@
     "prisma:dev:deploy": "prisma migrate deploy",
     "db:dev:rm": "docker compose rm dev-db -s -f -v",
     "db:dev:up": "docker compose up dev-db -d",
-    "db:dev:restart": "yarn db:dev:rm && yarn db:dev:up",
-    "build": "yarn db:dev:restart && npx prisma migrate reset --force && npx prisma migrate dev --name init && npx prisma generate && && sleep 1 && yarn prisma:dev:deploy && nest build && sleep 4 && yarn db:seed",
+    "db:dev:restart": "yarn db:dev:rm && yarn db:dev:up && sleep 1 && yarn prisma:dev:deploy",
+    "build": "yarn db:dev:restart && npx prisma migrate reset --force && npx prisma migrate dev --name init && npx prisma generate && sleep 1 && yarn prisma:dev:deploy && nest build && sleep 4 && yarn db:seed",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -25,6 +25,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.327.0",
+    "@aws-sdk/client-sts": "^3.327.0",
+    "@aws-sdk/s3-request-presigner": "^3.327.0",
     "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.1",

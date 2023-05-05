@@ -1,6 +1,5 @@
 import { applyDecorators, SetMetadata } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-
 import { UserType } from '@prisma/client';
 
 export const Authorized = (roleOrRoles?: UserType | Array<UserType>) => {

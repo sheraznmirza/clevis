@@ -8,7 +8,6 @@ export async function createAdmin(prisma: PrismaClient) {
       password: await argon.hash('click123'),
       userType: UserType.ADMIN,
       phone: '123456789',
-      location: 'location time',
       isEmailVerified: true,
       roleId: 1,
       admin: {
