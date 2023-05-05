@@ -1,20 +1,14 @@
 version: '3.8'
 services:
   dev-db:
-    image: postgres:13-alpine
-    restart: always
+    image: postgres:13
     ports:
       - 5434:5432
-    volumes:
-      - pgdb-clevis:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: SECRETS_POSTGRES_USER
-      POSTGRES_PASSWORD: SECRETS_POSTGRES_PASSWORD
-      POSTGRES_DB: SECRETS_POSTGRES_DB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: nest
     networks:
       - freecodecamp
 networks:
   freecodecamp:
-volumes:
-  pgdb-clevis:
-    external: true
