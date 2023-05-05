@@ -6,6 +6,7 @@ import {
   MinLength,
   IsNumber,
   IsArray,
+  IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Media } from 'src/core/globalTypes';
@@ -49,7 +50,6 @@ export class RiderSignUpDto {
   companyEmail: string;
 
   @ApiProperty()
-  @IsNumber()
   @IsNotEmpty()
   logo: Media;
 
@@ -65,12 +65,11 @@ export class RiderSignUpDto {
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
+  @IsOptional()
   description: string;
 
   @ApiProperty()
-  @IsString()
+  @IsNumber()
   cityId: number;
 
   @ApiProperty()
