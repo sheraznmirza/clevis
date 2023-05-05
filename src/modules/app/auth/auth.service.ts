@@ -121,13 +121,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.VENDOR,
           roleId: roleId,
-          profilePicture: {
-            create: {
-              location: dto.logo.Location,
-              key: dto.logo.Key,
-              name: dto.logo.ETag,
-            },
-          },
+          // profilePicture: {
+          //   create: {
+          //     location: dto.logo.Location,
+          //     key: dto.logo.Key,
+          //     name: dto.logo.ETag,
+          //   },
+          // },
           vendor: {
             create: {
               fullName: dto.fullName,

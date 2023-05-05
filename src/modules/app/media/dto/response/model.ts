@@ -1,37 +1,37 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { MediaAccess, MediaStatus, MediaType } from '@prisma/client';
+// import { ApiProperty } from '@nestjs/swagger';
+// import { MediaAccess, MediaStatus, MediaType } from '@prisma/client';
 
-export class MediaResponseModel {
-  @ApiProperty()
-  id?: number;
+// export class MediaResponseModel {
+//   @ApiProperty()
+//   id?: number;
 
-  @ApiProperty()
-  name?: string;
+//   @ApiProperty()
+//   name?: string;
 
-  @ApiProperty()
-  extension?: string;
+//   @ApiProperty()
+//   extension?: string;
 
-  @ApiProperty({ enum: MediaType })
-  type?: MediaType;
+//   @ApiProperty({ enum: MediaType })
+//   type?: MediaType;
 
-  @ApiProperty({ enum: MediaAccess })
-  access?: MediaAccess;
+//   @ApiProperty({ enum: MediaAccess })
+//   access?: MediaAccess;
 
-  @ApiProperty()
-  size?: number;
+//   @ApiProperty()
+//   size?: number;
 
-  @ApiProperty()
-  path?: string;
+//   @ApiProperty()
+//   path?: string;
 
-  @ApiProperty()
-  thumbPath?: string;
+//   @ApiProperty()
+//   thumbPath?: string;
 
-  @ApiProperty({ enum: MediaStatus })
-  status?: MediaStatus;
+//   @ApiProperty({ enum: MediaStatus })
+//   status?: MediaStatus;
 
-  @ApiProperty()
-  userId?: number;
+//   @ApiProperty()
+//   userId?: number;
 
-  @ApiProperty()
-  meta?: any;
-}
+//   @ApiProperty()
+//   meta?: any;
+// }

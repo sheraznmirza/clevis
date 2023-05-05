@@ -1,66 +1,66 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { MediaAccess, MediaStatus, MediaType } from '@prisma/client';
+// import { ApiProperty } from '@nestjs/swagger';
+// import { MediaAccess, MediaStatus, MediaType } from '@prisma/client';
 
-export class UploadInitiateMediaResponseDTO {
-  @ApiProperty()
-  accessKeyId: string;
+// export class UploadInitiateMediaResponseDTO {
+//   @ApiProperty()
+//   accessKeyId: string;
 
-  @ApiProperty()
-  secretAccessKey: string;
+//   @ApiProperty()
+//   secretAccessKey: string;
 
-  @ApiProperty()
-  sessionToken: string;
+//   @ApiProperty()
+//   sessionToken: string;
 
-  @ApiProperty()
-  mediaId: number;
+//   @ApiProperty()
+//   mediaId: number;
 
-  @ApiProperty()
-  location: string;
+//   @ApiProperty()
+//   location: string;
 
-  @ApiProperty()
-  bucket: string;
+//   @ApiProperty()
+//   bucket: string;
 
-  @ApiProperty()
-  bucketPath: string;
+//   @ApiProperty()
+//   bucketPath: string;
 
-  @ApiProperty()
-  mediaPath: string;
+//   @ApiProperty()
+//   mediaPath: string;
 
-  @ApiProperty()
-  region: string;
-}
+//   @ApiProperty()
+//   region: string;
+// }
 
-export class UploadFinalizeMediaResponseDTO {
-  @ApiProperty()
-  id: number;
+// export class UploadFinalizeMediaResponseDTO {
+//   @ApiProperty()
+//   id: number;
 
-  @ApiProperty()
-  name: string;
+//   @ApiProperty()
+//   name: string;
 
-  @ApiProperty()
-  extension: string;
+//   @ApiProperty()
+//   extension: string;
 
-  @ApiProperty({ enum: MediaType })
-  type: MediaType;
+//   @ApiProperty({ enum: MediaType })
+//   type: MediaType;
 
-  @ApiProperty({ enum: MediaAccess })
-  access: MediaAccess;
+//   @ApiProperty({ enum: MediaAccess })
+//   access: MediaAccess;
 
-  @ApiProperty()
-  size: number;
+//   @ApiProperty()
+//   size: number;
 
-  @ApiProperty()
-  path: string;
+//   @ApiProperty()
+//   path: string;
 
-  @ApiProperty()
-  thumbPath: string;
+//   @ApiProperty()
+//   thumbPath: string;
 
-  @ApiProperty({ enum: MediaStatus })
-  status: MediaStatus;
+//   @ApiProperty({ enum: MediaStatus })
+//   status: MediaStatus;
 
-  @ApiProperty()
-  userId: number;
+//   @ApiProperty()
+//   userId: number;
 
-  @ApiProperty()
-  meta: any;
-}
+//   @ApiProperty()
+//   meta: any;
+// }
