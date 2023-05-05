@@ -51,7 +51,6 @@ export class AuthService {
           email: dto.email,
           password,
           phone: dto.phone,
-          location: dto.location,
           roleId: roleId,
           customer: {
             create: {
@@ -68,12 +67,11 @@ export class AuthService {
         },
         select: {
           userMasterId: true,
-          profileImage: true,
+          // profileImage: true,
           email: true,
           isEmailVerified: true,
           phone: true,
           userType: true,
-          location: true,
           customer: {
             select: {
               userAddress: {
@@ -121,17 +119,29 @@ export class AuthService {
           email: dto.email,
           password,
           phone: dto.phone,
-          location: dto.location,
           userType: UserType.VENDOR,
           roleId: roleId,
+          profilePicture: {
+            create: {
+              location: dto.logo.Location,
+              key: dto.logo.Key,
+              name: dto.logo.ETag,
+            },
+          },
           vendor: {
             create: {
               fullName: dto.fullName,
               companyEmail: dto.companyEmail,
               companyName: dto.companyName,
-              logo: dto.logo,
-              workspaceImages: dto.workspaceImages,
-              businessLicense: dto.businessLicense,
+              logo: {
+                create: {
+                  location: dto.logo.Location,
+                  key: dto.logo.Key,
+                  name: dto.logo.ETag,
+                },
+              },
+              // workspaceImages: dto.workspaceImages,
+              // businessLicense: dto.businessLicense,
               description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
@@ -145,12 +155,11 @@ export class AuthService {
         },
         select: {
           userMasterId: true,
-          profileImage: true,
+          // profileImage: true,
           email: true,
           isEmailVerified: true,
           phone: true,
           userType: true,
-          location: true,
           vendor: {
             select: {
               userAddress: {
@@ -167,8 +176,8 @@ export class AuthService {
               companyEmail: true,
               companyName: true,
               logo: true,
-              workspaceImages: true,
-              businessLicense: true,
+              // workspaceImages: true,
+              // businessLicense: true,
               description: true,
               serviceType: true,
             },
@@ -210,7 +219,6 @@ export class AuthService {
           email: dto.email,
           password,
           phone: dto.phone,
-          location: dto.location,
           userType: UserType.RIDER,
           roleId: roleId,
           rider: {
@@ -218,9 +226,15 @@ export class AuthService {
               fullName: dto.fullName,
               companyEmail: dto.companyEmail,
               companyName: dto.companyName,
-              logo: dto.logo,
-              workspaceImages: dto.workspaceImages,
-              businessLicense: dto.businessLicense,
+              logo: {
+                create: {
+                  location: dto.logo.Location,
+                  key: dto.logo.Key,
+                  name: dto.logo.ETag,
+                },
+              },
+              // workspaceImages: dto.workspaceImages,
+              // businessLicense: dto.businessLicense,
               description: dto.description,
               userAddress: {
                 create: {
@@ -235,25 +249,30 @@ export class AuthService {
         },
         select: {
           userMasterId: true,
-          profileImage: true,
           email: true,
           isEmailVerified: true,
           phone: true,
           userType: true,
-          location: true,
           rider: {
             select: {
               userAddress: {
                 select: {
                   userAddressId: true,
                   fullAddress: true,
-                  // cityId: true,
+                  cityId: true,
                   longitude: true,
                   latitude: true,
                 },
               },
               fullName: true,
               riderId: true,
+              logo: {
+                select: {
+                  id: true,
+                  location: true,
+                  name: true,
+                },
+              },
             },
           },
         },
@@ -287,12 +306,17 @@ export class AuthService {
       },
       select: {
         userMasterId: true,
-        profileImage: true,
+        profilePicture: {
+          select: {
+            key: true,
+            name: true,
+            id: true,
+          },
+        },
         email: true,
         isEmailVerified: true,
         phone: true,
         userType: true,
-        location: true,
         password: true,
         admin: {
           select: {
@@ -324,9 +348,9 @@ export class AuthService {
       user.userType,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
-    const profileImage = await this.getImages(user.profileImage);
+    // const profileImage = await this.getImages(user.profileImage);
     delete user.password;
-    return { tokens: response, ...user, profileImage };
+    return { tokens: response, ...user };
   }
 
   async signinCustomer(dto: LoginDto) {
@@ -337,12 +361,17 @@ export class AuthService {
       },
       select: {
         userMasterId: true,
-        profileImage: true,
+        profilePicture: {
+          select: {
+            key: true,
+            name: true,
+            id: true,
+          },
+        },
         email: true,
         isEmailVerified: true,
         phone: true,
         userType: true,
-        location: true,
         password: true,
         customer: {
           select: {
@@ -374,9 +403,9 @@ export class AuthService {
       user.userType,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
-    const profileImage = await this.getImages(user.profileImage);
+    // const profileImage = await this.getImages(user.profileImage);
     delete user.password;
-    return { tokens: response, ...user, profileImage };
+    return { tokens: response, ...user };
   }
 
   async signinVendor(dto: LoginDto) {
@@ -387,12 +416,17 @@ export class AuthService {
       },
       select: {
         userMasterId: true,
-        profileImage: true,
+        profilePicture: {
+          select: {
+            key: true,
+            name: true,
+            id: true,
+          },
+        },
         email: true,
         isEmailVerified: true,
         phone: true,
         userType: true,
-        location: true,
         password: true,
         vendor: {
           select: {
@@ -442,19 +476,16 @@ export class AuthService {
       user.vendor.serviceType,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
-    const profileImage = await this.getImages(user.profileImage);
-    const businessLicense = await this.getImages(user.vendor.businessLicense);
-    const workspaceImages = await this.getImages(user.vendor.workspaceImages);
+    // const profileImage = await this.getImages(user.profileImage);
+    // const businessLicense = await this.getImages(user.vendor.businessLicense);
+    // const workspaceImages = await this.getImages(user.vendor.workspaceImages);
 
     delete user.password;
     return {
       tokens: response,
       ...user,
-      profileImage,
       vendor: {
         ...user.vendor,
-        businessLicense,
-        workspaceImages,
       },
     };
   }
@@ -467,12 +498,17 @@ export class AuthService {
       },
       select: {
         userMasterId: true,
-        profileImage: true,
+        profilePicture: {
+          select: {
+            key: true,
+            name: true,
+            id: true,
+          },
+        },
         email: true,
         isEmailVerified: true,
         phone: true,
         userType: true,
-        location: true,
         password: true,
         rider: {
           select: {
@@ -520,19 +556,19 @@ export class AuthService {
       user.userType,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
-    const profileImage = await this.getImages(user.profileImage);
-    const businessLicense = await this.getImages(user.rider.businessLicense);
-    const workspaceImages = await this.getImages(user.rider.workspaceImages);
+    // const profileImage = await this.getImages(user.profileImage);
+    // const businessLicense = await this.getImages(user.rider.businessLicense);
+    // const workspaceImages = await this.getImages(user.rider.workspaceImages);
     delete user.password;
 
     return {
       tokens: response,
       ...user,
-      profileImage,
+      // profileImage,
       rider: {
         ...user.rider,
-        businessLicense,
-        workspaceImages,
+        // businessLicense,
+        // workspaceImages,
       },
     };
   }
@@ -798,45 +834,45 @@ export class AuthService {
     return userId.id;
   }
 
-  async getImages(imageId: number[] | number) {
-    try {
-      if (!imageId) return null;
+  // async getImages(imageId: number[] | number) {
+  //   try {
+  //     if (!imageId) return null;
 
-      const image = Array.isArray(imageId)
-        ? await this.prisma.media.findMany({
-            where: {
-              id: {
-                in: imageId,
-              },
-            },
-            select: {
-              id: true,
-              originalName: true,
-              fileName: true,
-              path: true,
-              type: true,
-              size: true,
-            },
-          })
-        : await this.prisma.media.findUnique({
-            where: {
-              id: imageId,
-            },
-            select: {
-              id: true,
-              originalName: true,
-              fileName: true,
-              path: true,
-              type: true,
-              size: true,
-            },
-          });
+  //     const image = Array.isArray(imageId)
+  //       ? await this.prisma.media.findMany({
+  //           where: {
+  //             id: {
+  //               in: imageId,
+  //             },
+  //           },
+  //           select: {
+  //             id: true,
+  //             originalName: true,
+  //             fileName: true,
+  //             path: true,
+  //             type: true,
+  //             size: true,
+  //           },
+  //         })
+  //       : await this.prisma.media.findUnique({
+  //           where: {
+  //             id: imageId,
+  //           },
+  //           select: {
+  //             id: true,
+  //             originalName: true,
+  //             fileName: true,
+  //             path: true,
+  //             type: true,
+  //             size: true,
+  //           },
+  //         });
 
-      return image || null;
-    } catch (error) {
-      throw error;
-    }
-  }
+  //     return image || null;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   encryptData(data: string) {
     const cipher = createCipheriv(

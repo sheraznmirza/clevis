@@ -13,6 +13,7 @@ import { RoleModule } from './modules/app/role/role.module';
 import { RoleRouteModule } from './modules/app/roleRoute/role-route.module';
 import { RouteModule } from './modules/app/route/route.module';
 import { NotificationModule } from './modules/app/notification/notification.module';
+import DatabaseModule from './database/database.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { NotificationModule } from './modules/app/notification/notification.modu
     RoleModule,
     RoleRouteModule,
     RouteModule,
+    DatabaseModule,
   ],
 })
 export class AppModule {}

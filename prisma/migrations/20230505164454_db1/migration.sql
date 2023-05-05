@@ -11,10 +11,16 @@ CREATE TYPE "Status" AS ENUM ('APPROVED', 'PENDING', 'REJECTED');
 CREATE TYPE "EmailTemplates" AS ENUM ('resetPassword', 'userRegistration');
 
 -- CreateEnum
-CREATE TYPE "MediaType" AS ENUM ('FILE', 'IMAGE', 'VIDEO', 'AUDIO');
+CREATE TYPE "MediaType" AS ENUM ('IMAGE', 'VIDEO', 'DOCUMENT', 'ARCHIVE', 'OTHER');
 
 -- CreateEnum
 CREATE TYPE "NotificationType" AS ENUM ('VendorCreated', 'RiderCreated');
+
+-- CreateEnum
+CREATE TYPE "MediaStatus" AS ENUM ('UPLOADING', 'READY', 'STALE');
+
+-- CreateEnum
+CREATE TYPE "MediaAccess" AS ENUM ('PUBLIC', 'PRIVATE');
 
 -- CreateEnum
 CREATE TYPE "DefaultActions" AS ENUM ('ALL', 'READ', 'CREATE', 'UPDATE', 'DELETE');
@@ -25,11 +31,10 @@ CREATE TABLE "UserMaster" (
     "email" TEXT NOT NULL,
     "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
     "password" TEXT NOT NULL,
-    "profileImage" INTEGER,
     "roleId" INTEGER NOT NULL,
+    "profilePictureId" INTEGER,
     "userType" "UserType" NOT NULL DEFAULT 'CUSTOMER',
     "phone" TEXT NOT NULL,
-    "location" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -84,13 +89,11 @@ CREATE TABLE "Customer" (
 CREATE TABLE "Vendor" (
     "vendorId" SERIAL NOT NULL,
     "userMasterId" INTEGER NOT NULL,
+    "logoId" INTEGER NOT NULL,
     "fullName" TEXT NOT NULL,
     "serviceType" "ServiceType" NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
-    "logo" INTEGER NOT NULL,
-    "workspaceImages" INTEGER[],
-    "businessLicense" INTEGER[],
     "description" TEXT NOT NULL,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -101,10 +104,10 @@ CREATE TABLE "Vendor" (
 CREATE TABLE "Rider" (
     "riderId" SERIAL NOT NULL,
     "userMasterId" INTEGER NOT NULL,
+    "logoId" INTEGER NOT NULL,
     "fullName" TEXT NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
-    "logo" INTEGER NOT NULL,
     "workspaceImages" INTEGER[],
     "businessLicense" INTEGER[],
     "description" TEXT NOT NULL,
@@ -122,7 +125,7 @@ CREATE TABLE "UserAddress" (
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "vendorId" INTEGER,
     "customerId" INTEGER,
-    "cityId" TEXT,
+    "cityId" INTEGER,
     "longitude" DOUBLE PRECISION,
     "latitude" DOUBLE PRECISION,
     "riderId" INTEGER,
@@ -150,7 +153,7 @@ CREATE TABLE "State" (
 
 -- CreateTable
 CREATE TABLE "City" (
-    "cityId" TEXT NOT NULL,
+    "cityId" INTEGER NOT NULL,
     "cityName" TEXT NOT NULL,
     "stateId" TEXT NOT NULL,
 
@@ -321,17 +324,37 @@ CREATE TABLE "Notification" (
 -- CreateTable
 CREATE TABLE "Media" (
     "id" SERIAL NOT NULL,
-    "originalName" TEXT NOT NULL,
-    "fileName" TEXT NOT NULL,
-    "encoding" TEXT NOT NULL,
-    "size" INTEGER NOT NULL,
-    "path" TEXT NOT NULL,
-    "type" "MediaType" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "name" TEXT NOT NULL,
+    "extension" TEXT,
+    "size" DOUBLE PRECISION,
+    "location" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "meta" JSONB,
+    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" TIMESTAMPTZ,
 
     CONSTRAINT "Media_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BusinessLicense" (
+    "id" SERIAL NOT NULL,
+    "vendorVendorId" INTEGER,
+    "riderRiderId" INTEGER,
+    "mediaId" INTEGER NOT NULL,
+
+    CONSTRAINT "BusinessLicense_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WorkspaceImages" (
+    "id" SERIAL NOT NULL,
+    "mediaId" INTEGER NOT NULL,
+    "vendorVendorId" INTEGER,
+    "riderRiderId" INTEGER,
+
+    CONSTRAINT "WorkspaceImages_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -358,11 +381,11 @@ CREATE UNIQUE INDEX "Rider_userMasterId_key" ON "Rider"("userMasterId");
 -- CreateIndex
 CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
 
--- CreateIndex
-CREATE UNIQUE INDEX "Media_path_key" ON "Media"("path");
-
 -- AddForeignKey
 ALTER TABLE "UserMaster" ADD CONSTRAINT "UserMaster_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UserMaster" ADD CONSTRAINT "UserMaster_profilePictureId_fkey" FOREIGN KEY ("profilePictureId") REFERENCES "Media"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -380,7 +403,13 @@ ALTER TABLE "Customer" ADD CONSTRAINT "Customer_userMasterId_fkey" FOREIGN KEY (
 ALTER TABLE "Vendor" ADD CONSTRAINT "Vendor_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Vendor" ADD CONSTRAINT "Vendor_logoId_fkey" FOREIGN KEY ("logoId") REFERENCES "Media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Rider" ADD CONSTRAINT "Rider_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Rider" ADD CONSTRAINT "Rider_logoId_fkey" FOREIGN KEY ("logoId") REFERENCES "Media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_cityId_fkey" FOREIGN KEY ("cityId") REFERENCES "City"("cityId") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -450,3 +479,21 @@ ALTER TABLE "Notification" ADD CONSTRAINT "Notification_toUser_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_fromUser_fkey" FOREIGN KEY ("fromUser") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BusinessLicense" ADD CONSTRAINT "BusinessLicense_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BusinessLicense" ADD CONSTRAINT "BusinessLicense_vendorVendorId_fkey" FOREIGN KEY ("vendorVendorId") REFERENCES "Vendor"("vendorId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BusinessLicense" ADD CONSTRAINT "BusinessLicense_riderRiderId_fkey" FOREIGN KEY ("riderRiderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkspaceImages" ADD CONSTRAINT "WorkspaceImages_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkspaceImages" ADD CONSTRAINT "WorkspaceImages_vendorVendorId_fkey" FOREIGN KEY ("vendorVendorId") REFERENCES "Vendor"("vendorId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WorkspaceImages" ADD CONSTRAINT "WorkspaceImages_riderRiderId_fkey" FOREIGN KEY ("riderRiderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;

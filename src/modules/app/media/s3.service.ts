@@ -8,9 +8,9 @@ import {
 import { AssumeRoleCommand, STSClient } from '@aws-sdk/client-sts';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
-import { MediaType } from '@prisma/client';
-import AppConfig from 'configs/app.config';
-import { GenerateUUID } from 'helpers/util.helper';
+// import { MediaType } from '@prisma/client';
+import AppConfig from 'src/configs/app.config';
+import { v4 as uuid } from 'uuid';
 @Injectable()
 export default class S3Service {
   private _s3Client: S3Client = null;
@@ -35,7 +35,7 @@ export default class S3Service {
   }
 
   private _createUniqueFileName(name: string): string {
-    return GenerateUUID() + '__' + encodeURIComponent(name.replace(/ /g, '+'));
+    return uuid() + '__' + encodeURIComponent(name.replace(/ /g, '+'));
   }
 
   private _generateS3ResourceARN(resource: string) {
@@ -66,7 +66,7 @@ export default class S3Service {
     };
   }
 
-  public CreateUniqueFilePath(fileName: string, type: MediaType): string {
+  public CreateUniqueFilePath(fileName: string, type: any): string {
     const date = new Date();
     return `media/${type}/${date.getFullYear()}/${
       date.getMonth() + 1

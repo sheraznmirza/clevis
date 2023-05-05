@@ -5,7 +5,6 @@ import {
   HttpException,
   BadRequestException,
   HttpStatus,
-  InternalServerErrorException,
   Inject,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
@@ -15,7 +14,7 @@ import { Logger } from 'src/helpers/logger.helper';
 const LOCALE_HEADER_KEY = 'locale';
 
 function _prepareBadRequestValidationErrors(errors) {
-  let Errors: any = {};
+  const Errors: any = {};
   for (const err of errors) {
     const constraint =
       err.constraints &&
