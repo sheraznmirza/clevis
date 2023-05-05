@@ -26,7 +26,7 @@ export class AddressService {
     }
   }
 
-  async getStates(countryId: number, search?: string) {
+  async getStates(countryId: string, search?: string) {
     try {
       const states = await this.prisma.state.findMany({
         where: {
@@ -51,7 +51,7 @@ export class AddressService {
     }
   }
 
-  async getCities(stateId: number, search?: string) {
+  async getCities(stateId: string, search?: string) {
     try {
       const cities = await this.prisma.city.findMany({
         where: {

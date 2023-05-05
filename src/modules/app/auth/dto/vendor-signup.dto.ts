@@ -9,6 +9,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Media } from 'src/core/globalTypes';
 
 export class VendorSignUpDto {
   @ApiProperty()
@@ -31,17 +32,12 @@ export class VendorSignUpDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  location: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   fullName: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  userAddress: string;
+  fullAddress: string;
 
   @ApiProperty()
   @IsString()
@@ -60,19 +56,22 @@ export class VendorSignUpDto {
   companyEmail: string;
 
   @ApiProperty()
-  @IsNumber()
   @IsNotEmpty()
-  logo: number;
+  logo: Media;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  profilePicture: Media;
 
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  workspaceImages: number[];
+  workspaceImages: Media[];
 
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  businessLicense: number[];
+  businessLicense: Media[];
 
   @ApiProperty()
   @IsString()
@@ -83,4 +82,12 @@ export class VendorSignUpDto {
   @ApiProperty()
   @IsNumber()
   cityId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  latitude: number;
+
+  @ApiProperty()
+  @IsNumber()
+  longitude: number;
 }

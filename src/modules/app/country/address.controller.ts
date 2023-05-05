@@ -13,12 +13,12 @@ export class AddressController {
   }
 
   @Get('/states/:countryId')
-  getStatesByCountry(@Param('countryId') id: number) {
+  getStatesByCountry(@Param('countryId') id: string) {
     return this.addressService.getStates(id);
   }
 
   @Get('/cities/:stateId')
-  getCitiesByState(@Param('stateId') id: number) {
+  getCitiesByState(@Param('stateId') id: string) {
     return this.addressService.getCities(id);
   }
 }

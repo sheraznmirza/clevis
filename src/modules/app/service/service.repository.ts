@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { ServiceCreateDto, ServiceUpdateDto } from './dto';
+import { ListingParams } from 'src/core/dto';
 
 @Injectable()
 export class ServiceRepository {
@@ -86,9 +87,24 @@ export class ServiceRepository {
   //   }
   // }
 
-  async getAllService() {
+  async getAllService(listingParams: ListingParams) {
+    const { page = 1, take = 10, search } = listingParams;
     try {
-      return await this.prisma.services.findMany();
+      return await this.prisma.services.findMany({
+        take: take,
+        skip: take * (page - 1),
+        orderBy: {
+          createdAt: 'desc',
+        },
+        ...(search.length && {
+          where: {
+            isDeleted: false,
+            serviceName: {
+              contains: search,
+            },
+          },
+        }),
+      });
     } catch (error) {
       return false;
     }

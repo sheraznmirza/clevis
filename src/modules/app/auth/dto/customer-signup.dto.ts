@@ -29,17 +29,7 @@ export class CustomerSignUpDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  location: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   fullName: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  userAddress: string;
 
   @ApiProperty()
   @IsNumber()

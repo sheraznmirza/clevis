@@ -16,6 +16,7 @@ import { UserType } from '@prisma/client';
 import { Roles } from 'src/core/decorators';
 import { RolesGuard } from 'src/core/guards';
 import { ApiTags } from '@nestjs/swagger';
+import { ListingParams } from 'src/core/dto';
 
 @ApiTags('Subcategory')
 @Controller('subcategory')
@@ -42,19 +43,9 @@ export class SubcategoryController {
   }
 
   // @Roles(UserType.ADMIN, UserType.VENDOR)
-  // @Get()
-  // getAllSubcategory(
-  //   @Query('page') page: number,
-  //   @Query('take') take: number,
-  //   @Query('search') search?: string,
-  // ) {
-  //   return this.subcategoryService.getAllSubcategory(page, take, search);
-  // }
-
-  // @Roles(UserType.ADMIN, UserType.VENDOR)
   @Get()
-  getAllSubcategory() {
-    return this.subcategoryService.getAllSubcategory();
+  getAllSubcategory(@Query() listingParams: ListingParams) {
+    return this.subcategoryService.getAllSubcategory(listingParams);
   }
 
   @Roles(UserType.ADMIN)

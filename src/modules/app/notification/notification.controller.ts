@@ -21,7 +21,7 @@ import { NotificationService } from './notification.service';
 
 @ApiTags('Notification')
 @Controller('notification')
-// @UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, RolesGuard)
 export class NotificationController {
   constructor(private notificationService: NotificationService) {}
 
@@ -43,7 +43,12 @@ export class NotificationController {
   //     return this.routeService.getService(id);
   //   }
 
-  // @Authorized(UserType.ADMIN)
+  @Authorized([
+    UserType.ADMIN,
+    UserType.CUSTOMER,
+    UserType.RIDER,
+    UserType.VENDOR,
+  ])
   @Get()
   getAllRoute(@Req() req) {
     return this.notificationService.getAllNotifications(req.user.userMasterId);

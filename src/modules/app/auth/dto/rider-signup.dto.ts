@@ -1,4 +1,3 @@
-import { ServiceType } from '@prisma/client';
 import {
   IsEmail,
   IsString,
@@ -9,6 +8,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Media } from 'src/core/globalTypes';
 
 export class RiderSignUpDto {
   @ApiProperty()
@@ -31,22 +31,16 @@ export class RiderSignUpDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  location: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   fullName: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  userAddress: string;
+  fullAddress: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(50)
   companyName: string;
 
   @ApiProperty()
@@ -57,17 +51,17 @@ export class RiderSignUpDto {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
-  logo: number;
+  logo: Media;
 
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  workspaceImages: number[];
+  workspaceImages: Media[];
 
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  businessLicense: number[];
+  businessLicense: Media[];
 
   @ApiProperty()
   @IsString()
@@ -76,6 +70,14 @@ export class RiderSignUpDto {
   description: string;
 
   @ApiProperty()
-  @IsNumber()
+  @IsString()
   cityId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  latitude: number;
+
+  @ApiProperty()
+  @IsNumber()
+  longitude: number;
 }
