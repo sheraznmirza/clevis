@@ -13,8 +13,8 @@ import {
 import { UserMaster, UserType } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
-import { RolesGuard } from 'src/core/guards';
-import { Authorized } from 'src/core/decorators';
+import { RolesGuard } from '../../../core/guards';
+import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { VendorService } from './vendor.service';
@@ -49,10 +49,9 @@ export class VendorController {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
-  // @Authorized(UserType.ADMIN)
-  // @Get('me')
-  // getMe(@GetUser() user) {
-  //   console.log('user: ', user);
-  //   return user;
-  // }
+  @Authorized([UserType.ADMIN, UserType.CUSTOMER])
+  @Get()
+  getVendors() {
+    // return this.vendorService.approveVendor(vendorId, dto);
+  }
 }

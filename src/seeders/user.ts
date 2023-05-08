@@ -2,8 +2,31 @@ import { PrismaClient, UserType } from '@prisma/client';
 import * as argon from 'argon2';
 
 export async function createAdmin(prisma: PrismaClient) {
-  await prisma.userMaster.create({
-    data: {
+  await prisma.userMaster.upsert({
+    where: {
+      userMasterId: 1,
+    },
+    update: {
+      email: 'admin@clevis.com',
+      password: await argon.hash('click123'),
+      userType: UserType.ADMIN,
+      phone: '123456789',
+      isEmailVerified: true,
+      roleId: 1,
+      admin: {
+        upsert: {
+          update: {
+            email: 'admin@clevis.com',
+            fullName: 'Admin',
+          },
+          create: {
+            email: 'admin@clevis.com',
+            fullName: 'Admin',
+          },
+        },
+      },
+    },
+    create: {
       email: 'admin@clevis.com',
       password: await argon.hash('click123'),
       userType: UserType.ADMIN,

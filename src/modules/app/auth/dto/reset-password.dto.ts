@@ -1,12 +1,4 @@
-import {
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  MaxLength,
-  IsNumber,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsNotEmpty, IsString, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ResetPasswordDataDto {
@@ -18,8 +10,7 @@ export class ResetPasswordDataDto {
   password: string;
 
   @ApiProperty()
-  @IsNumber()
-  @Min(10000000)
-  @Max(99999999)
-  otp: number;
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 }

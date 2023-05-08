@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 config();
-import { createAdmin } from './user';
+//import { createAdmin } from './user';
 import { PrismaClient } from '@prisma/client';
 import { rolesCreate } from './role';
 import { createCountryState } from './countrycity';
@@ -16,7 +16,7 @@ async function main() {
   console.log('=======CountryCitySeeder=========');
   await createCountryState(prisma);
   console.log('=======AdminSeeder=========');
-  await createAdmin(prisma);
+  // await createAdmin(prisma);
   console.log('=======CategorySubCategorySeeder=========');
   await createCategorySubCategory(prisma);
   // console.log('=======UserSeeder=========');

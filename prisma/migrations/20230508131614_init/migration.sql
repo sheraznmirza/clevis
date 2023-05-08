@@ -94,7 +94,7 @@ CREATE TABLE "Vendor" (
     "serviceType" "ServiceType" NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
+    "description" TEXT,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
     CONSTRAINT "Vendor_pkey" PRIMARY KEY ("vendorId")
@@ -110,7 +110,7 @@ CREATE TABLE "Rider" (
     "companyEmail" TEXT NOT NULL,
     "workspaceImages" INTEGER[],
     "businessLicense" INTEGER[],
-    "description" TEXT NOT NULL,
+    "description" TEXT,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
     CONSTRAINT "Rider_pkey" PRIMARY KEY ("riderId")

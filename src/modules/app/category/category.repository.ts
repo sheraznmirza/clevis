@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import { ListingParams } from 'src/core/dto';
+import { ListingParams } from '../../../core/dto';
 
 @Injectable()
 export class CategoryRepository {
@@ -56,7 +56,7 @@ export class CategoryRepository {
   async getAllCategory(listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
     try {
-      return await this.prisma.category.findMany({
+      const category = await this.prisma.category.findMany({
         take: take,
         skip: take * (page - 1),
         orderBy: {
@@ -71,6 +71,13 @@ export class CategoryRepository {
           },
         }),
       });
+
+      return {
+        ...category,
+        page,
+        take,
+        totalCount: await this.prisma.category.count(),
+      };
     } catch (error) {
       return false;
     }

@@ -13,6 +13,7 @@ import { RoleModule } from './modules/app/role/role.module';
 import { RoleRouteModule } from './modules/app/roleRoute/role-route.module';
 import { RouteModule } from './modules/app/route/route.module';
 import { NotificationModule } from './modules/app/notification/notification.module';
+import { MailModule } from './modules/mail/mail.module';
 // import DatabaseModule from './database/database.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { NotificationModule } from './modules/app/notification/notification.modu
     CategoryModule,
     SubcategoryModule,
     // MediaModule,
+    MailModule,
     AddressModule,
     VendorModule,
     RoleModule,

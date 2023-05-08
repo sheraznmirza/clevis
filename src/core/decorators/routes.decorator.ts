@@ -14,7 +14,7 @@ import {
   ForbiddenExceptionResponse,
   NotFoundExceptionResponse,
   UnauthorizedExceptionResponse,
-} from 'src/response/response.schema';
+} from '../../response/response.schema';
 
 type RouteDecoratorsType = {
   path: string;
