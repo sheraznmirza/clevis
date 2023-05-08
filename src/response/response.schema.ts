@@ -1,38 +1,38 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BadRequestExceptionResponse {
-    @ApiProperty({ default: 'Bad Request. Check Input' })
-    message: string;
+  @ApiProperty({ default: 'Bad Request. Check Input' })
+  message: string;
 
-    @ApiProperty({ nullable: true, default: null })
-    errors: { [key: string]: string };
+  @ApiProperty({ nullable: true, default: null })
+  errors: { [key: string]: string };
 }
 export class NotFoundExceptionResponse {
-    @ApiProperty({ default: 'Not Found' })
-    message: string;
+  @ApiProperty({ default: 'Not Found' })
+  message: string;
 }
 export class ForbiddenExceptionResponse {
-    @ApiProperty({ default: 'Access Not Allowed' })
-    message: string;
+  @ApiProperty({ default: 'Access Not Allowed' })
+  message: string;
 }
 export class UnauthorizedExceptionResponse {
-    @ApiProperty({ default: 'Not Authorized' })
-    message: string;
+  @ApiProperty({ default: 'Not Authorized' })
+  message: string;
 }
 export class FatalErrorExceptionResponse {
-    @ApiProperty({ default: 'Something Went Wrong' })
-    message: string;
+  @ApiProperty({ default: 'Something Went Wrong' })
+  message: string;
 }
 export class MessageResponseDTO {
-    @ApiProperty()
-    message: string;
+  @ApiProperty()
+  message: string;
 }
 export class BooleanResponseDTO {
-    @ApiProperty()
-    data: boolean;
+  @ApiProperty()
+  data: boolean;
 }
 
 export class StringResponseDTO {
-    @ApiProperty()
-    data: string;
+  @ApiProperty()
+  data: string;
 }

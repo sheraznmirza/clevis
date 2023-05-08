@@ -9,7 +9,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from 'src/core/globalTypes';
+import { Media } from '../../../../core/globalTypes';
 
 export class VendorSignUpDto {
   @ApiProperty()

@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import Morgan from 'morgan';
-import AppConfig from 'src/configs/app.config';
+import AppConfig from '../configs/app.config';
 
 export enum LogLevel {
   TRACE = 10,

@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
-import { Roles, Authorized } from 'src/core/decorators';
-import { RolesGuard } from 'src/core/guards';
+import { Roles, Authorized } from '../../../core/decorators';
+import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
 // import { RouteService } from './route.service';

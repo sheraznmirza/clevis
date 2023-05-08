@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { RouteCreateDto } from './dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse } from '../../../helpers/response.helper';
 
 @Injectable()
 export class RouteService {

@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { ServiceType, Vendor } from '@prisma/client';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
