@@ -18,14 +18,14 @@ import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
-import { VendorService } from './vendor.service';
-import { CustomerListingParams, VendorListingParams } from 'src/core/dto';
+import { VendorListingParams } from 'src/core/dto';
+import { RiderService } from './rider.service';
 
 @UseGuards(JwtGuard, RolesGuard)
-@ApiTags('Vendor')
-@Controller('vendor')
-export class VendorController {
-  constructor(private vendorService: VendorService) {}
+@ApiTags('Rider')
+@Controller('rider')
+export class RiderController {
+  constructor(private riderService: RiderService) {}
   @Authorized(UserType.VENDOR)
   @Get('me')
   getMe(@GetUser() user) {
@@ -38,22 +38,22 @@ export class VendorController {
   createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
     console.log('req: ', req.user?.userMasterId);
     console.log('dto: ', dto);
-    return this.vendorService.createVendorService(dto, req.user?.userMasterId);
+    return this.riderService.createVendorService(dto, req.user?.userMasterId);
   }
 
   @Authorized(UserType.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @Patch('/approve/:vendorId')
+  @Patch('/approve/:riderId')
   approveVendor(
-    @Param('vendorId') vendorId: number,
+    @Param('riderId') riderId: number,
     @Body() dto: VendorUpdateStatusDto,
   ) {
-    return this.vendorService.approveVendor(vendorId, dto);
+    return this.riderService.approveVendor(riderId, dto);
   }
 
-  @Authorized([UserType.ADMIN, UserType.CUSTOMER])
+  @Authorized([UserType.ADMIN])
   @Get()
   getVendors(@Query() listingParams: VendorListingParams) {
-    return this.vendorService.getAllVendors(listingParams);
+    return this.riderService.getAllVendors(listingParams);
   }
 }
