@@ -10,7 +10,7 @@
     "db:dev:rm": "docker compose rm dev-db -s -f -v",
     "db:dev:up": "docker compose up dev-db -d",
     "db:dev:restart": "yarn db:dev:rm && yarn db:dev:up",
-    "build": "yarn db:dev:restart && npx prisma migrate reset --force && npx prisma migrate dev --name init && npx prisma generate && sleep 1 && yarn prisma:dev:deploy && nest build && sleep 4 && yarn db:seed",
+    "build": "npx prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
