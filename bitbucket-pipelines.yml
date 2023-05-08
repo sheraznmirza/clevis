@@ -23,5 +23,5 @@ pipelines:
             #- ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg  && yarn db:dev:rm && yarn db:dev:up"
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn install"
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn prisma:dev:deploy"
-            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn build && sleep 4 && yarn db:seed"            
+            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn build && sleep 4 && yarn db:seed"
             - ssh ubuntu@54.151.24.157 'cd ~/clevis-be-stg && pm2 start npm --name "CLEVIS-API-STG" -- run start:prod && pm2 delete "CLEVIS-API-STG" && pm2 start npm --name "CLEVIS-API-STG" -- run start:prod'
