@@ -1,5 +1,6 @@
 import { IsEnum, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Status } from '@prisma/client';
 
 enum OrderOf {
   asc = 'asc',
@@ -54,6 +55,24 @@ export class CustomerListingParams extends ListingParams {
   @IsOptional()
   @IsEnum(OrderOf)
   order?: OrderOf;
+
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective column you want to order',
+  })
+  @IsOptional()
+  @IsEnum(CustomerColumns)
+  columnName?: CustomerColumns;
+}
+
+export class VendorListingParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'Enum for status of the vendor',
+  })
+  @IsOptional()
+  @IsEnum(Status)
+  status?: Status;
 
   @ApiProperty({
     required: false,

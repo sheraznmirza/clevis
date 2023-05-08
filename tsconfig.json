@@ -5,17 +5,20 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
     "sourceMap": true,
-    "target": "es6",
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": "./",
     "incremental": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "strictNullChecks": false,
     "noImplicitAny": false,
-    "noUnusedLocals": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
-    "noUnusedParameters": false
-  },
-  "exclude": ["node_modules", "dist"]
+    "esModuleInterop": true
+    // "lib": ["ES2021.String"]
+  }
 }

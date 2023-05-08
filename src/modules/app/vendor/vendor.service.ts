@@ -4,6 +4,7 @@ import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import { Vendor } from '@prisma/client';
+import { VendorListingParams } from 'src/core/dto';
 
 @Injectable()
 export class VendorService {
@@ -56,10 +57,18 @@ export class VendorService {
     }
   }
 
-  async getAllVendorServices(page: number, take: number, search?: string) {
+  // async getAllVendorServices(page: number, take: number, search?: string) {
+  //   try {
+  //     return await this.repository.getAllCategory(page, take, search);
+  //   } catch (error) {}
+  // }
+
+  async getAllVendors(listingParams: VendorListingParams) {
     try {
-      return await this.repository.getAllCategory(page, take, search);
-    } catch (error) {}
+      return await this.repository.getAllVendors(listingParams);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async deleteVendorService(id: number) {

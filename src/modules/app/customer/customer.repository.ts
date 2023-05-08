@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import { CustomerListingParams } from '../../../core/dto';
+import { UserType } from '@prisma/client';
 
 @Injectable()
 export class CustomerRepository {
@@ -84,6 +85,7 @@ export class CustomerRepository {
 
         where: {
           isDeleted: false,
+          userType: UserType.CUSTOMER,
           ...(search.length && {
             customer: {
               fullName: {
@@ -91,6 +93,26 @@ export class CustomerRepository {
               },
             },
           }),
+        },
+        select: {
+          phone: true,
+          email: true,
+          userType: true,
+          customer: {
+            select: {
+              fullName: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 

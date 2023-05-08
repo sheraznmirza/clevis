@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
-import { ServiceType, Vendor } from '@prisma/client';
+import { ServiceType, UserType, Vendor } from '@prisma/client';
+import { VendorListingParams } from 'src/core/dto';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -13,7 +14,6 @@ export class VendorRepository {
   constructor(private prisma: PrismaService) {}
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId) {
-    console.log('dto: ', dto);
     try {
       const vendor = await this.prisma.vendor.findUnique({
         where: {
@@ -84,23 +84,35 @@ export class VendorRepository {
     }
   }
 
-  async getAllCategory(page: number, take: number, search?: string) {
+  async getAllVendors(listingParams: VendorListingParams) {
+    const { page = 1, take = 10, search } = listingParams;
     try {
-      return await this.prisma.category.findMany({
-        take,
-        skip: take * page,
+      const vendors = await this.prisma.userMaster.findMany({
+        take: take,
+        skip: take * (page - 1),
         orderBy: {
           createdAt: 'desc',
         },
-        ...(search.length && {
-          where: {
-            isDeleted: false,
-            categoryName: {
-              contains: search,
+
+        where: {
+          isDeleted: false,
+          userType: UserType.VENDOR,
+          ...(search.length && {
+            vendor: {
+              fullName: {
+                contains: search,
+              },
             },
-          },
-        }),
+          }),
+        },
       });
+
+      return {
+        ...vendors,
+        page,
+        take,
+        totalCount: await this.prisma.category.count(),
+      };
     } catch (error) {
       return false;
     }
