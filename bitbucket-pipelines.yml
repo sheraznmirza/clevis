@@ -19,7 +19,7 @@ pipelines:
             - rsync -av . ./package.json ./dist ./yarn.lock ./.env ./docker-compose.yml -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
             # - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && rm -rf ./prisma/migrations/*_init
             - rsync -av . ./prisma/migrations -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
-            - rsync -av .src/modules/mail/templates -e ssh ubuntu@54.151.24.157:~/clevis-be-stg/dist/src/modules/mail/
+            - rsync -av ./src/modules/mail/templates -e ssh ubuntu@54.151.24.157:~/clevis-be-stg/dist/src/modules/mail/
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && sudo docker compose up -d"
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg  && yarn db:dev:rm && yarn db:dev:up"
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn install"
