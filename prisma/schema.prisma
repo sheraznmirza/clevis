@@ -129,7 +129,7 @@ model Vendor {
   logo            Media             @relation(fields: [logoId], references: [id])
   // workspaceImagesId Int
   // businessLicenseId Int[]
-  description     String
+  description     String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
   VendorService   VendorService[]
@@ -151,7 +151,7 @@ model Rider {
   logo            Media             @relation(fields: [logoId], references: [id])
   workspaceImages Int[]
   businessLicense Int[]
-  description     String
+  description     String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
   BusinessLicense BusinessLicense[]
