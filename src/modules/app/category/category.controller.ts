@@ -13,10 +13,10 @@ import { CategoryService } from './category.service';
 import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
-import { Authorized } from 'src/core/decorators';
-import { RolesGuard } from 'src/core/guards';
+import { Authorized } from '../../../core/decorators';
+import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from 'src/core/dto';
+import { ListingParams } from '../../../core/dto';
 
 @ApiTags('Category')
 @Controller('category')

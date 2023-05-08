@@ -13,10 +13,10 @@ import { SubcategoryService } from './subcategory.service';
 import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
 import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
-import { Roles } from 'src/core/decorators';
-import { RolesGuard } from 'src/core/guards';
+import { Roles } from '../../../core/decorators';
+import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from 'src/core/dto';
+import { ListingParams } from '../../../core/dto';
 
 @ApiTags('Subcategory')
 @Controller('subcategory')

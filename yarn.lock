@@ -1908,7 +1908,7 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-0.5.0.tgz#b21510597fd601e5d7c95008b76bf0d254ebfd31"
   integrity sha512-oZLYFEAzUKyi3SKnXvj32ZCEGH6RDnao7COuCVhDydMS9NrCSVXhM79VaKyP5+Zc33m0QXEd2DN3UkU7OsHcfw==
 
-"@prisma/client@^4.12.0":
+"@prisma/client@4.12.0":
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/@prisma/client/-/client-4.12.0.tgz#119b692888b1fe0fd3305c7d0e0ac48520aa6839"
   integrity sha512-j9/ighfWwux97J2dS15nqhl60tYoH8V0IuSsgZDb6bCFcQD3fXbXmxjYC8GHhIgOk3lB7Pq+8CwElz2MiDpsSg==
@@ -6770,7 +6770,7 @@ preview-email@3.0.5:
     pug "^3.0.2"
     uuid "^8.3.2"
 
-prisma@^4.12.0:
+prisma@4.12.0:
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/prisma/-/prisma-4.12.0.tgz#1080eda951928cb3b0274ad29da9ae4f93143d68"
   integrity sha512-xqVper4mbwl32BWzLpdznHAYvYDWQQWK2tBfXjdUD397XaveRyAP7SkBZ6kFlIg8kKayF4hvuaVtYwXd9BodAg==

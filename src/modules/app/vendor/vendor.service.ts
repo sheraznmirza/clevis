@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
-import { successResponse } from 'src/helpers/response.helper';
-import { MailService } from 'src/modules/mail/mail.service';
+import { successResponse } from '../../../helpers/response.helper';
+import { MailService } from '../../mail/mail.service';
 import { Vendor } from '@prisma/client';
 
 @Injectable()

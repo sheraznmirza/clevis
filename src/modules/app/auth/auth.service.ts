@@ -8,7 +8,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { PrismaService } from '../../../modules/prisma/prisma.service';
 import {
   CustomerSignUpDto,
   VendorSignUpDto,
@@ -23,11 +23,11 @@ import {
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ServiceType, Status, UserType } from '@prisma/client';
-import { MailService } from 'src/modules/mail/mail.service';
+import { MailService } from '../../../modules/mail/mail.service';
 import { NotificationService } from '../notification/notification.service';
 import { createCipheriv, createDecipheriv } from 'crypto';
-import * as dayjs from 'dayjs';
-import { successResponse } from 'src/helpers/response.helper';
+import dayjs from 'dayjs';
+import { successResponse } from '../../../helpers/response.helper';
 import { CreateNotificationDto } from '../notification/dto';
 
 @Injectable()

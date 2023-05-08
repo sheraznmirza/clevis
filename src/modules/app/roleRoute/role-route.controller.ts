@@ -10,7 +10,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { UserType } from '@prisma/client';
-import { Authorized } from 'src/core/decorators';
+import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { RoleRouteService } from './role-route.service';
 import { RoleRouteCreateDto } from './dto';
