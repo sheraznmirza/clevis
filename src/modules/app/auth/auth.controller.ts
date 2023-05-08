@@ -19,6 +19,7 @@ import {
   ForgotPasswordDto,
   ResetPasswordDataDto,
   ChangePasswordDto,
+  VerifyOtpDto,
 } from './dto';
 import { JwtGuard, JwtRefreshGuard } from './guard';
 import { ApiTags } from '@nestjs/swagger';
@@ -80,6 +81,12 @@ export class AuthController {
     return this.authService.forgotPassword(data);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('/verify-otp')
+  verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyOtp(dto);
+  }
+
   @HttpCode(HttpStatus.ACCEPTED)
   @Post('/reset-password')
   resetPassword(@Body() data: ResetPasswordDataDto) {
@@ -103,6 +110,6 @@ export class AuthController {
   @Post('/logout')
   logout(@Req() req: Request) {
     console.log('req: ', req);
-    // this.authService.logout();
+    this.authService.logout(req);
   }
 }

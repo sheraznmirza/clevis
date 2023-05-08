@@ -18,6 +18,7 @@ import {
   ForgotPasswordDto,
   ResetPasswordDataDto,
   ChangePasswordDto,
+  VerifyOtpDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -66,7 +67,6 @@ export class AuthService {
         },
         select: {
           userMasterId: true,
-          // profileImage: true,
           email: true,
           isEmailVerified: true,
           phone: true,
@@ -77,9 +77,12 @@ export class AuthService {
                 select: {
                   userAddressId: true,
                   fullAddress: true,
-                  // cityId: true,
-                  longitude: true,
-                  latitude: true,
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                    },
+                  },
                 },
               },
               fullName: true,
@@ -94,7 +97,7 @@ export class AuthService {
         user.userType,
       );
       await this.updateRt(user.userMasterId, response.refreshToken);
-      // await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
+      await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
       return {
         tokens: response,
         ...user,
@@ -222,8 +225,8 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      // await this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      // await this.mail.riderVendorCreationEmail(user);
+      await this.sendEncryptedDataToMail(user, UserType.VENDOR);
+      await this.mail.riderVendorCreationEmail(user);
       const payload: CreateNotificationDto = {
         toUser: 1,
         fromUser: user.userMasterId,
@@ -350,8 +353,8 @@ export class AuthService {
       });
       // const response = await this.signToken(user.userMasterId, user.email);
       // await this.updateRt(user.userMasterId, response.refreshToken);
-      // await this.sendEncryptedDataToMail(user, UserType.RIDER);
-      // await this.mail.riderVendorCreationEmail(user);
+      await this.sendEncryptedDataToMail(user, UserType.RIDER);
+      await this.mail.riderVendorCreationEmail(user);
       // await this.mail.sendUserVerificationEmail(user, UserType.RIDER);
       // return {
       //   tokens: response,
@@ -706,8 +709,47 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-      // await this.mail.sendResetPasswordEmail(data, randomOtp);
+      await this.mail.sendResetPasswordEmail(data, randomOtp);
       return successResponse(200, 'OTP sent to your email');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async verifyOtp(dto: VerifyOtpDto) {
+    try {
+      const otp = await this.prisma.otp.findFirst({
+        where: {
+          otp: dto.otp,
+          expired: false,
+        },
+        select: {
+          expired: true,
+          createdAt: true,
+          userMasterId: true,
+          otpId: true,
+        },
+      });
+
+      if (dayjs().diff(otp.createdAt, 'minute') > 9) {
+        await this.prisma.otp.update({
+          where: {
+            otpId: otp.otpId,
+          },
+          data: {
+            expired: true,
+          },
+        });
+
+        throw new RequestTimeoutException('OTP has already expired');
+      }
+
+      const id = this.encryptData(otp.userMasterId.toString());
+
+      return {
+        ...successResponse(200, 'OTP verified'),
+        userId: id,
+      };
     } catch (error) {
       throw error;
     }
@@ -748,9 +790,11 @@ export class AuthService {
 
   async resetPassword(data: ResetPasswordDataDto) {
     try {
+      const id = parseInt(this.decryptData(data.userId));
+
       const otp = await this.prisma.otp.findFirst({
         where: {
-          otp: data.otp,
+          userMasterId: id,
           expired: false,
         },
         select: {
@@ -806,7 +850,9 @@ export class AuthService {
     }
   }
 
-  // async logout() {}
+  async logout(req) {
+    console.log('dawd');
+  }
 
   async signToken(
     userId: number,

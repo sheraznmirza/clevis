@@ -60,10 +60,6 @@ export class VendorSignUpDto {
   logo: Media;
 
   @ApiProperty()
-  @IsNotEmpty()
-  profilePicture: Media;
-
-  @ApiProperty()
   @IsArray()
   @IsNotEmpty()
   workspaceImages: Media[];

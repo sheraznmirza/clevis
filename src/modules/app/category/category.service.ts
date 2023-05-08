@@ -43,12 +43,6 @@ export class CategoryService {
     }
   }
 
-  // async getAllCategory() {
-  //   try {
-  //     return await this.repository.getAllCategory();
-  //   } catch (error) {}
-  // }
-
   async deleteCategory(id: number) {
     try {
       return await this.repository.deleteCategory(id);

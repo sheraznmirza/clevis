@@ -90,7 +90,10 @@ export class ServiceRepository {
   async getAllService(listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
     try {
-      return await this.prisma.services.findMany({
+      const services = await this.prisma.services.findMany({
+        where: {
+          isDeleted: false,
+        },
         take: take,
         skip: take * (page - 1),
         orderBy: {
@@ -105,6 +108,13 @@ export class ServiceRepository {
           },
         }),
       });
+
+      return {
+        ...services,
+        page,
+        take,
+        totalCount: await this.prisma.services.count(),
+      };
     } catch (error) {
       return false;
     }
