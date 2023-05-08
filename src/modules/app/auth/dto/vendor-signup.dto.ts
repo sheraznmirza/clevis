@@ -32,17 +32,12 @@ export class VendorSignUpDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  location: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   fullName: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  userAddress: string;
+  fullAddress: string;
 
   @ApiProperty()
   @IsString()
@@ -87,4 +82,12 @@ export class VendorSignUpDto {
   @ApiProperty()
   @IsNumber()
   cityId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  latitude: number;
+
+  @ApiProperty()
+  @IsNumber()
+  longitude: number;
 }

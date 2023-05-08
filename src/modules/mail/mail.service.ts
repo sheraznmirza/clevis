@@ -106,12 +106,39 @@ export class MailService {
     }
   }
 
+  async riderVendorCreationEmail(user: any) {
+    try {
+      await this.mailerService.sendMail({
+        // to: 'sheraznabimirza@gmail.com',
+        to: user.email,
+        from: MAIL_ENV.MAIL_FROM,
+        subject: `${this.configService.get('APP_NAME')} - ${
+          user.userType
+        } created`,
+        template: 'vendorApproved', // `.hbs` extension is appended automatically
+        context: {
+          app_name: this.configService.get('APP_NAME'),
+          app_url: `${this.configService.get('APP_URL')}`,
+          first_name: user.fullName,
+          message: `${`${
+            user[user.userType.toLowerCase()].fullName
+          } has signed up and waiting for approval.`}`,
+          copyright_year: MAIL_ENV.COPYRIGHT_YEAR,
+        },
+      });
+    } catch (error) {
+      console.log('error: ', error);
+      throw new ServiceUnavailableException('Unable to send email');
+    }
+  }
+
   async sendUserVerificationEmail(
     user: any,
     userType: UserType,
     encrypted: string,
   ) {
     try {
+      console.log('working');
       await this.mailerService.sendMail({
         to: user.email,
         from: MAIL_ENV.MAIL_FROM,
