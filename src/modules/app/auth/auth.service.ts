@@ -1,34 +1,34 @@
 import {
-  Injectable,
-  ForbiddenException,
-  UnauthorizedException,
-  NotFoundException,
-  ConflictException,
-  RequestTimeoutException,
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  RequestTimeoutException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../../modules/prisma/prisma.service';
-import {
-  CustomerSignUpDto,
-  VendorSignUpDto,
-  LoginDto,
-  RiderSignUpDto,
-  RefreshDto,
-  ForgotPasswordDto,
-  ResetPasswordDataDto,
-  ChangePasswordDto,
-  VerifyOtpDto,
-} from './dto';
-import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ServiceType, Status, UserType } from '@prisma/client';
-import { MailService } from '../../../modules/mail/mail.service';
-import { NotificationService } from '../notification/notification.service';
+import * as argon from 'argon2';
 import { createCipheriv, createDecipheriv } from 'crypto';
 import dayjs from 'dayjs';
 import { successResponse } from '../../../helpers/response.helper';
+import { MailService } from '../../../modules/mail/mail.service';
+import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CreateNotificationDto } from '../notification/dto';
+import { NotificationService } from '../notification/notification.service';
+import {
+  ChangePasswordDto,
+  CustomerSignUpDto,
+  ForgotPasswordDto,
+  LoginDto,
+  RefreshDto,
+  ResetPasswordDataDto,
+  RiderSignUpDto,
+  VendorSignUpDto,
+  VerifyOtpDto,
+} from './dto';
 
 @Injectable()
 export class AuthService {

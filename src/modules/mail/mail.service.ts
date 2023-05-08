@@ -88,7 +88,7 @@ export class MailService {
         subject: `${this.configService.get(
           'APP_NAME',
         )} - Vendor ${user.status.toLowerCase()}`,
-        template: 'vendorApproved', // `.hbs` extension is appended automatically
+        template: 'vendorApprovedRejected', // `.hbs` extension is appended automatically
         context: {
           app_name: this.configService.get('APP_NAME'),
           app_url: `${this.configService.get('APP_URL')}`,
@@ -115,7 +115,7 @@ export class MailService {
         subject: `${this.configService.get('APP_NAME')} - ${
           user.userType
         } created`,
-        template: 'vendorApproved', // `.hbs` extension is appended automatically
+        template: 'vendorApprovedRejected', // `.hbs` extension is appended automatically
         context: {
           app_name: this.configService.get('APP_NAME'),
           app_url: `${this.configService.get('APP_URL')}`,

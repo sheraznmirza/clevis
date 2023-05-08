@@ -9,8 +9,9 @@ import {
   Post,
   Req,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { UserMaster, UserType } from '@prisma/client';
+import { UserType } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from '../../../core/guards';
@@ -18,6 +19,7 @@ import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { VendorService } from './vendor.service';
+import { CustomerListingParams, VendorListingParams } from 'src/core/dto';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Vendor')
@@ -49,9 +51,9 @@ export class VendorController {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
-  @Authorized([UserType.ADMIN, UserType.CUSTOMER])
-  @Get()
-  getVendors() {
-    // return this.vendorService.approveVendor(vendorId, dto);
-  }
+  // @Authorized([UserType.ADMIN, UserType.CUSTOMER])
+  // @Get()
+  // getVendors(@Query() listingParams: VendorListingParams) {
+  //   return this.vendorService.approveVendor(listingParams);
+  // }
 }
