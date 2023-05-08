@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import { CustomerListingParams } from 'src/core/dto';
+import { CustomerListingParams } from '../../../core/dto';
 import { CustomerRepository } from './customer.repository';
 
 @Injectable()

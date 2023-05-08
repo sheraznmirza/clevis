@@ -2,10 +2,10 @@ import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { ApiTags } from '@nestjs/swagger';
-import { CustomerListingParams } from 'src/core/dto';
+import { CustomerListingParams } from '../../../core/dto';
 import { CustomerService } from './customer.service';
-import { RolesGuard } from 'src/core/guards';
-import { Authorized } from 'src/core/decorators';
+import { RolesGuard } from '../../../core/guards';
+import { Authorized } from '../../../core/decorators';
 import { UserType } from '@prisma/client';
 
 @UseGuards(JwtGuard, RolesGuard)
