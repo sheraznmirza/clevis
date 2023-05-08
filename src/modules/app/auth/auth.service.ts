@@ -353,8 +353,8 @@ export class AuthService {
       });
       // const response = await this.signToken(user.userMasterId, user.email);
       // await this.updateRt(user.userMasterId, response.refreshToken);
-      await this.sendEncryptedDataToMail(user, UserType.RIDER);
-      await this.mail.riderVendorCreationEmail(user);
+      // await this.sendEncryptedDataToMail(user, UserType.RIDER);
+      // await this.mail.riderVendorCreationEmail(user);
       // await this.mail.sendUserVerificationEmail(user, UserType.RIDER);
       // return {
       //   tokens: response,
