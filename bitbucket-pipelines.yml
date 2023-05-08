@@ -14,12 +14,14 @@ pipelines:
             - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.dumy.yml docker-compose.yml SECRETS
               #cat docker-compose.yml
             - yarn install
-            - npx nest build
+            - npx nest build && npx prisma migrate dev --name init
             - ssh ubuntu@54.151.24.157 "mkdir -p ~/clevis-be-stg"
             - rsync -av . ./package.json ./dist ./yarn.lock ./.env ./docker-compose.yml -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
+            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && rm -rf ./prisma/migrations/*_init
+            - rsync -av . ./prisma/migrations -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && sudo docker compose up -d"
             #- ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg  && yarn db:dev:rm && yarn db:dev:up"
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn install"
-            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn prisma migrate dev --name init && yarn prisma:dev:deploy"
+            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn prisma:dev:deploy"
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn build && sleep 4 && yarn db:seed"            
             - ssh ubuntu@54.151.24.157 'cd ~/clevis-be-stg && pm2 start npm --name "CLEVIS-API-STG" -- run start:prod && pm2 delete "CLEVIS-API-STG" && pm2 start npm --name "CLEVIS-API-STG" -- run start:prod'
