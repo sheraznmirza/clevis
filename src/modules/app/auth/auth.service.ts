@@ -369,7 +369,7 @@ export class AuthService {
       if (error.code === 'P2002') {
         throw new ForbiddenException('Credentials taken');
       }
-      throw error;
+      throw new NotFoundException('pata nahi kya horaha hai boss', error);
     }
   }
 
