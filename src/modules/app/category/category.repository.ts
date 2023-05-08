@@ -56,7 +56,7 @@ export class CategoryRepository {
   async getAllCategory(listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
     try {
-      return await this.prisma.category.findMany({
+      const category = await this.prisma.category.findMany({
         take: take,
         skip: take * (page - 1),
         orderBy: {
@@ -71,6 +71,13 @@ export class CategoryRepository {
           },
         }),
       });
+
+      return {
+        ...category,
+        page,
+        take,
+        totalCount: await this.prisma.category.count(),
+      };
     } catch (error) {
       return false;
     }

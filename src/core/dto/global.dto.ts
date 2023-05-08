@@ -1,6 +1,28 @@
-import { IsOptional } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
+enum OrderOf {
+  asc = 'asc',
+  desc = 'desc',
+}
+
+enum CustomerColumns {
+  fullName = 'fullName',
+  phone = 'phone',
+  email = 'email',
+  fullAddress = 'fullAddress',
+  createdAt = 'createdAt',
+  companyName = 'companyName',
+}
+
+enum ColumnName {
+  fullName = 'fullName',
+  phone = 'phone',
+  email = 'email',
+  fullAddress = 'fullAddress',
+  createdAt = 'createdAt',
+  companyName = 'companyName',
+}
 export class ListingParams {
   @ApiProperty({
     required: false,
@@ -22,4 +44,22 @@ export class ListingParams {
   })
   @IsOptional()
   search?: string;
+}
+
+export class CustomerListingParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'Order of the respective column in a table',
+  })
+  @IsOptional()
+  @IsEnum(OrderOf)
+  order?: OrderOf;
+
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective column you want to order',
+  })
+  @IsOptional()
+  @IsEnum(CustomerColumns)
+  columnName?: CustomerColumns;
 }

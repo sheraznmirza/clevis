@@ -49,10 +49,9 @@ export class VendorController {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
-  // @Authorized(UserType.ADMIN)
-  // @Get('me')
-  // getMe(@GetUser() user) {
-  //   console.log('user: ', user);
-  //   return user;
-  // }
+  @Authorized([UserType.ADMIN, UserType.CUSTOMER])
+  @Get()
+  getVendors() {
+    // return this.vendorService.approveVendor(vendorId, dto);
+  }
 }
