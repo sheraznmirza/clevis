@@ -97,7 +97,7 @@ export class AuthService {
         user.userType,
       );
       await this.updateRt(user.userMasterId, response.refreshToken);
-      // await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
+      await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
       return {
         tokens: response,
         ...user,
@@ -225,8 +225,8 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      // await this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      // await this.mail.riderVendorCreationEmail(user);
+      await this.sendEncryptedDataToMail(user, UserType.VENDOR);
+      await this.mail.riderVendorCreationEmail(user);
       const payload: CreateNotificationDto = {
         toUser: 1,
         fromUser: user.userMasterId,
@@ -351,15 +351,8 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      // const response = await this.signToken(user.userMasterId, user.email);
-      // await this.updateRt(user.userMasterId, response.refreshToken);
-      // await this.sendEncryptedDataToMail(user, UserType.RIDER);
-      // await this.mail.riderVendorCreationEmail(user);
-      // await this.mail.sendUserVerificationEmail(user, UserType.RIDER);
-      // return {
-      //   tokens: response,
-      //   ...user,
-      // };
+      await this.sendEncryptedDataToMail(user, UserType.RIDER);
+      await this.mail.riderVendorCreationEmail(user);
       return successResponse(
         201,
         'Rider successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -709,7 +702,7 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-      // await this.mail.sendResetPasswordEmail(data, randomOtp);
+      await this.mail.sendResetPasswordEmail(data, randomOtp);
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
       throw error;
