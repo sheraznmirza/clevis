@@ -226,7 +226,6 @@ export class AuthService {
         })),
       });
       await this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      await this.mail.riderVendorCreationEmail(user);
       const payload: CreateNotificationDto = {
         toUser: 1,
         fromUser: user.userMasterId,
@@ -352,7 +351,6 @@ export class AuthService {
         })),
       });
       await this.sendEncryptedDataToMail(user, UserType.RIDER);
-      await this.mail.riderVendorCreationEmail(user);
       return successResponse(
         201,
         'Rider successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -362,7 +360,7 @@ export class AuthService {
       if (error.code === 'P2002') {
         throw new ForbiddenException('Credentials taken');
       }
-      throw new NotFoundException(JSON.stringify(error));
+      throw error;
     }
   }
 
@@ -667,6 +665,7 @@ export class AuthService {
         previousRefreshToken.userMasterId,
         user.email,
         user.userType,
+        user.vendor.serviceType || null,
       );
       await this.updateRt(
         previousRefreshToken.userMasterId,
@@ -755,9 +754,6 @@ export class AuthService {
         where: {
           userMasterId: masterId,
         },
-        select: {
-          isEmailVerified: true,
-        },
       });
 
       if (user.isEmailVerified) {
@@ -771,6 +767,9 @@ export class AuthService {
             isEmailVerified: true,
           },
         });
+        if (user.userType === UserType.RIDER || UserType.VENDOR) {
+          await this.mail.riderVendorCreationEmail(user);
+        }
         return {
           statusCode: 202,
           message: 'Email successfully verified!',

@@ -4,7 +4,6 @@ import { Global, Module } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MAIL_ENV } from './mailconstant';
 
 // @Global() // 👈 global module
 @Module({
@@ -15,17 +14,17 @@ import { MAIL_ENV } from './mailconstant';
         // transport: config.get("MAIL_TRANSPORT"),
         // or
         transport: {
-          host: MAIL_ENV.MAIL_HOST,
-          port: 587, // 465 and 25 is not working
+          host: config.get('MAIL_HOST'),
+          port: config.get('MAIL_PORT'), // 587 is the previous port, 465 and 25 is not working
           secure: false,
           requireTLS: true,
           auth: {
-            user: MAIL_ENV.MAIL_USER,
-            pass: MAIL_ENV.MAIL_PASSWORD,
+            user: config.get('MAIL_USER'),
+            pass: config.get('MAIL_PASSWORD'),
           },
         },
         defaults: {
-          from: `"No Reply" <${MAIL_ENV.MAIL_FROM}>`,
+          from: `"No Reply" <${config.get('MAIL_FROM')}>`,
         },
         template: {
           dir: join(__dirname, 'templates'),
