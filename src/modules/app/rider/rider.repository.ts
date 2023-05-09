@@ -96,6 +96,7 @@ export class RiderRepository {
 
         where: {
           isDeleted: false,
+          isEmailVerified: true,
           userType: UserType.VENDOR,
           ...(search.length && {
             vendor: {
