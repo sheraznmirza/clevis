@@ -47,6 +47,11 @@ export class RiderController {
     return this.riderService.approveRider(riderId, dto);
   }
 
+  // updateRider(@Param('riderId') riderId: number,
+  // @Body() dto: RiderUpdateServiceDto) {
+
+  // }
+
   @Authorized(UserType.ADMIN)
   @Get()
   getRiders(@Query() listingParams: VendorListingParams) {

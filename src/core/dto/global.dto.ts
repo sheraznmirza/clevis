@@ -24,6 +24,13 @@ enum VendorColumns {
   createdAt = 'createdAt',
   companyName = 'companyName',
 }
+
+export enum RiderVendorTabs {
+  PROFILE = 'PROFILE',
+  COMPANY_PROFILE = 'COMPANY_PROFILE',
+  COMPANY_SCHEDULE = 'COMPANY_SCHEDULE',
+  ACCOUNT_DETAILS = 'ACCOUNT_DETAILS',
+}
 export class ListingParams {
   @ApiProperty({
     required: false,
@@ -92,6 +99,17 @@ export class VendorListingParams extends ListingParams {
     enum: VendorColumns,
   })
   @IsOptional()
-  @IsEnum(CustomerColumns)
+  @IsEnum(VendorColumns)
   columnName?: VendorColumns;
+}
+
+export class VendorRiderByIdParams {
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective tab you want to order',
+    enum: RiderVendorTabs,
+  })
+  @IsOptional()
+  @IsEnum(RiderVendorTabs)
+  tabName: RiderVendorTabs;
 }
