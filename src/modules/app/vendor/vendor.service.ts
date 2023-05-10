@@ -1,9 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
-import { successResponse } from 'src/helpers/response.helper';
-import { MailService } from 'src/modules/mail/mail.service';
+import { successResponse } from '../../../helpers/response.helper';
+import { MailService } from '../../mail/mail.service';
 import { Vendor } from '@prisma/client';
+import {
+  ListingParams,
+  RiderVendorTabs,
+  VendorListingParams,
+  VendorRiderByIdParams,
+} from 'src/core/dto';
 
 @Injectable()
 export class VendorService {
@@ -30,7 +36,7 @@ export class VendorService {
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
       const vendor: Vendor = await this.repository.approveVendor(id, dto);
-      await this.mail.sendVendorApprovalEmail(vendor);
+      await this.mail.sendVendorRiderApprovalEmail(vendor);
       return successResponse(
         200,
         `Vendor successfully ${vendor.status.toLowerCase()}.`,
@@ -40,9 +46,28 @@ export class VendorService {
     }
   }
 
-  async getVendorService(id: number) {
+  async getVendorAllService(id: number, listingParams: ListingParams) {
     try {
-      return await this.repository.getCategory(id);
+      return await this.repository.getAllVendorService(id, listingParams);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorById(id: number, query?: VendorRiderByIdParams) {
+    try {
+      switch (query.tabName) {
+        case RiderVendorTabs.PROFILE:
+          return await this.repository.getVendorByIdProfile(id);
+        case RiderVendorTabs.COMPANY_PROFILE:
+          return await this.repository.getVendorByIdCompany(id);
+        case RiderVendorTabs.ACCOUNT_DETAILS:
+          return await this.repository.getVendorByIdAccount(id);
+        case RiderVendorTabs.COMPANY_SCHEDULE:
+          return await this.repository.getVendorByIdSchedule(id);
+        default:
+          return await this.repository.getVendorById(id);
+      }
     } catch (error) {
       throw error;
     }
@@ -56,10 +81,27 @@ export class VendorService {
     }
   }
 
-  async getAllVendorServices(page: number, take: number, search?: string) {
+  // async getAllVendorServices(page: number, take: number, search?: string) {
+  //   try {
+  //     return await this.repository.getAllCategory(page, take, search);
+  //   } catch (error) {}
+  // }
+
+  async getAllVendors(listingParams: VendorListingParams) {
     try {
-      return await this.repository.getAllCategory(page, take, search);
-    } catch (error) {}
+      return await this.repository.getAllVendors(listingParams);
+    } catch (error) {
+      console.log('error: ', error);
+      throw error;
+    }
+  }
+
+  async deleteVendor(id: number) {
+    try {
+      return await this.repository.deleteVendor(id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async deleteVendorService(id: number) {

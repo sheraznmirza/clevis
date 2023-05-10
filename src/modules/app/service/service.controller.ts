@@ -13,14 +13,14 @@ import { ServiceService } from './service.service';
 import { ServiceCreateDto, ServiceUpdateDto } from './dto';
 import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
-import { Roles, Authorized } from 'src/core/decorators';
-import { RolesGuard } from 'src/core/guards';
+import { Roles, Authorized } from '../../../core/decorators';
+import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from 'src/core/dto';
+import { ListingParams } from '../../../core/dto';
 
 @ApiTags('Service')
 @Controller('service')
-// @UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, RolesGuard)
 export class ServiceController {
   constructor(private serviceService: ServiceService) {}
 
@@ -42,17 +42,11 @@ export class ServiceController {
     return this.serviceService.getService(id);
   }
 
-  // @Authorized([UserType.ADMIN, UserType.VENDOR])
+  @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get()
   getAllService(@Query() listingParams: ListingParams) {
     return this.serviceService.getAllService(listingParams);
   }
-
-  // @Authorized([UserType.ADMIN, UserType.VENDOR])
-  // @Get()
-  // getAllService() {
-  //   return this.serviceService.getAllService();
-  // }
 
   @Authorized(UserType.ADMIN)
   @Delete('/:id')

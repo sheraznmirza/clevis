@@ -6,7 +6,6 @@ import {
   HttpCode,
   Param,
   Post,
-  Req,
 } from '@nestjs/common/decorators';
 import { AuthService } from './auth.service';
 import { HttpStatus } from '@nestjs/common';
@@ -19,10 +18,15 @@ import {
   ForgotPasswordDto,
   ResetPasswordDataDto,
   ChangePasswordDto,
+  VerifyOtpDto,
+  LogoutDto,
 } from './dto';
 import { JwtGuard, JwtRefreshGuard } from './guard';
 import { ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { GetUser } from './decorator';
+import { Authorized } from 'src/core/decorators';
+import { UserType } from '@prisma/client';
+import { RolesGuard } from 'src/core/guards';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -80,6 +84,12 @@ export class AuthController {
     return this.authService.forgotPassword(data);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('/verify-otp')
+  verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyOtp(dto);
+  }
+
   @HttpCode(HttpStatus.ACCEPTED)
   @Post('/reset-password')
   resetPassword(@Body() data: ResetPasswordDataDto) {
@@ -93,16 +103,28 @@ export class AuthController {
   }
 
   @UseGuards(JwtGuard)
+  @Authorized([
+    UserType.ADMIN,
+    UserType.CUSTOMER,
+    UserType.RIDER,
+    UserType.VENDOR,
+  ])
   @HttpCode(HttpStatus.OK)
   @Post('/change-password')
-  changePassword(@Body() data: ChangePasswordDto, @Req() req) {
-    return this.authService.changePassword(data, req.user.id);
+  changePassword(@Body() dto: ChangePasswordDto, @GetUser() user) {
+    return this.authService.changePassword(dto, user.userMasterId);
   }
 
-  @UseGuards(JwtGuard)
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Authorized([
+    UserType.ADMIN,
+    UserType.CUSTOMER,
+    UserType.RIDER,
+    UserType.VENDOR,
+  ])
   @Post('/logout')
-  logout(@Req() req: Request) {
-    console.log('req: ', req);
-    // this.authService.logout();
+  logout(@Body() dto: LogoutDto) {
+    return this.authService.logout(dto);
   }
 }

@@ -1,45 +1,23 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
-import { UserType, Vendor } from '@prisma/client';
-import { ListingParams, VendorListingParams } from 'src/core/dto';
+import { RiderUpdateStatusDto } from './dto';
+import { ServiceType, UserType, Vendor } from '@prisma/client';
+import { VendorListingParams } from 'src/core/dto';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
-export class VendorRepository {
+export class RiderRepository {
   constructor(private prisma: PrismaService) {}
 
-  async createVendorService(dto: VendorCreateServiceDto, userMasterId) {
+  async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
-      const vendor = await this.prisma.vendor.findUnique({
+      return await this.prisma.rider.update({
         where: {
-          userMasterId,
-        },
-      });
-
-      await this.createCarWashVendorService(dto, vendor);
-
-      //   await this.prisma.category.create({
-      //     data: {
-      //       categoryName: dto.categoryName,
-      //       serviceType: dto.serviceType,
-      //     },
-      //   });
-
-      return true;
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ForbiddenException('VendorService is already created');
-      }
-      throw new error();
-    }
-  }
-
-  async approveVendor(id: number, dto: VendorUpdateStatusDto) {
-    try {
-      return await this.prisma.vendor.update({
-        where: {
-          vendorId: id,
+          riderId: id,
         },
         data: {
           status: dto.status,
@@ -50,110 +28,7 @@ export class VendorRepository {
     }
   }
 
-  async updateCategory(id: number, data) {
-    try {
-      await this.prisma.category.update({
-        where: {
-          categoryId: id,
-        },
-        data: {
-          ...(data.categoryName && { categoryName: data.categoryName }),
-          ...(data.serviceType && { serviceType: data.serviceType }),
-        },
-      });
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async getAllVendorService(vendorId: number, listingParams: ListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
-    try {
-      await this.prisma.vendorService.findMany({
-        take: +take,
-        skip: +take * (+page - 1),
-        where: {
-          vendorId: vendorId,
-          isDeleted: false,
-          service: {
-            serviceName: {
-              contains: search !== null ? search : undefined,
-              mode: 'insensitive',
-            },
-          },
-        },
-        select: {
-          service: {
-            select: {
-              serviceName: true,
-              VendorService: {
-                select: {
-                  vendorServiceId: true,
-                  status: true,
-                  description: true,
-                  // serviceImage: {
-                  //   select: {
-                  //     key: true,
-                  //     location: true,
-                  //     name: true,
-                  //   },
-                  // },
-                  serviceImage: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getVendorServiceById(vendorServiceId: number) {
-    try {
-      await this.prisma.vendorService.findUnique({
-        where: {
-          vendorServiceId: vendorServiceId,
-        },
-        select: {
-          service: {
-            select: {
-              serviceName: true,
-              serviceId: true,
-              serviceType: true,
-            },
-          },
-          description: true,
-          AllocatePrice: {
-            where: {
-              vendorServiceId,
-            },
-            select: {
-              category: {
-                select: {
-                  categoryId: true,
-                  categoryName: true,
-                },
-              },
-              subcategory: {
-                select: {
-                  subCategoryName: true,
-                  subCategoryId: true,
-                },
-              },
-              price: true,
-            },
-          },
-          serviceImage: true,
-        },
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getVendorByIdProfile(id: number) {
+  async getRiderByIdProfile(id: number) {
     try {
       return await this.prisma.userMaster.findUnique({
         where: {
@@ -171,9 +46,9 @@ export class VendorRepository {
               id: true,
             },
           },
-          vendor: {
+          rider: {
             select: {
-              vendorId: true,
+              riderId: true,
               fullName: true,
             },
           },
@@ -184,7 +59,34 @@ export class VendorRepository {
     }
   }
 
-  async getVendorByIdCompany(id: number) {
+  async getRiderByIdAccount(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          rider: {
+            select: {
+              riderId: true,
+              banking: {
+                select: {
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRiderByIdCompany(id: number) {
     try {
       return await this.prisma.userMaster.findUnique({
         where: {
@@ -194,9 +96,9 @@ export class VendorRepository {
           userMasterId: true,
           isEmailVerified: true,
           phone: true,
-          vendor: {
+          rider: {
             select: {
-              vendorId: true,
+              riderId: true,
               fullName: true,
               description: true,
               companyEmail: true,
@@ -267,7 +169,7 @@ export class VendorRepository {
     }
   }
 
-  async getVendorByIdAccount(id: number) {
+  async getRiderByIdSchedule(id: number) {
     try {
       return await this.prisma.userMaster.findUnique({
         where: {
@@ -275,9 +177,9 @@ export class VendorRepository {
         },
         select: {
           userMasterId: true,
-          vendor: {
+          rider: {
             select: {
-              vendorId: true,
+              riderId: true,
               banking: {
                 select: {
                   accountNumber: true,
@@ -294,34 +196,7 @@ export class VendorRepository {
     }
   }
 
-  async getVendorByIdSchedule(id: number) {
-    try {
-      return await this.prisma.userMaster.findUnique({
-        where: {
-          userMasterId: id,
-        },
-        select: {
-          userMasterId: true,
-          vendor: {
-            select: {
-              vendorId: true,
-              banking: {
-                select: {
-                  accountNumber: true,
-                  accountTitle: true,
-                  bankName: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getVendorById(id: number) {
+  async getRiderById(id: number) {
     try {
       return await this.prisma.userMaster.findUnique({
         where: {
@@ -335,9 +210,9 @@ export class VendorRepository {
           userType: true,
           phone: true,
           createdAt: true,
-          vendor: {
+          rider: {
             select: {
-              vendorId: true,
+              riderId: true,
               businessLicense: {
                 select: {
                   media: {
@@ -372,16 +247,8 @@ export class VendorRepository {
                   id: true,
                 },
               },
-              banking: {
-                select: {
-                  accountNumber: true,
-                  accountTitle: true,
-                  bankName: true,
-                },
-              },
               fullName: true,
               companyName: true,
-              serviceType: true,
               userAddress: {
                 select: {
                   city: {
@@ -417,10 +284,10 @@ export class VendorRepository {
     }
   }
 
-  async getAllVendors(listingParams: VendorListingParams) {
-    const { page = 1, take = 10, search, status, serviceType } = listingParams;
+  async getAllRiders(listingParams: VendorListingParams) {
+    const { page = 1, take = 10, search, status } = listingParams;
     try {
-      const vendors = await this.prisma.userMaster.findMany({
+      const riders = await this.prisma.userMaster.findMany({
         take: +take,
         skip: +take * (+page - 1),
         orderBy: {
@@ -430,8 +297,8 @@ export class VendorRepository {
         where: {
           isDeleted: false,
           isEmailVerified: true,
-          userType: UserType.VENDOR,
-          vendor: {
+          userType: UserType.RIDER,
+          rider: {
             ...(search && {
               OR: [
                 { fullName: { contains: search, mode: 'insensitive' } },
@@ -440,9 +307,6 @@ export class VendorRepository {
             }),
             status: {
               equals: status !== null ? status : undefined,
-            },
-            serviceType: {
-              equals: serviceType !== null ? serviceType : undefined,
             },
           },
         },
@@ -454,9 +318,9 @@ export class VendorRepository {
           userType: true,
           phone: true,
           createdAt: true,
-          vendor: {
+          rider: {
             select: {
-              vendorId: true,
+              riderId: true,
               businessLicense: {
                 select: {
                   media: {
@@ -493,7 +357,6 @@ export class VendorRepository {
               },
               fullName: true,
               companyName: true,
-              serviceType: true,
               userAddress: {
                 select: {
                   city: {
@@ -529,12 +392,12 @@ export class VendorRepository {
         where: {
           isEmailVerified: true,
           isDeleted: false,
-          userType: UserType.VENDOR,
+          userType: UserType.RIDER,
         },
       });
 
       return {
-        data: vendors,
+        data: riders,
         page,
         take,
         totalCount,
@@ -545,71 +408,7 @@ export class VendorRepository {
     }
   }
 
-  async deleteVendorService(id: number) {
-    try {
-      await this.prisma.category.update({
-        where: {
-          categoryId: id,
-        },
-        data: {
-          isDeleted: true,
-        },
-      });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async createCarWashVendorService(
-    dto: VendorCreateServiceDto,
-    vendor: Vendor,
-  ) {
-    try {
-      const serviceImages = [];
-
-      dto.serviceImages.forEach(async (serviceImage) => {
-        const result = await this.prisma.media.create({
-          data: serviceImage,
-          select: {
-            id: true,
-          },
-        });
-        serviceImages.push(result);
-      });
-
-      const vendorService = await this.prisma.vendorService.create({
-        data: {
-          vendorId: vendor.vendorId,
-          serviceId: dto.serviceId,
-          description: dto.description,
-        },
-        select: {
-          vendorServiceId: true,
-        },
-      });
-
-      await this.prisma.workspaceImages.createMany({
-        data: serviceImages.map((item) => ({
-          vendorServiceId: vendorService.vendorServiceId,
-          mediaId: item.id,
-        })),
-      });
-
-      await this.prisma.allocatePrice.createMany({
-        data: dto.allocatePrice.map((item) => ({
-          ...item,
-          vendorServiceId: vendorService.vendorServiceId,
-        })),
-      });
-
-      return true;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async deleteVendor(id: number) {
+  async deleteRider(id: number) {
     try {
       await this.prisma.userMaster.update({
         where: {

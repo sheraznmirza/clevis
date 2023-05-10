@@ -1,10 +1,11 @@
 import { config } from 'dotenv';
 config();
-import { createAdmin } from './user';
+//import { createAdmin } from './user';
 import { PrismaClient } from '@prisma/client';
 import { rolesCreate } from './role';
 import { createCountryState } from './countrycity';
 import { createCategorySubCategory } from './categorySubCategory';
+import { createAdmin } from './user';
 // import { createRider } from './ride';
 // import { createRolesAndPermissions } from './acl';
 const prisma = new PrismaClient();

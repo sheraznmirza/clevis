@@ -1,33 +1,35 @@
 import {
-  Injectable,
-  ForbiddenException,
-  UnauthorizedException,
-  NotFoundException,
-  ConflictException,
-  RequestTimeoutException,
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  RequestTimeoutException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
-import {
-  CustomerSignUpDto,
-  VendorSignUpDto,
-  LoginDto,
-  RiderSignUpDto,
-  RefreshDto,
-  ForgotPasswordDto,
-  ResetPasswordDataDto,
-  ChangePasswordDto,
-} from './dto';
-import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ServiceType, Status, UserType } from '@prisma/client';
-import { MailService } from 'src/modules/mail/mail.service';
-import { NotificationService } from '../notification/notification.service';
+import * as argon from 'argon2';
 import { createCipheriv, createDecipheriv } from 'crypto';
-import * as dayjs from 'dayjs';
-import { successResponse } from 'src/helpers/response.helper';
+import dayjs from 'dayjs';
+import { successResponse } from '../../../helpers/response.helper';
+import { MailService } from '../../../modules/mail/mail.service';
+import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CreateNotificationDto } from '../notification/dto';
+import { NotificationService } from '../notification/notification.service';
+import {
+  ChangePasswordDto,
+  CustomerSignUpDto,
+  ForgotPasswordDto,
+  LoginDto,
+  LogoutDto,
+  RefreshDto,
+  ResetPasswordDataDto,
+  RiderSignUpDto,
+  VendorSignUpDto,
+  VerifyOtpDto,
+} from './dto';
 
 @Injectable()
 export class AuthService {
@@ -44,6 +46,14 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const userCount = await this.prisma.userMaster.count({
+        where: { email: dto.email, userType: UserType.CUSTOMER },
+      });
+
+      if (userCount > 0) {
+        throw new ForbiddenException('Credentials taken');
+      }
+
       const roleId = await this.getRoleByType(UserType.CUSTOMER);
 
       const user = await this.prisma.userMaster.create({
@@ -66,7 +76,6 @@ export class AuthService {
         },
         select: {
           userMasterId: true,
-          // profileImage: true,
           email: true,
           isEmailVerified: true,
           phone: true,
@@ -77,9 +86,12 @@ export class AuthService {
                 select: {
                   userAddressId: true,
                   fullAddress: true,
-                  // cityId: true,
-                  longitude: true,
-                  latitude: true,
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                    },
+                  },
                 },
               },
               fullName: true,
@@ -94,7 +106,7 @@ export class AuthService {
         user.userType,
       );
       await this.updateRt(user.userMasterId, response.refreshToken);
-      // await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
+      await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
       return {
         tokens: response,
         ...user,
@@ -112,6 +124,13 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const userCount = await this.prisma.userMaster.count({
+        where: { email: dto.email, userType: UserType.VENDOR },
+      });
+
+      if (userCount > 0) {
+        throw new ForbiddenException('Credentials taken');
+      }
       const roleId = await this.getRoleByType(UserType.VENDOR);
       const businesess = [];
       const workspaces = [];
@@ -222,8 +241,7 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      // await this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      // await this.mail.riderVendorCreationEmail(user);
+      await this.sendEncryptedDataToMail(user, UserType.VENDOR);
       const payload: CreateNotificationDto = {
         toUser: 1,
         fromUser: user.userMasterId,
@@ -250,6 +268,14 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const userCount = await this.prisma.userMaster.count({
+        where: { email: dto.email, userType: UserType.RIDER },
+      });
+
+      if (userCount > 0) {
+        throw new ForbiddenException('Credentials taken');
+      }
+
       const roleId = await this.getRoleByType(UserType.RIDER);
       const businesess = [];
       const workspaces = [];
@@ -348,15 +374,7 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      // const response = await this.signToken(user.userMasterId, user.email);
-      // await this.updateRt(user.userMasterId, response.refreshToken);
-      // await this.sendEncryptedDataToMail(user, UserType.RIDER);
-      // await this.mail.riderVendorCreationEmail(user);
-      // await this.mail.sendUserVerificationEmail(user, UserType.RIDER);
-      // return {
-      //   tokens: response,
-      //   ...user,
-      // };
+      await this.sendEncryptedDataToMail(user, UserType.RIDER);
       return successResponse(
         201,
         'Rider successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -451,7 +469,24 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                cityId: true,
+                city: {
+                  select: {
+                    cityName: true,
+                    cityId: true,
+                    State: {
+                      select: {
+                        stateName: true,
+                        stateId: true,
+                        country: {
+                          select: {
+                            countryName: true,
+                            countryId: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
                 longitude: true,
                 latitude: true,
               },
@@ -515,7 +550,24 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                // cityId: true,
+                city: {
+                  select: {
+                    cityName: true,
+                    cityId: true,
+                    State: {
+                      select: {
+                        stateName: true,
+                        stateId: true,
+                        country: {
+                          select: {
+                            countryName: true,
+                            countryId: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
                 longitude: true,
                 latitude: true,
               },
@@ -528,6 +580,7 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    console.log('user: ', user);
     if (user.vendor.status !== Status.APPROVED)
       throw new UnauthorizedException(
         `Vendor has ${
@@ -596,7 +649,24 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                // cityId: true,
+                city: {
+                  select: {
+                    cityName: true,
+                    cityId: true,
+                    State: {
+                      select: {
+                        stateName: true,
+                        stateId: true,
+                        country: {
+                          select: {
+                            countryName: true,
+                            countryId: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
                 longitude: true,
                 latitude: true,
               },
@@ -671,6 +741,7 @@ export class AuthService {
         previousRefreshToken.userMasterId,
         user.email,
         user.userType,
+        user.vendor.serviceType || null,
       );
       await this.updateRt(
         previousRefreshToken.userMasterId,
@@ -706,8 +777,47 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-      // await this.mail.sendResetPasswordEmail(data, randomOtp);
+      await this.mail.sendResetPasswordEmail(data, randomOtp);
       return successResponse(200, 'OTP sent to your email');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async verifyOtp(dto: VerifyOtpDto) {
+    try {
+      const otp = await this.prisma.otp.findFirst({
+        where: {
+          otp: dto.otp,
+          expired: false,
+        },
+        select: {
+          expired: true,
+          createdAt: true,
+          userMasterId: true,
+          otpId: true,
+        },
+      });
+
+      if (dayjs().diff(otp.createdAt, 'minute') > 9) {
+        await this.prisma.otp.update({
+          where: {
+            otpId: otp.otpId,
+          },
+          data: {
+            expired: true,
+          },
+        });
+
+        throw new RequestTimeoutException('OTP has already expired');
+      }
+
+      const id = this.encryptData(otp.userMasterId.toString());
+
+      return {
+        ...successResponse(200, 'OTP verified'),
+        userId: id,
+      };
     } catch (error) {
       throw error;
     }
@@ -721,6 +831,10 @@ export class AuthService {
           userMasterId: masterId,
         },
         select: {
+          email: true,
+          rider: true,
+          vendor: true,
+          userType: true,
           isEmailVerified: true,
         },
       });
@@ -736,6 +850,9 @@ export class AuthService {
             isEmailVerified: true,
           },
         });
+        if (user.userType === UserType.RIDER || UserType.VENDOR) {
+          await this.mail.riderVendorCreationEmail(user);
+        }
         return {
           statusCode: 202,
           message: 'Email successfully verified!',
@@ -748,9 +865,11 @@ export class AuthService {
 
   async resetPassword(data: ResetPasswordDataDto) {
     try {
+      const id = parseInt(this.decryptData(data.userId));
+
       const otp = await this.prisma.otp.findFirst({
         where: {
-          otp: data.otp,
+          userMasterId: id,
           expired: false,
         },
         select: {
@@ -786,7 +905,7 @@ export class AuthService {
     }
   }
 
-  async changePassword(data: ChangePasswordDto, id: number) {
+  async changePassword(dto: ChangePasswordDto, id: number) {
     try {
       const user = await this.prisma.userMaster.findUnique({
         where: {
@@ -794,11 +913,11 @@ export class AuthService {
         },
       });
 
-      const pwMatches = await argon.verify(user.password, data.oldPassword);
+      const pwMatches = await argon.verify(user.password, dto.oldPassword);
 
       if (!pwMatches) throw new BadRequestException('Incorrect password.');
 
-      await this.updatePassword(user.userMasterId, data.newPassword);
+      await this.updatePassword(user.userMasterId, dto.newPassword);
 
       return successResponse(200, 'Password successfully changed.');
     } catch (error) {
@@ -806,7 +925,22 @@ export class AuthService {
     }
   }
 
-  // async logout() {}
+  async logout(dto: LogoutDto) {
+    try {
+      const token = await this.prisma.refreshToken.update({
+        where: {
+          refreshToken: dto.refreshToken,
+        },
+        data: {
+          deleted: true,
+        },
+      });
+      console.log('token: ', token);
+      return successResponse(200, 'Logged out successfully.');
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async signToken(
     userId: number,

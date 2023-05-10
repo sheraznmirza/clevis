@@ -1,11 +1,11 @@
-import { IsEnum, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Status } from '@prisma/client';
 
-export class VendorUpdateStatusDto {
+export class RiderUpdateStatusDto {
   @ApiProperty({
     required: true,
-    description: 'Enum for status of the vendor',
+    description: 'Enum for status of the rider',
     enum: Status,
   })
   @IsNotEmpty()

@@ -13,18 +13,18 @@ import { CategoryService } from './category.service';
 import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import { JwtGuard } from '../auth/guard';
 import { UserType } from '@prisma/client';
-import { Authorized } from 'src/core/decorators';
-import { RolesGuard } from 'src/core/guards';
+import { Authorized } from '../../../core/decorators';
+import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from 'src/core/dto';
+import { ListingParams } from '../../../core/dto';
 
 @ApiTags('Category')
 @Controller('category')
-// @UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, RolesGuard)
 export class CategoryController {
   constructor(private categoryService: CategoryService) {}
 
-  // @Authorized(UserType.ADMIN)
+  @Authorized(UserType.ADMIN)
   @Post()
   createCategory(@Body() data: CategoryCreateDto) {
     return this.categoryService.createCategory(data);
@@ -47,12 +47,6 @@ export class CategoryController {
   getAllCategory(@Query() listingParams: ListingParams) {
     return this.categoryService.getAllCategory(listingParams);
   }
-
-  // @Authorized([UserType.ADMIN, UserType.VENDOR])
-  // @Get()
-  // getAllCategory() {
-  //   return this.categoryService.getAllCategory();
-  // }
 
   @Authorized(UserType.ADMIN)
   @Delete('/:id')

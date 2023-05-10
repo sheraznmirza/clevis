@@ -1,7 +1,6 @@
 import {
   IsEmail,
   IsString,
-  IsNotEmpty,
   MaxLength,
   MinLength,
   IsNumber,
@@ -11,56 +10,56 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Media } from '../../../../core/globalTypes';
 
-export class RiderSignUpDto {
+export class RiderUpdateDto {
   @ApiProperty()
   @IsEmail()
-  @IsNotEmpty()
+  @IsOptional()
   email: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(6)
   @MaxLength(50)
   password: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   phone: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   fullName: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   fullAddress: string;
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   companyName: string;
 
   @ApiProperty()
   @IsEmail()
-  @IsNotEmpty()
+  @IsOptional()
   companyEmail: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   logo: Media;
 
   @ApiProperty()
   @IsArray()
-  @IsNotEmpty()
+  @IsOptional()
   workspaceImages: Media[];
 
   @ApiProperty()
   @IsArray()
-  @IsNotEmpty()
+  @IsOptional()
   businessLicense: Media[];
 
   @ApiProperty()
@@ -70,13 +69,16 @@ export class RiderSignUpDto {
 
   @ApiProperty()
   @IsNumber()
+  @IsOptional()
   cityId: number;
 
   @ApiProperty()
   @IsNumber()
+  @IsOptional()
   latitude: number;
 
   @ApiProperty()
   @IsNumber()
+  @IsOptional()
   longitude: number;
 }

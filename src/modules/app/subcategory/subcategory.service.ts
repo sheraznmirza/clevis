@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { SubcategoryRepository } from './subcategory.repository';
 import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
-import { ListingParams } from 'src/core/dto';
+import { ListingParams } from '../../../core/dto';
 
 @Injectable()
 export class SubcategoryService {

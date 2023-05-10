@@ -9,15 +9,22 @@ import {
   Post,
   Req,
   UseGuards,
+  Query,
+  Delete,
 } from '@nestjs/common';
-import { UserMaster, UserType } from '@prisma/client';
+import { UserType } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
-import { RolesGuard } from 'src/core/guards';
-import { Authorized } from 'src/core/decorators';
+import { RolesGuard } from '../../../core/guards';
+import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { VendorService } from './vendor.service';
+import {
+  ListingParams,
+  VendorListingParams,
+  VendorRiderByIdParams,
+} from 'src/core/dto';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Vendor')
@@ -26,9 +33,14 @@ export class VendorController {
   constructor(private vendorService: VendorService) {}
   @Authorized(UserType.VENDOR)
   @Get('me')
-  getMe(@GetUser() user) {
-    console.log('user: ', user);
-    return user;
+  getMe(@GetUser() user, @Query() query: VendorRiderByIdParams) {
+    return this.vendorService.getVendorById(user.userMasterId, query);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Get('/:userMasterId')
+  getVendorById(@Param('userMasterId') userMasterId: number) {
+    return this.vendorService.getVendorById(userMasterId);
   }
 
   @Authorized(UserType.VENDOR)
@@ -44,15 +56,29 @@ export class VendorController {
   @Patch('/approve/:vendorId')
   approveVendor(
     @Param('vendorId') vendorId: number,
-    @Body() dto: VendorUpdateStatusDto,
+    @Query() dto: VendorUpdateStatusDto,
   ) {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
-  // @Authorized(UserType.ADMIN)
-  // @Get('me')
-  // getMe(@GetUser() user) {
-  //   console.log('user: ', user);
-  //   return user;
-  // }
+  @Authorized([UserType.ADMIN, UserType.CUSTOMER])
+  @Get()
+  getVendors(@Query() listingParams: VendorListingParams) {
+    return this.vendorService.getAllVendors(listingParams);
+  }
+
+  @Authorized([UserType.VENDOR, UserType.CUSTOMER])
+  @Get()
+  getAllVendorService(@GetUser() user, @Query() listingParams: ListingParams) {
+    return this.vendorService.getVendorAllService(
+      user.userMasterId,
+      listingParams,
+    );
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Delete('/:userMasterId')
+  deleteRider(@Param('userMasterId') riderId: number) {
+    return this.vendorService.deleteVendor(riderId);
+  }
 }
