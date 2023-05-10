@@ -1,6 +1,7 @@
-import { Param, Controller, Get } from '@nestjs/common';
+import { Param, Controller, Get, Query } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { ApiTags } from '@nestjs/swagger';
+import { ListingParams } from 'src/core/dto';
 
 @ApiTags('Address')
 @Controller('address')
@@ -8,17 +9,23 @@ export class AddressController {
   constructor(private addressService: AddressService) {}
 
   @Get('/countries')
-  getAllCountries() {
-    return this.addressService.getCountries();
+  getAllCountries(@Query() listingParams: ListingParams) {
+    return this.addressService.getCountries(listingParams);
   }
 
   @Get('/states/:countryId')
-  getStatesByCountry(@Param('countryId') id: string) {
-    return this.addressService.getStates(id);
+  getStatesByCountry(
+    @Param('countryId') id: string,
+    @Query() listingParams: ListingParams,
+  ) {
+    return this.addressService.getStates(id, listingParams);
   }
 
   @Get('/cities/:stateId')
-  getCitiesByState(@Param('stateId') id: string) {
-    return this.addressService.getCities(id);
+  getCitiesByState(
+    @Param('stateId') id: string,
+    @Query() listingParams: ListingParams,
+  ) {
+    return this.addressService.getCities(id, listingParams);
   }
 }

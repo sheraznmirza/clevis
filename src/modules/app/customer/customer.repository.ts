@@ -47,6 +47,7 @@ export class CustomerRepository {
       return await this.prisma.userMaster.findFirst({
         where: {
           userMasterId: id,
+          userType: UserType.CUSTOMER,
           isDeleted: false,
         },
         select: {
@@ -77,8 +78,8 @@ export class CustomerRepository {
     const { page = 1, take = 10, search } = listingParams;
     try {
       const customers = await this.prisma.userMaster.findMany({
-        take: take,
-        skip: take * (page - 1),
+        take: +take,
+        skip: +take * (+page - 1),
         orderBy: {
           createdAt: 'desc',
         },
@@ -116,24 +117,24 @@ export class CustomerRepository {
         },
       });
 
+      const totalCount = await this.prisma.userMaster.count({
+        where: {
+          isEmailVerified: true,
+          isDeleted: false,
+          userType: UserType.CUSTOMER,
+        },
+      });
+
       return {
-        ...customers,
+        customers,
         page,
         take,
-        totalCount: await this.prisma.category.count(),
+        totalCount,
       };
     } catch (error) {
       return false;
     }
   }
-
-  // async getAllCategory() {
-  //   try {
-  //     return await this.prisma.category.findMany();
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // }
 
   async deleteCustomer(id: number) {
     try {

@@ -4,7 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
+import { RiderUpdateStatusDto } from './dto';
 import { ServiceType, UserType, Vendor } from '@prisma/client';
 import { VendorListingParams } from 'src/core/dto';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
@@ -13,39 +13,11 @@ import { VendorListingParams } from 'src/core/dto';
 export class RiderRepository {
   constructor(private prisma: PrismaService) {}
 
-  async createVendorService(dto: VendorCreateServiceDto, userMasterId) {
+  async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
-      const vendor = await this.prisma.vendor.findUnique({
+      return await this.prisma.rider.update({
         where: {
-          userMasterId,
-        },
-      });
-
-      const response = await this.createCarWashVendorService(dto, vendor);
-
-      console.log('response: ', response);
-      console.log('vendor: ', vendor);
-      //   await this.prisma.category.create({
-      //     data: {
-      //       categoryName: dto.categoryName,
-      //       serviceType: dto.serviceType,
-      //     },
-      //   });
-
-      return true;
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ForbiddenException('VendorService is already created');
-      }
-      throw new error();
-    }
-  }
-
-  async approveVendor(id: number, dto: VendorUpdateStatusDto) {
-    try {
-      return await this.prisma.vendor.update({
-        where: {
-          vendorId: id,
+          riderId: id,
         },
         data: {
           status: dto.status,
@@ -56,40 +28,100 @@ export class RiderRepository {
     }
   }
 
-  async updateCategory(id: number, data) {
+  async getRiderById(id: number) {
     try {
-      await this.prisma.category.update({
+      return await this.prisma.userMaster.findUnique({
         where: {
-          categoryId: id,
+          userMasterId: id,
         },
-        data: {
-          ...(data.categoryName && { categoryName: data.categoryName }),
-          ...(data.serviceType && { serviceType: data.serviceType }),
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          roleId: true,
+          userType: true,
+          phone: true,
+          createdAt: true,
+          rider: {
+            select: {
+              riderId: true,
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              companyEmail: true,
+              description: true,
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              fullName: true,
+              companyName: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              status: true,
+            },
+          },
         },
       });
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 
-  async getCategory(id: number) {
-    try {
-      return await this.prisma.category.findUnique({
-        where: {
-          categoryId: id,
-        },
-      });
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async getAllVendors(listingParams: VendorListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+  async getAllRiders(listingParams: VendorListingParams) {
+    const { page = 1, take = 10, search, status, serviceType } = listingParams;
     try {
       const vendors = await this.prisma.userMaster.findMany({
-        take: take,
-        skip: take * (page - 1),
+        take: +take,
+        skip: +take * (+page - 1),
         orderBy: {
           createdAt: 'desc',
         },
@@ -98,32 +130,122 @@ export class RiderRepository {
           isDeleted: false,
           isEmailVerified: true,
           userType: UserType.VENDOR,
-          ...(search.length && {
-            vendor: {
-              fullName: {
-                contains: search,
-              },
+          vendor: {
+            fullName: {
+              contains: search !== null ? search : undefined,
+              mode: 'insensitive',
             },
-          }),
+            status: {
+              equals: status !== null ? status : undefined,
+            },
+            serviceType: {
+              equals: serviceType !== null ? serviceType : undefined,
+            },
+          },
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          roleId: true,
+          userType: true,
+          phone: true,
+          createdAt: true,
+          rider: {
+            select: {
+              riderId: true,
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              companyEmail: true,
+              description: true,
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              fullName: true,
+              companyName: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              status: true,
+            },
+          },
+        },
+      });
+
+      const totalCount = await this.prisma.userMaster.count({
+        where: {
+          isEmailVerified: true,
+          isDeleted: false,
+          userType: UserType.VENDOR,
         },
       });
 
       return {
-        ...vendors,
+        vendors: vendors,
         page,
         take,
-        totalCount: await this.prisma.category.count(),
+        totalCount,
       };
     } catch (error) {
-      return false;
+      console.log('error: ', error);
+      throw error;
     }
   }
 
-  async deleteVendorService(id: number) {
+  async deleteRider(id: number) {
     try {
-      await this.prisma.category.update({
+      await this.prisma.userMaster.update({
         where: {
-          categoryId: id,
+          userMasterId: id,
         },
         data: {
           isDeleted: true,
@@ -132,36 +254,6 @@ export class RiderRepository {
       return true;
     } catch (error) {
       return false;
-    }
-  }
-
-  async createCarWashVendorService(
-    dto: VendorCreateServiceDto,
-    vendor: Vendor,
-  ) {
-    try {
-      const vendorService = await this.prisma.vendorService.create({
-        data: {
-          vendorId: vendor.vendorId,
-          serviceId: dto.serviceId,
-          description: dto.description,
-          serviceImages: dto.serviceImages,
-        },
-        select: {
-          vendorServiceId: true,
-        },
-      });
-
-      await this.prisma.allocatePrice.createMany({
-        data: dto.allocatePrice.map((item) => ({
-          ...item,
-          vendorServiceId: vendorService.vendorServiceId,
-        })),
-      });
-
-      return true;
-    } catch (error) {
-      throw error;
     }
   }
 

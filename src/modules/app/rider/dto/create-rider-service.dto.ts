@@ -8,7 +8,7 @@ type allocatePrice = {
   vendorServiceId?: number;
 };
 
-export class VendorCreateServiceDto {
+export class RiderCreateServiceDto {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()

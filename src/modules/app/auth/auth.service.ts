@@ -45,6 +45,14 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const userCount = await this.prisma.userMaster.count({
+        where: { email: dto.email, userType: UserType.CUSTOMER },
+      });
+
+      if (userCount > 0) {
+        throw new ForbiddenException('Credentials taken');
+      }
+
       const roleId = await this.getRoleByType(UserType.CUSTOMER);
 
       const user = await this.prisma.userMaster.create({
@@ -115,6 +123,13 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const userCount = await this.prisma.userMaster.count({
+        where: { email: dto.email, userType: UserType.VENDOR },
+      });
+
+      if (userCount > 0) {
+        throw new ForbiddenException('Credentials taken');
+      }
       const roleId = await this.getRoleByType(UserType.VENDOR);
       const businesess = [];
       const workspaces = [];
@@ -252,6 +267,14 @@ export class AuthService {
     const password = await argon.hash(dto.password);
 
     try {
+      const userCount = await this.prisma.userMaster.count({
+        where: { email: dto.email, userType: UserType.RIDER },
+      });
+
+      if (userCount > 0) {
+        throw new ForbiddenException('Credentials taken');
+      }
+
       const roleId = await this.getRoleByType(UserType.RIDER);
       const businesess = [];
       const workspaces = [];
@@ -445,7 +468,24 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                cityId: true,
+                city: {
+                  select: {
+                    cityName: true,
+                    cityId: true,
+                    State: {
+                      select: {
+                        stateName: true,
+                        stateId: true,
+                        country: {
+                          select: {
+                            countryName: true,
+                            countryId: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
                 longitude: true,
                 latitude: true,
               },
@@ -509,7 +549,24 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                // cityId: true,
+                city: {
+                  select: {
+                    cityName: true,
+                    cityId: true,
+                    State: {
+                      select: {
+                        stateName: true,
+                        stateId: true,
+                        country: {
+                          select: {
+                            countryName: true,
+                            countryId: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
                 longitude: true,
                 latitude: true,
               },
@@ -522,6 +579,7 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    console.log('user: ', user);
     if (user.vendor.status !== Status.APPROVED)
       throw new UnauthorizedException(
         `Vendor has ${
@@ -590,7 +648,24 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                // cityId: true,
+                city: {
+                  select: {
+                    cityName: true,
+                    cityId: true,
+                    State: {
+                      select: {
+                        stateName: true,
+                        stateId: true,
+                        country: {
+                          select: {
+                            countryName: true,
+                            countryId: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
                 longitude: true,
                 latitude: true,
               },
@@ -753,6 +828,13 @@ export class AuthService {
       const user = await this.prisma.userMaster.findUnique({
         where: {
           userMasterId: masterId,
+        },
+        select: {
+          email: true,
+          rider: true,
+          vendor: true,
+          userType: true,
+          isEmailVerified: true,
         },
       });
 

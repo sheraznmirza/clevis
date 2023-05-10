@@ -31,7 +31,7 @@ export class VendorService {
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
       const vendor: Vendor = await this.repository.approveVendor(id, dto);
-      await this.mail.sendVendorApprovalEmail(vendor);
+      await this.mail.sendVendorRiderApprovalEmail(vendor);
       return successResponse(
         200,
         `Vendor successfully ${vendor.status.toLowerCase()}.`,
@@ -44,6 +44,14 @@ export class VendorService {
   async getVendorService(id: number) {
     try {
       return await this.repository.getCategory(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorById(id: number) {
+    try {
+      return await this.repository.getVendorById(id);
     } catch (error) {
       throw error;
     }
@@ -66,6 +74,15 @@ export class VendorService {
   async getAllVendors(listingParams: VendorListingParams) {
     try {
       return await this.repository.getAllVendors(listingParams);
+    } catch (error) {
+      console.log('error: ', error);
+      throw error;
+    }
+  }
+
+  async deleteVendor(id: number) {
+    try {
+      return await this.repository.deleteVendor(id);
     } catch (error) {
       throw error;
     }
