@@ -188,10 +188,12 @@ export class VendorRepository {
           isEmailVerified: true,
           userType: UserType.VENDOR,
           vendor: {
-            fullName: {
-              contains: search !== null ? search : undefined,
-              mode: 'insensitive',
-            },
+            ...(search && {
+              OR: [
+                { fullName: { contains: search, mode: 'insensitive' } },
+                { companyName: { contains: search, mode: 'insensitive' } },
+              ],
+            }),
             status: {
               equals: status !== null ? status : undefined,
             },
@@ -288,7 +290,7 @@ export class VendorRepository {
       });
 
       return {
-        vendors: vendors,
+        data: vendors,
         page,
         take,
         totalCount,

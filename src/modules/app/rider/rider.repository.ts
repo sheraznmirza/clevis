@@ -117,9 +117,9 @@ export class RiderRepository {
   }
 
   async getAllRiders(listingParams: VendorListingParams) {
-    const { page = 1, take = 10, search, status, serviceType } = listingParams;
+    const { page = 1, take = 10, search, status } = listingParams;
     try {
-      const vendors = await this.prisma.userMaster.findMany({
+      const riders = await this.prisma.userMaster.findMany({
         take: +take,
         skip: +take * (+page - 1),
         orderBy: {
@@ -129,17 +129,16 @@ export class RiderRepository {
         where: {
           isDeleted: false,
           isEmailVerified: true,
-          userType: UserType.VENDOR,
-          vendor: {
-            fullName: {
-              contains: search !== null ? search : undefined,
-              mode: 'insensitive',
-            },
+          userType: UserType.RIDER,
+          rider: {
+            ...(search && {
+              OR: [
+                { fullName: { contains: search, mode: 'insensitive' } },
+                { companyName: { contains: search, mode: 'insensitive' } },
+              ],
+            }),
             status: {
               equals: status !== null ? status : undefined,
-            },
-            serviceType: {
-              equals: serviceType !== null ? serviceType : undefined,
             },
           },
         },
@@ -225,12 +224,12 @@ export class RiderRepository {
         where: {
           isEmailVerified: true,
           isDeleted: false,
-          userType: UserType.VENDOR,
+          userType: UserType.RIDER,
         },
       });
 
       return {
-        vendors: vendors,
+        data: riders,
         page,
         take,
         totalCount,

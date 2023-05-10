@@ -3,6 +3,7 @@ import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ForgotPasswordDto } from '../app/auth/dto';
 import { Status, UserType } from '@prisma/client';
+import { Context } from './entity';
 
 @Injectable()
 export class MailService {
@@ -140,7 +141,6 @@ export class MailService {
     encrypted: string,
   ) {
     try {
-      console.log('working');
       await this.mailerService.sendMail({
         to: user.email,
         from: this.config.get('MAIL_FROM'),
@@ -154,6 +154,34 @@ export class MailService {
           first_name: user[userType.toLowerCase()].fullName,
           copyright_year: this.config.get('COPYRIGHT_YEAR'),
         },
+      });
+    } catch (error) {
+      console.log('error: ', error);
+      throw new ServiceUnavailableException('Unable to send email');
+    }
+  }
+
+  async sendEmail(
+    user: any,
+    to: string,
+    from: string,
+    subject: string,
+    template: string,
+    context: Context,
+  ) {
+    try {
+      await this.mailerService.sendMail({
+        to,
+        from,
+        subject: `${this.config.get('APP_NAME')} - ${subject}`,
+        template: 'userRegistration', // `.hbs` extension is appended automatically
+        context: {
+          app_name: this.config.get('APP_NAME'),
+          app_url: `${context.app_url}`,
+          first_name: user[user.userType.toLowerCase()].fullName,
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        },
+        // context
       });
     } catch (error) {
       console.log('error: ', error);

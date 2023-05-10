@@ -34,7 +34,7 @@ export class AddressService {
       const totalCount = await this.prisma.country.count();
 
       return {
-        countries: countries,
+        data: countries,
         page,
         take,
         totalCount,
@@ -70,7 +70,7 @@ export class AddressService {
         where: { countryId: countryId },
       });
       return {
-        states: states,
+        data: states,
         page,
         take,
         totalCount,
@@ -107,7 +107,7 @@ export class AddressService {
       });
 
       return {
-        cities: cities,
+        data: cities,
         page,
         take,
         totalCount,
