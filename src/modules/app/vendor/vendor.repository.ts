@@ -288,7 +288,7 @@ export class VendorRepository {
       });
 
       return {
-        vendors: vendors,
+        data: vendors,
         page,
         take,
         totalCount,
