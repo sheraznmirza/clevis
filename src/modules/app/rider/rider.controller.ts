@@ -17,7 +17,7 @@ import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { RiderUpdateStatusDto } from './dto';
-import { VendorListingParams } from 'src/core/dto';
+import { VendorListingParams, VendorRiderByIdParams } from 'src/core/dto';
 import { RiderService } from './rider.service';
 
 @UseGuards(JwtGuard, RolesGuard)
@@ -27,8 +27,8 @@ export class RiderController {
   constructor(private riderService: RiderService) {}
   @Authorized(UserType.RIDER)
   @Get('me')
-  getMe(@GetUser() user) {
-    return this.riderService.getRiderById(user.userMasterId);
+  getMe(@GetUser() user, @Query() query: VendorRiderByIdParams) {
+    return this.riderService.getRiderById(user.userMasterId, query);
   }
 
   @Authorized(UserType.ADMIN)
@@ -42,7 +42,7 @@ export class RiderController {
   @Patch('/approve/:riderId')
   approveVendor(
     @Param('riderId') riderId: number,
-    @Body() dto: RiderUpdateStatusDto,
+    @Query() dto: RiderUpdateStatusDto,
   ) {
     return this.riderService.approveRider(riderId, dto);
   }

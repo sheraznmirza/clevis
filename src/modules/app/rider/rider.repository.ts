@@ -28,6 +28,174 @@ export class RiderRepository {
     }
   }
 
+  async getRiderByIdProfile(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          profilePicture: {
+            select: {
+              key: true,
+              location: true,
+              name: true,
+              id: true,
+            },
+          },
+          rider: {
+            select: {
+              riderId: true,
+              fullName: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRiderByIdAccount(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          rider: {
+            select: {
+              riderId: true,
+              banking: {
+                select: {
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRiderByIdCompany(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          isEmailVerified: true,
+          phone: true,
+          rider: {
+            select: {
+              riderId: true,
+              fullName: true,
+              description: true,
+              companyEmail: true,
+              companyName: true,
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRiderByIdSchedule(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          rider: {
+            select: {
+              riderId: true,
+              banking: {
+                select: {
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getRiderById(id: number) {
     try {
       return await this.prisma.userMaster.findUnique({

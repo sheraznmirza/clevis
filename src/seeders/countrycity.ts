@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 // import countries from '../../data/countries.json'
-import * as countries from '../../data/countries.json';
-import * as states from '../../data/states.json';
+import countries from '../../data/countries.json';
+import states from '../../data/states.json';
 
 export async function createCountryState(prisma: PrismaClient) {
   const countryCount = await prisma.country.count();

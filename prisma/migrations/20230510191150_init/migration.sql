@@ -23,6 +23,12 @@ CREATE TYPE "MediaStatus" AS ENUM ('UPLOADING', 'READY', 'STALE');
 CREATE TYPE "MediaAccess" AS ENUM ('PUBLIC', 'PRIVATE');
 
 -- CreateEnum
+CREATE TYPE "Days" AS ENUM ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+
+-- CreateEnum
+CREATE TYPE "VendorServiceStatus" AS ENUM ('Available', 'Unavailable');
+
+-- CreateEnum
 CREATE TYPE "DefaultActions" AS ENUM ('ALL', 'READ', 'CREATE', 'UPDATE', 'DELETE');
 
 -- CreateTable
@@ -108,8 +114,6 @@ CREATE TABLE "Rider" (
     "fullName" TEXT NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
-    "workspaceImages" INTEGER[],
-    "businessLicense" INTEGER[],
     "description" TEXT,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -132,6 +136,30 @@ CREATE TABLE "UserAddress" (
     "adminId" INTEGER,
 
     CONSTRAINT "UserAddress_pkey" PRIMARY KEY ("userAddressId")
+);
+
+-- CreateTable
+CREATE TABLE "Banking" (
+    "id" SERIAL NOT NULL,
+    "bankName" TEXT NOT NULL,
+    "accountTitle" TEXT NOT NULL,
+    "accountNumber" TEXT NOT NULL,
+    "vendorId" INTEGER,
+    "riderId" INTEGER,
+
+    CONSTRAINT "Banking_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CompanySchedule" (
+    "id" SERIAL NOT NULL,
+    "vendorId" INTEGER,
+    "riderId" INTEGER,
+    "day" "Days" NOT NULL,
+    "startTime" TIMESTAMP(3) NOT NULL,
+    "endTime" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CompanySchedule_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -201,8 +229,9 @@ CREATE TABLE "VendorService" (
     "vendorServiceId" SERIAL NOT NULL,
     "vendorId" INTEGER NOT NULL,
     "serviceId" INTEGER NOT NULL,
+    "serviceImageId" INTEGER,
     "description" TEXT NOT NULL,
-    "serviceImages" INTEGER[],
+    "status" "VendorServiceStatus" NOT NULL DEFAULT 'Available',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
@@ -219,33 +248,6 @@ CREATE TABLE "AllocatePrice" (
     "price" DOUBLE PRECISION NOT NULL,
 
     CONSTRAINT "AllocatePrice_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "VendorServiceCategory" (
-    "vendorServiceCategoryId" SERIAL NOT NULL,
-    "vendorServiceId" INTEGER NOT NULL,
-    "categoryId" INTEGER NOT NULL,
-    "price" DOUBLE PRECISION,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-
-    CONSTRAINT "VendorServiceCategory_pkey" PRIMARY KEY ("vendorServiceCategoryId")
-);
-
--- CreateTable
-CREATE TABLE "VendorServiceSubcategory" (
-    "vendorServiceSubcategoryId" SERIAL NOT NULL,
-    "vendorServiceCategoryId" INTEGER NOT NULL,
-    "subCategoryId" INTEGER NOT NULL,
-    "categoryId" INTEGER NOT NULL,
-    "price" DOUBLE PRECISION NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-
-    CONSTRAINT "VendorServiceSubcategory_pkey" PRIMARY KEY ("vendorServiceSubcategoryId")
 );
 
 -- CreateTable
@@ -348,6 +350,15 @@ CREATE TABLE "BusinessLicense" (
 );
 
 -- CreateTable
+CREATE TABLE "ServiceImage" (
+    "id" SERIAL NOT NULL,
+    "mediaId" INTEGER NOT NULL,
+    "vendorServiceId" INTEGER,
+
+    CONSTRAINT "ServiceImage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "WorkspaceImages" (
     "id" SERIAL NOT NULL,
     "mediaId" INTEGER NOT NULL,
@@ -379,7 +390,22 @@ CREATE UNIQUE INDEX "Vendor_userMasterId_key" ON "Vendor"("userMasterId");
 CREATE UNIQUE INDEX "Rider_userMasterId_key" ON "Rider"("userMasterId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Banking_vendorId_key" ON "Banking"("vendorId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Banking_riderId_key" ON "Banking"("riderId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CompanySchedule_vendorId_key" ON "CompanySchedule"("vendorId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CompanySchedule_riderId_key" ON "CompanySchedule"("riderId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VendorService_serviceImageId_key" ON "VendorService"("serviceImageId");
 
 -- AddForeignKey
 ALTER TABLE "UserMaster" ADD CONSTRAINT "UserMaster_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -424,6 +450,18 @@ ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_customerId_fkey" FOREIGN K
 ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_riderId_fkey" FOREIGN KEY ("riderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Banking" ADD CONSTRAINT "Banking_riderId_fkey" FOREIGN KEY ("riderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Banking" ADD CONSTRAINT "Banking_vendorId_fkey" FOREIGN KEY ("vendorId") REFERENCES "Vendor"("vendorId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CompanySchedule" ADD CONSTRAINT "CompanySchedule_riderId_fkey" FOREIGN KEY ("riderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CompanySchedule" ADD CONSTRAINT "CompanySchedule_vendorId_fkey" FOREIGN KEY ("vendorId") REFERENCES "Vendor"("vendorId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "State" ADD CONSTRAINT "State_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "Country"("countryId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -443,21 +481,6 @@ ALTER TABLE "AllocatePrice" ADD CONSTRAINT "AllocatePrice_subcategoryId_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "AllocatePrice" ADD CONSTRAINT "AllocatePrice_vendorServiceId_fkey" FOREIGN KEY ("vendorServiceId") REFERENCES "VendorService"("vendorServiceId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "VendorServiceCategory" ADD CONSTRAINT "VendorServiceCategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "VendorServiceCategory" ADD CONSTRAINT "VendorServiceCategory_vendorServiceId_fkey" FOREIGN KEY ("vendorServiceId") REFERENCES "VendorService"("vendorServiceId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("categoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_subCategoryId_fkey" FOREIGN KEY ("subCategoryId") REFERENCES "SubCategory"("subCategoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "VendorServiceSubcategory" ADD CONSTRAINT "VendorServiceSubcategory_vendorServiceCategoryId_fkey" FOREIGN KEY ("vendorServiceCategoryId") REFERENCES "VendorServiceCategory"("vendorServiceCategoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "RoleRouteMapping" ADD CONSTRAINT "RoleRouteMapping_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -488,6 +511,12 @@ ALTER TABLE "BusinessLicense" ADD CONSTRAINT "BusinessLicense_vendorVendorId_fke
 
 -- AddForeignKey
 ALTER TABLE "BusinessLicense" ADD CONSTRAINT "BusinessLicense_riderRiderId_fkey" FOREIGN KEY ("riderRiderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceImage" ADD CONSTRAINT "ServiceImage_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceImage" ADD CONSTRAINT "ServiceImage_vendorServiceId_fkey" FOREIGN KEY ("vendorServiceId") REFERENCES "VendorService"("vendorServiceId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WorkspaceImages" ADD CONSTRAINT "WorkspaceImages_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
