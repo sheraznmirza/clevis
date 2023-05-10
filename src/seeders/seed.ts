@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { rolesCreate } from './role';
 import { createCountryState } from './countrycity';
 import { createCategorySubCategory } from './categorySubCategory';
+import { createAdmin } from './user';
 // import { createRider } from './ride';
 // import { createRolesAndPermissions } from './acl';
 const prisma = new PrismaClient();
@@ -16,7 +17,7 @@ async function main() {
   console.log('=======CountryCitySeeder=========');
   await createCountryState(prisma);
   console.log('=======AdminSeeder=========');
-  // await createAdmin(prisma);
+  await createAdmin(prisma);
   console.log('=======CategorySubCategorySeeder=========');
   await createCategorySubCategory(prisma);
   // console.log('=======UserSeeder=========');
