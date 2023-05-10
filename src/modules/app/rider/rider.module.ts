@@ -8,4 +8,4 @@ import { RiderController } from './rider.controller';
   providers: [RiderService, RiderRepository],
   controllers: [RiderController],
 })
-export class VendorModule {}
+export class RiderModule {}
