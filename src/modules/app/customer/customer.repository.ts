@@ -87,7 +87,7 @@ export class CustomerRepository {
         where: {
           isDeleted: false,
           userType: UserType.CUSTOMER,
-          ...(search.length && {
+          ...(search && {
             customer: {
               fullName: {
                 contains: search,
@@ -132,7 +132,7 @@ export class CustomerRepository {
         totalCount,
       };
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 

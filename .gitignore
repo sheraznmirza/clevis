@@ -35,5 +35,6 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-#env
+#docker
+docker-compose.yml
 yarn.lock

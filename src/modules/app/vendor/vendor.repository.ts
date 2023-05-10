@@ -1,12 +1,8 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
-import { ServiceType, UserType, Vendor } from '@prisma/client';
-import { VendorListingParams } from 'src/core/dto';
+import { UserType, Vendor } from '@prisma/client';
+import { ListingParams, VendorListingParams } from 'src/core/dto';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -70,15 +66,90 @@ export class VendorRepository {
     }
   }
 
-  async getCategory(id: number) {
+  async getAllVendorService(vendorId: number, listingParams: ListingParams) {
+    const { page = 1, take = 10, search } = listingParams;
     try {
-      return await this.prisma.category.findUnique({
+      await this.prisma.vendorService.findMany({
+        take: +take,
+        skip: +take * (+page - 1),
         where: {
-          categoryId: id,
+          vendorId: vendorId,
+          isDeleted: false,
+          service: {
+            serviceName: {
+              contains: search !== null ? search : undefined,
+              mode: 'insensitive',
+            },
+          },
+        },
+        select: {
+          service: {
+            select: {
+              serviceName: true,
+              VendorService: {
+                select: {
+                  vendorServiceId: true,
+                  status: true,
+                  description: true,
+                  // serviceImage: {
+                  //   select: {
+                  //     key: true,
+                  //     location: true,
+                  //     name: true,
+                  //   },
+                  // },
+                  serviceImage: true,
+                },
+              },
+            },
+          },
         },
       });
     } catch (error) {
-      return false;
+      throw error;
+    }
+  }
+
+  async getVendorServiceById(vendorServiceId: number) {
+    try {
+      await this.prisma.vendorService.findUnique({
+        where: {
+          vendorServiceId: vendorServiceId,
+        },
+        select: {
+          service: {
+            select: {
+              serviceName: true,
+              serviceId: true,
+              serviceType: true,
+            },
+          },
+          description: true,
+          AllocatePrice: {
+            where: {
+              vendorServiceId,
+            },
+            select: {
+              category: {
+                select: {
+                  categoryId: true,
+                  categoryName: true,
+                },
+              },
+              subcategory: {
+                select: {
+                  subCategoryName: true,
+                  subCategoryId: true,
+                },
+              },
+              price: true,
+            },
+          },
+          serviceImage: true,
+        },
+      });
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -121,7 +192,6 @@ export class VendorRepository {
         },
         select: {
           userMasterId: true,
-          email: true,
           isEmailVerified: true,
           phone: true,
           vendor: {
@@ -129,6 +199,8 @@ export class VendorRepository {
               vendorId: true,
               fullName: true,
               description: true,
+              companyEmail: true,
+              companyName: true,
               businessLicense: {
                 select: {
                   media: {
@@ -494,16 +566,34 @@ export class VendorRepository {
     vendor: Vendor,
   ) {
     try {
+      const serviceImages = [];
+
+      dto.serviceImages.forEach(async (serviceImage) => {
+        const result = await this.prisma.media.create({
+          data: serviceImage,
+          select: {
+            id: true,
+          },
+        });
+        serviceImages.push(result);
+      });
+
       const vendorService = await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,
           serviceId: dto.serviceId,
           description: dto.description,
-          serviceImages: dto.serviceImages,
         },
         select: {
           vendorServiceId: true,
         },
+      });
+
+      await this.prisma.workspaceImages.createMany({
+        data: serviceImages.map((item) => ({
+          vendorServiceId: vendorService.vendorServiceId,
+          mediaId: item.id,
+        })),
       });
 
       await this.prisma.allocatePrice.createMany({

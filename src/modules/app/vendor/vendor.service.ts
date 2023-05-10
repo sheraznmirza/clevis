@@ -5,6 +5,7 @@ import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import { Vendor } from '@prisma/client';
 import {
+  ListingParams,
   RiderVendorTabs,
   VendorListingParams,
   VendorRiderByIdParams,
@@ -45,9 +46,9 @@ export class VendorService {
     }
   }
 
-  async getVendorService(id: number) {
+  async getVendorAllService(id: number, listingParams: ListingParams) {
     try {
-      return await this.repository.getCategory(id);
+      return await this.repository.getAllVendorService(id, listingParams);
     } catch (error) {
       throw error;
     }

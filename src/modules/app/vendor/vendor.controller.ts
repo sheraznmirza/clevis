@@ -20,7 +20,11 @@ import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { VendorService } from './vendor.service';
-import { VendorListingParams, VendorRiderByIdParams } from 'src/core/dto';
+import {
+  ListingParams,
+  VendorListingParams,
+  VendorRiderByIdParams,
+} from 'src/core/dto';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Vendor')
@@ -61,6 +65,15 @@ export class VendorController {
   @Get()
   getVendors(@Query() listingParams: VendorListingParams) {
     return this.vendorService.getAllVendors(listingParams);
+  }
+
+  @Authorized([UserType.VENDOR, UserType.CUSTOMER])
+  @Get()
+  getAllVendorService(@GetUser() user, @Query() listingParams: ListingParams) {
+    return this.vendorService.getVendorAllService(
+      user.userMasterId,
+      listingParams,
+    );
   }
 
   @Authorized(UserType.ADMIN)
