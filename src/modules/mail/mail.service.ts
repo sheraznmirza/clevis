@@ -140,7 +140,6 @@ export class MailService {
     encrypted: string,
   ) {
     try {
-      console.log('working');
       await this.mailerService.sendMail({
         to: user.email,
         from: this.config.get('MAIL_FROM'),
