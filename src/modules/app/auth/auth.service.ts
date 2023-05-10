@@ -23,6 +23,7 @@ import {
   CustomerSignUpDto,
   ForgotPasswordDto,
   LoginDto,
+  LogoutDto,
   RefreshDto,
   ResetPasswordDataDto,
   RiderSignUpDto,
@@ -904,7 +905,7 @@ export class AuthService {
     }
   }
 
-  async changePassword(data: ChangePasswordDto, id: number) {
+  async changePassword(dto: ChangePasswordDto, id: number) {
     try {
       const user = await this.prisma.userMaster.findUnique({
         where: {
@@ -912,11 +913,11 @@ export class AuthService {
         },
       });
 
-      const pwMatches = await argon.verify(user.password, data.oldPassword);
+      const pwMatches = await argon.verify(user.password, dto.oldPassword);
 
       if (!pwMatches) throw new BadRequestException('Incorrect password.');
 
-      await this.updatePassword(user.userMasterId, data.newPassword);
+      await this.updatePassword(user.userMasterId, dto.newPassword);
 
       return successResponse(200, 'Password successfully changed.');
     } catch (error) {
@@ -924,8 +925,21 @@ export class AuthService {
     }
   }
 
-  async logout(req) {
-    console.log('dawd');
+  async logout(dto: LogoutDto) {
+    try {
+      await this.prisma.refreshToken.update({
+        where: {
+          refreshToken: dto.refreshToken,
+        },
+        data: {
+          deleted: true,
+        },
+      });
+
+      return successResponse(200, 'Logged out successfully.');
+    } catch (error) {
+      throw error;
+    }
   }
 
   async signToken(

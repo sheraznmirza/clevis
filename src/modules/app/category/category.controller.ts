@@ -20,11 +20,11 @@ import { ListingParams } from '../../../core/dto';
 
 @ApiTags('Category')
 @Controller('category')
-// @UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, RolesGuard)
 export class CategoryController {
   constructor(private categoryService: CategoryService) {}
 
-  // @Authorized(UserType.ADMIN)
+  @Authorized(UserType.ADMIN)
   @Post()
   createCategory(@Body() data: CategoryCreateDto) {
     return this.categoryService.createCategory(data);
@@ -47,12 +47,6 @@ export class CategoryController {
   getAllCategory(@Query() listingParams: ListingParams) {
     return this.categoryService.getAllCategory(listingParams);
   }
-
-  // @Authorized([UserType.ADMIN, UserType.VENDOR])
-  // @Get()
-  // getAllCategory() {
-  //   return this.categoryService.getAllCategory();
-  // }
 
   @Authorized(UserType.ADMIN)
   @Delete('/:id')
