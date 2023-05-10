@@ -1,5 +1,6 @@
 import { IsString, IsNotEmpty, IsNumber, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Media } from '@prisma/client';
 
 type allocatePrice = {
   price: number;
@@ -27,5 +28,5 @@ export class VendorCreateServiceDto {
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  serviceImages: number[];
+  serviceImages: Media[];
 }
