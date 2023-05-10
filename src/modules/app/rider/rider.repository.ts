@@ -15,7 +15,7 @@ export class RiderRepository {
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
-      return await this.prisma.rider.update({
+      const rider = await this.prisma.rider.update({
         where: {
           riderId: id,
         },
@@ -23,6 +23,11 @@ export class RiderRepository {
           status: dto.status,
         },
       });
+      const user = await this.prisma.userMaster.findFirst({
+        where: { rider: { riderId: rider.riderId } },
+        select: { userType: true },
+      });
+      return { ...user, ...rider };
     } catch (error) {
       throw error;
     }

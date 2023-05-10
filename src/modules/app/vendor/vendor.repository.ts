@@ -23,15 +23,6 @@ export class VendorRepository {
 
       const response = await this.createCarWashVendorService(dto, vendor);
 
-      console.log('response: ', response);
-      console.log('vendor: ', vendor);
-      //   await this.prisma.category.create({
-      //     data: {
-      //       categoryName: dto.categoryName,
-      //       serviceType: dto.serviceType,
-      //     },
-      //   });
-
       return true;
     } catch (error) {
       if (error.code === 'P2002') {
@@ -43,7 +34,7 @@ export class VendorRepository {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
-      return await this.prisma.vendor.update({
+      const vendor = await this.prisma.vendor.update({
         where: {
           vendorId: id,
         },
@@ -51,6 +42,11 @@ export class VendorRepository {
           status: dto.status,
         },
       });
+      const user = await this.prisma.userMaster.findFirst({
+        where: { vendor: { vendorId: vendor.vendorId } },
+        select: { userType: true },
+      });
+      return { ...user, ...vendor };
     } catch (error) {
       throw error;
     }
