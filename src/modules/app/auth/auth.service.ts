@@ -927,7 +927,7 @@ export class AuthService {
 
   async logout(dto: LogoutDto) {
     try {
-      await this.prisma.refreshToken.update({
+      const token = await this.prisma.refreshToken.update({
         where: {
           refreshToken: dto.refreshToken,
         },
@@ -935,7 +935,7 @@ export class AuthService {
           deleted: true,
         },
       });
-
+      console.log('token: ', token);
       return successResponse(200, 'Logged out successfully.');
     } catch (error) {
       throw error;

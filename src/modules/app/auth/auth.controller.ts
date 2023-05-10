@@ -125,6 +125,6 @@ export class AuthController {
   ])
   @Post('/logout')
   logout(@Body() dto: LogoutDto) {
-    this.authService.logout(dto);
+    return this.authService.logout(dto);
   }
 }
