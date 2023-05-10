@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query, Param } from '@nestjs/common';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { ApiTags } from '@nestjs/swagger';
@@ -13,9 +13,16 @@ import { UserType } from '@prisma/client';
 @Controller('customer')
 export class CustomerController {
   constructor(private customerService: CustomerService) {}
+  @Authorized(UserType.CUSTOMER)
   @Get('me')
   getMe(@GetUser() user) {
     return this.customerService.getCustomerById(user.userMasterId);
+  }
+
+  @Authorized(UserType.CUSTOMER)
+  @Get(':/customerId')
+  getCustomerById(@Param('userMasterId') customerId: number) {
+    return this.customerService.getCustomerById(customerId);
   }
 
   @Authorized(UserType.ADMIN)

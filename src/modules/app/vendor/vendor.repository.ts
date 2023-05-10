@@ -84,12 +84,101 @@ export class VendorRepository {
     }
   }
 
+  async getVendorById(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          roleId: true,
+          userType: true,
+          phone: true,
+          createdAt: true,
+          vendor: {
+            select: {
+              vendorId: true,
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              companyEmail: true,
+              description: true,
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              fullName: true,
+              companyName: true,
+              serviceType: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              status: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getAllVendors(listingParams: VendorListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+    const { page = 1, take = 10, search, status, serviceType } = listingParams;
     try {
       const vendors = await this.prisma.userMaster.findMany({
-        take: take,
-        skip: take * (page - 1),
+        take: +take,
+        skip: +take * (+page - 1),
         orderBy: {
           createdAt: 'desc',
         },
@@ -98,24 +187,115 @@ export class VendorRepository {
           isDeleted: false,
           isEmailVerified: true,
           userType: UserType.VENDOR,
-          ...(search.length && {
-            vendor: {
-              fullName: {
-                contains: search,
-              },
+          vendor: {
+            fullName: {
+              contains: search !== null ? search : undefined,
+              mode: 'insensitive',
             },
-          }),
+            status: {
+              equals: status !== null ? status : undefined,
+            },
+            serviceType: {
+              equals: serviceType !== null ? serviceType : undefined,
+            },
+          },
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          roleId: true,
+          userType: true,
+          phone: true,
+          createdAt: true,
+          vendor: {
+            select: {
+              vendorId: true,
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              companyEmail: true,
+              description: true,
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              fullName: true,
+              companyName: true,
+              serviceType: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              status: true,
+            },
+          },
+        },
+      });
+
+      const totalCount = await this.prisma.userMaster.count({
+        where: {
+          isEmailVerified: true,
+          isDeleted: false,
+          userType: UserType.VENDOR,
         },
       });
 
       return {
-        ...vendors,
+        vendors: vendors,
         page,
         take,
-        totalCount: await this.prisma.category.count(),
+        totalCount,
       };
     } catch (error) {
-      return false;
+      console.log('error: ', error);
+      throw error;
     }
   }
 
@@ -162,6 +342,22 @@ export class VendorRepository {
       return true;
     } catch (error) {
       throw error;
+    }
+  }
+
+  async deleteVendor(id: number) {
+    try {
+      await this.prisma.userMaster.update({
+        where: {
+          userMasterId: id,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+      return true;
+    } catch (error) {
+      return false;
     }
   }
 

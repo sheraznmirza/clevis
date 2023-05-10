@@ -1,10 +1,14 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Status } from '@prisma/client';
 
 export class VendorUpdateStatusDto {
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({
+    required: true,
+    description: 'Enum for status of the vendor',
+    enum: Status,
+  })
   @IsNotEmpty()
-  status: Status;
+  @IsEnum(Status)
+  status?: Status;
 }

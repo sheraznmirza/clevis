@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { UserType } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
@@ -29,8 +30,13 @@ export class VendorController {
   @Authorized(UserType.VENDOR)
   @Get('me')
   getMe(@GetUser() user) {
-    console.log('user: ', user);
-    return user;
+    return this.vendorService.getVendorById(user.userMasterId);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Get('/:userMasterId')
+  getVendorById(@Param('userMasterId') vendorId: number) {
+    return this.vendorService.getVendorById(vendorId);
   }
 
   @Authorized(UserType.VENDOR)
@@ -46,7 +52,7 @@ export class VendorController {
   @Patch('/approve/:vendorId')
   approveVendor(
     @Param('vendorId') vendorId: number,
-    @Body() dto: VendorUpdateStatusDto,
+    @Query() dto: VendorUpdateStatusDto,
   ) {
     return this.vendorService.approveVendor(vendorId, dto);
   }
@@ -55,5 +61,11 @@ export class VendorController {
   @Get()
   getVendors(@Query() listingParams: VendorListingParams) {
     return this.vendorService.getAllVendors(listingParams);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Delete('/:userMasterId')
+  deleteRider(@Param('userMasterId') riderId: number) {
+    return this.vendorService.deleteVendor(riderId);
   }
 }
