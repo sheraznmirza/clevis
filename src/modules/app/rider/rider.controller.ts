@@ -2,12 +2,11 @@ import {
   Body,
   Controller,
   Get,
+  Delete,
   HttpCode,
   HttpStatus,
   Param,
   Patch,
-  Post,
-  Req,
   UseGuards,
   Query,
 } from '@nestjs/common';
@@ -17,7 +16,7 @@ import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
-import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
+import { RiderUpdateStatusDto } from './dto';
 import { VendorListingParams } from 'src/core/dto';
 import { RiderService } from './rider.service';
 
@@ -26,19 +25,16 @@ import { RiderService } from './rider.service';
 @Controller('rider')
 export class RiderController {
   constructor(private riderService: RiderService) {}
-  @Authorized(UserType.VENDOR)
+  @Authorized(UserType.RIDER)
   @Get('me')
   getMe(@GetUser() user) {
-    console.log('user: ', user);
-    return user;
+    return this.riderService.getRiderById(user.userMasterId);
   }
 
-  @Authorized(UserType.VENDOR)
-  @Post('/service')
-  createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
-    console.log('req: ', req.user?.userMasterId);
-    console.log('dto: ', dto);
-    return this.riderService.createVendorService(dto, req.user?.userMasterId);
+  @Authorized(UserType.ADMIN)
+  @Get('/:userMasterId')
+  getRiderById(@Param('userMasterId') riderId: number) {
+    return this.riderService.getRiderById(riderId);
   }
 
   @Authorized(UserType.ADMIN)
@@ -46,14 +42,20 @@ export class RiderController {
   @Patch('/approve/:riderId')
   approveVendor(
     @Param('riderId') riderId: number,
-    @Body() dto: VendorUpdateStatusDto,
+    @Body() dto: RiderUpdateStatusDto,
   ) {
-    return this.riderService.approveVendor(riderId, dto);
+    return this.riderService.approveRider(riderId, dto);
   }
 
-  @Authorized([UserType.ADMIN])
+  @Authorized(UserType.ADMIN)
   @Get()
-  getVendors(@Query() listingParams: VendorListingParams) {
-    return this.riderService.getAllVendors(listingParams);
+  getRiders(@Query() listingParams: VendorListingParams) {
+    return this.riderService.getAllRiders(listingParams);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Delete('/:userMasterId')
+  deleteRider(@Param('userMasterId') riderId: number) {
+    return this.riderService.deleteRider(riderId);
   }
 }

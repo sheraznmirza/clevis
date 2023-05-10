@@ -149,13 +149,11 @@ model Rider {
   companyName     String
   companyEmail    String
   logo            Media             @relation(fields: [logoId], references: [id])
-  workspaceImages Int[]
-  businessLicense Int[]
   description     String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
-  BusinessLicense BusinessLicense[]
-  WorkspaceImages WorkspaceImages[]
+  businessLicense BusinessLicense[]
+  workspaceImages WorkspaceImages[]
 }
 
 model UserAddress {

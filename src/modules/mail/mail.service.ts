@@ -77,14 +77,14 @@ export class MailService {
     }
   }
 
-  async sendVendorApprovalEmail(user: any) {
+  async sendVendorRiderApprovalEmail(user: any) {
     try {
       await this.mailerService.sendMail({
         to: user.companyEmail,
         from: this.config.get('MAIL_FROM'),
-        subject: `${this.config.get(
-          'APP_NAME',
-        )} - Vendor ${user.status.toLowerCase()}`,
+        subject: `${this.config.get('APP_NAME')} - ${
+          user.userType[0] + user.userType.slice(1).toLowerCase()
+        } ${user.status.toLowerCase()}`,
         template: 'vendorApprovedRejected', // `.hbs` extension is appended automatically
         context: {
           app_name: this.config.get('APP_NAME'),
@@ -120,6 +120,13 @@ export class MailService {
           } has signed up and waiting for approval.`}`,
           copyright_year: this.config.get('COPYRIGHT_YEAR'),
         },
+        // template: 'userRegistration', // `.hbs` extension is appended automatically
+        // context: {
+        //   app_name: this.config.get('APP_NAME'),
+        //   app_url: `${this.config.get('APP_URL')}/auth/verify-email/`,
+        //   first_name: 'rider bois',
+        //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // },
       });
     } catch (error) {
       console.log('error: ', error);
