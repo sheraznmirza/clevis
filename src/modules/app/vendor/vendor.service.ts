@@ -4,8 +4,12 @@ import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
 import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import { Status, Vendor } from '@prisma/client';
-import { VendorListingParams } from 'src/core/dto';
 import { ConfigService } from '@nestjs/config';
+import {
+  RiderVendorTabs,
+  VendorListingParams,
+  VendorRiderByIdParams,
+} from 'src/core/dto';
 
 @Injectable()
 export class VendorService {
@@ -72,9 +76,20 @@ export class VendorService {
     }
   }
 
-  async getVendorById(id: number) {
+  async getVendorById(id: number, query?: VendorRiderByIdParams) {
     try {
-      return await this.repository.getVendorById(id);
+      switch (query.tabName) {
+        case RiderVendorTabs.PROFILE:
+          return await this.repository.getVendorByIdProfile(id);
+        case RiderVendorTabs.COMPANY_PROFILE:
+          return await this.repository.getVendorByIdCompany(id);
+        case RiderVendorTabs.ACCOUNT_DETAILS:
+          return await this.repository.getVendorByIdAccount(id);
+        case RiderVendorTabs.COMPANY_SCHEDULE:
+          return await this.repository.getVendorByIdSchedule(id);
+        default:
+          return await this.repository.getVendorById(id);
+      }
     } catch (error) {
       throw error;
     }

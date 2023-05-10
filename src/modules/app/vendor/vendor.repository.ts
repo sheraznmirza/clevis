@@ -21,7 +21,14 @@ export class VendorRepository {
         },
       });
 
-      const response = await this.createCarWashVendorService(dto, vendor);
+      await this.createCarWashVendorService(dto, vendor);
+
+      //   await this.prisma.category.create({
+      //     data: {
+      //       categoryName: dto.categoryName,
+      //       serviceType: dto.serviceType,
+      //     },
+      //   });
 
       return true;
     } catch (error) {
@@ -80,6 +87,173 @@ export class VendorRepository {
     }
   }
 
+  async getVendorByIdProfile(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          profilePicture: {
+            select: {
+              key: true,
+              location: true,
+              name: true,
+              id: true,
+            },
+          },
+          vendor: {
+            select: {
+              vendorId: true,
+              fullName: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorByIdCompany(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          phone: true,
+          vendor: {
+            select: {
+              vendorId: true,
+              fullName: true,
+              description: true,
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorByIdAccount(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          vendor: {
+            select: {
+              vendorId: true,
+              banking: {
+                select: {
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorByIdSchedule(id: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: id,
+        },
+        select: {
+          userMasterId: true,
+          vendor: {
+            select: {
+              vendorId: true,
+              banking: {
+                select: {
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getVendorById(id: number) {
     try {
       return await this.prisma.userMaster.findUnique({
@@ -129,6 +303,13 @@ export class VendorRepository {
                   location: true,
                   name: true,
                   id: true,
+                },
+              },
+              banking: {
+                select: {
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
                 },
               },
               fullName: true,

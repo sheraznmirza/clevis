@@ -115,6 +115,7 @@ export class AuthController {
     return this.authService.changePassword(dto, user.userMasterId);
   }
 
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtGuard, RolesGuard)
   @Authorized([
     UserType.ADMIN,

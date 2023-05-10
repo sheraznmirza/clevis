@@ -57,6 +57,16 @@ enum MediaAccess {
   PRIVATE
 }
 
+enum Days {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
 model UserMaster {
   userMasterId     Int            @id @default(autoincrement())
   email            String
@@ -138,6 +148,8 @@ model Vendor {
   // businessLicense   Media           @relation("VendorBusinessLicense", fields: [businessLicenseId], references: [id])
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
+  banking         Banking?
+  companySchedule CompanySchedule?
 }
 
 model Rider {
@@ -154,6 +166,8 @@ model Rider {
   status          Status            @default(PENDING)
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
+  banking         Banking?
+  companySchedule CompanySchedule?
 }
 
 model UserAddress {
@@ -174,6 +188,28 @@ model UserAddress {
   riderId       Int?
   // User          Admin?    @relation(fields: [adminId], references: [id])
   adminId       Int?
+}
+
+model Banking {
+  id            Int     @id @default(autoincrement())
+  bankName      String
+  accountTitle  String
+  accountNumber String
+  vendorId      Int?    @unique
+  riderId       Int?    @unique
+  rider         Rider?  @relation(fields: [riderId], references: [riderId])
+  vendor        Vendor? @relation(fields: [vendorId], references: [vendorId])
+}
+
+model CompanySchedule {
+  id        Int      @id @default(autoincrement())
+  vendorId  Int?     @unique
+  riderId   Int?     @unique
+  day       Days
+  startTime DateTime
+  endTime   DateTime
+  rider     Rider?   @relation(fields: [riderId], references: [riderId])
+  vendor    Vendor?  @relation(fields: [vendorId], references: [vendorId])
 }
 
 model Country {
