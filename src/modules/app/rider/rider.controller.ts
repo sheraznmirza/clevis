@@ -17,7 +17,7 @@ import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { RiderUpdateStatusDto } from './dto';
-import { VendorListingParams, VendorRiderByIdParams } from 'src/core/dto';
+import { RiderListingParams, VendorRiderByIdParams } from 'src/core/dto';
 import { RiderService } from './rider.service';
 
 @UseGuards(JwtGuard, RolesGuard)
@@ -54,7 +54,7 @@ export class RiderController {
 
   @Authorized(UserType.ADMIN)
   @Get()
-  getRiders(@Query() listingParams: VendorListingParams) {
+  getRiders(@Query() listingParams: RiderListingParams) {
     return this.riderService.getAllRiders(listingParams);
   }
 

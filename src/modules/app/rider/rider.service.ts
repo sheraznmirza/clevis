@@ -5,8 +5,8 @@ import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import { Rider } from '@prisma/client';
 import {
+  RiderListingParams,
   RiderVendorTabs,
-  VendorListingParams,
   VendorRiderByIdParams,
 } from 'src/core/dto';
 
@@ -41,7 +41,6 @@ export class RiderService {
         default:
           return await this.repository.getRiderById(id);
       }
-      // return await this.repository.getRiderById(id);
     } catch (error) {
       throw error;
     }
@@ -55,7 +54,7 @@ export class RiderService {
     }
   }
 
-  async getAllRiders(listingParams: VendorListingParams) {
+  async getAllRiders(listingParams: RiderListingParams) {
     try {
       return await this.repository.getAllRiders(listingParams);
     } catch (error) {

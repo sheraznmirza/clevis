@@ -162,9 +162,9 @@ export class AuthService {
           roleId: roleId,
           // profilePicture: {
           //   create: {
-          //     location: dto.logo.Location,
-          //     key: dto.logo.Key,
-          //     name: dto.logo.ETag,
+          //     location: dto.logo.location,
+          //     key: dto.logo.key,
+          //     name: dto.logo.name,
           //   },
           // },
           vendor: {
@@ -927,7 +927,7 @@ export class AuthService {
 
   async logout(dto: LogoutDto) {
     try {
-      const token = await this.prisma.refreshToken.update({
+      await this.prisma.refreshToken.update({
         where: {
           refreshToken: dto.refreshToken,
         },
@@ -935,10 +935,9 @@ export class AuthService {
           deleted: true,
         },
       });
-      console.log('token: ', token);
       return successResponse(200, 'Logged out successfully.');
     } catch (error) {
-      throw error;
+      throw new BadRequestException(error.meta.cause);
     }
   }
 
@@ -947,12 +946,14 @@ export class AuthService {
     email: string,
     userType: UserType,
     serviceType?: ServiceType,
+    userTypeId?: number,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = {
       sub: userId,
       email,
       userType,
       ...(serviceType && { serviceType }),
+      ...(userTypeId && { userTypeId }),
     };
     const jwtSecret = this.config.get('JWT_SECRET');
     const jwtRefreshSecret = this.config.get('JWT_REFRESH_SECRET');

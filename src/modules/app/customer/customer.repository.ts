@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import { CustomerListingParams } from '../../../core/dto';
-import { UserType } from '@prisma/client';
+import { Media, UserType } from '@prisma/client';
+import { UpdateCustomerDto } from './dto';
 
 @Injectable()
 export class CustomerRepository {
@@ -56,6 +57,7 @@ export class CustomerRepository {
               fullName: true,
               userAddress: {
                 select: {
+                  userAddressId: true,
                   fullAddress: true,
                   city: {
                     select: {
@@ -103,6 +105,9 @@ export class CustomerRepository {
             select: {
               fullName: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {
@@ -131,6 +136,108 @@ export class CustomerRepository {
         take,
         totalCount,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateCustomer(userMasterId: number, dto: UpdateCustomerDto) {
+    try {
+      let media: Media;
+      if (dto.profilePicture) {
+        media = await this.prisma.media.create({
+          data: {
+            name: dto.profilePicture.name,
+            key: dto.profilePicture.key,
+            location: dto.profilePicture.location,
+          },
+        });
+      }
+
+      return await this.prisma.userMaster.update({
+        where: {
+          userMasterId: userMasterId,
+        },
+        data: {
+          phone: dto.phone !== null ? dto.phone : undefined,
+          profilePictureId: media.id ? media.id : undefined,
+          customer: {
+            update: {
+              fullName: dto.fullName !== null ? dto.fullName : undefined,
+              userAddress: {
+                ...(dto.userAddressId &&
+                  dto.fullAddress &&
+                  dto.cityId &&
+                  dto.longitude &&
+                  dto.latitude && {
+                    update: {
+                      where: {
+                        userAddressId: dto.userAddressId,
+                      },
+                      data: {
+                        isDeleted: true,
+                      },
+                    },
+                    create: {
+                      fullAddress: dto.fullAddress,
+                      cityId: dto.cityId,
+                      latitude: dto.latitude,
+                      longitude: dto.longitude,
+                    },
+                  }),
+              },
+            },
+          },
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isActive: true,
+          phone: true,
+          profilePicture: {
+            select: {
+              id: true,
+              name: true,
+              location: true,
+              key: true,
+            },
+          },
+          customer: {
+            select: {
+              customerId: true,
+              fullName: true,
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+            },
+          },
+        },
+      });
     } catch (error) {
       throw error;
     }

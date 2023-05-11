@@ -103,6 +103,26 @@ export class VendorListingParams extends ListingParams {
   columnName?: VendorColumns;
 }
 
+export class RiderListingParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'Enum for status of the vendor',
+    enum: Status,
+  })
+  @IsOptional()
+  @IsEnum(Status)
+  status?: Status;
+
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective column you want to order',
+    enum: VendorColumns,
+  })
+  @IsOptional()
+  @IsEnum(VendorColumns)
+  columnName?: VendorColumns;
+}
+
 export class VendorRiderByIdParams {
   @ApiProperty({
     required: false,

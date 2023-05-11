@@ -18,7 +18,11 @@ import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
-import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
+import {
+  UpdateVendorDto,
+  VendorCreateServiceDto,
+  VendorUpdateStatusDto,
+} from './dto';
 import { VendorService } from './vendor.service';
 import {
   ListingParams,
@@ -46,8 +50,6 @@ export class VendorController {
   @Authorized(UserType.VENDOR)
   @Post('/service')
   createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
-    console.log('req: ', req.user?.userMasterId);
-    console.log('dto: ', dto);
     return this.vendorService.createVendorService(dto, req.user?.userMasterId);
   }
 
@@ -61,6 +63,23 @@ export class VendorController {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
+  @Authorized(UserType.VENDOR)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/me')
+  updateMe(@GetUser() userMasterId, @Body() dto: UpdateVendorDto) {
+    return this.vendorService.updateVendor(userMasterId, dto);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/:userMasterId')
+  updateVendor(
+    @Param('userMasterId') userMasterId: number,
+    @Body() dto: UpdateVendorDto,
+  ) {
+    return this.vendorService.updateVendor(userMasterId, dto);
+  }
+
   @Authorized([UserType.ADMIN, UserType.CUSTOMER])
   @Get()
   getVendors(@Query() listingParams: VendorListingParams) {
@@ -68,7 +87,7 @@ export class VendorController {
   }
 
   @Authorized([UserType.VENDOR, UserType.CUSTOMER])
-  @Get()
+  @Get('/services')
   getAllVendorService(@GetUser() user, @Query() listingParams: ListingParams) {
     return this.vendorService.getVendorAllService(
       user.userMasterId,

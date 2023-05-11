@@ -1,7 +1,15 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
-import { UserType, Vendor } from '@prisma/client';
+import {
+  UpdateVendorDto,
+  VendorCreateServiceDto,
+  VendorUpdateStatusDto,
+} from './dto';
+import { Media, UserType, Vendor } from '@prisma/client';
 import { ListingParams, VendorListingParams } from 'src/core/dto';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
@@ -46,19 +54,72 @@ export class VendorRepository {
         },
       });
     } catch (error) {
-      throw error;
+      if (error.code === 'P2025') {
+        throw new BadRequestException(
+          'The vendor with this vendorId does not exist',
+        );
+      } else {
+        throw error;
+      }
     }
   }
 
-  async updateCategory(id: number, data) {
+  async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
     try {
-      await this.prisma.category.update({
+      let profilePicture: Media;
+      let dtoWorkspaceImages: Media[];
+      let dtoBusinessLicense: Media[];
+
+      if (dto.workspaceImages) {
+        // const workspaceImages =
+      }
+
+      if (dto.businessLicense) {
+      }
+
+      if (dto.profilePicture) {
+        profilePicture = await this.prisma.media.create({
+          data: {
+            name: dto.profilePicture.name,
+            key: dto.profilePicture.key,
+            location: dto.profilePicture.location,
+          },
+        });
+      }
+      await this.prisma.userMaster.update({
         where: {
-          categoryId: id,
+          userMasterId: userMasterId,
         },
         data: {
-          ...(data.categoryName && { categoryName: data.categoryName }),
-          ...(data.serviceType && { serviceType: data.serviceType }),
+          phone: dto.phone !== null ? dto.phone : undefined,
+          profilePictureId: profilePicture.id ? profilePicture.id : undefined,
+          vendor: {
+            update: {
+              fullName: dto.fullName !== null ? dto.fullName : undefined,
+              userAddress: {
+                ...(dto.userAddressId &&
+                  dto.fullAddress &&
+                  dto.cityId &&
+                  dto.longitude &&
+                  dto.latitude && {
+                    update: {
+                      where: {
+                        userAddressId: dto.userAddressId,
+                      },
+                      data: {
+                        isDeleted: true,
+                      },
+                    },
+                    create: {
+                      fullAddress: dto.fullAddress,
+                      cityId: dto.cityId,
+                      latitude: dto.latitude,
+                      longitude: dto.longitude,
+                    },
+                  }),
+              },
+            },
+          },
         },
       });
     } catch (error) {
@@ -86,7 +147,7 @@ export class VendorRepository {
           service: {
             select: {
               serviceName: true,
-              VendorService: {
+              vendorService: {
                 select: {
                   vendorServiceId: true,
                   status: true,
@@ -335,9 +396,20 @@ export class VendorRepository {
           userType: true,
           phone: true,
           createdAt: true,
+          isActive: true,
           vendor: {
             select: {
               vendorId: true,
+              vendorService: {
+                select: {
+                  vendorServiceId: true,
+                  service: {
+                    select: {
+                      serviceName: true,
+                    },
+                  },
+                },
+              },
               businessLicense: {
                 select: {
                   media: {
@@ -410,6 +482,14 @@ export class VendorRepository {
               status: true,
             },
           },
+          earnings: {
+            select: {
+              id: true,
+              jobType: true,
+              serviceType: true,
+              status: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -454,6 +534,7 @@ export class VendorRepository {
           userType: true,
           phone: true,
           createdAt: true,
+          isActive: true,
           vendor: {
             select: {
               vendorId: true,

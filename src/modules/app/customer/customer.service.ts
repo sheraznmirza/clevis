@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import { CustomerListingParams } from '../../../core/dto';
 import { CustomerRepository } from './customer.repository';
+import { UpdateCustomerDto } from './dto';
 
 @Injectable()
 export class CustomerService {
@@ -18,6 +19,14 @@ export class CustomerService {
   async getCustomerById(id: number) {
     try {
       return await this.repository.getCustomerById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateCustomer(userMasterId: number, dto: UpdateCustomerDto) {
+    try {
+      return await this.repository.updateCustomer(userMasterId, dto);
     } catch (error) {
       throw error;
     }

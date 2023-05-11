@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { RiderUpdateStatusDto } from './dto';
 import { ServiceType, UserType, Vendor } from '@prisma/client';
-import { VendorListingParams } from 'src/core/dto';
+import { RiderListingParams, VendorListingParams } from 'src/core/dto';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -284,7 +284,7 @@ export class RiderRepository {
     }
   }
 
-  async getAllRiders(listingParams: VendorListingParams) {
+  async getAllRiders(listingParams: RiderListingParams) {
     const { page = 1, take = 10, search, status } = listingParams;
     try {
       const riders = await this.prisma.userMaster.findMany({
@@ -318,6 +318,7 @@ export class RiderRepository {
           userType: true,
           phone: true,
           createdAt: true,
+          isActive: true,
           rider: {
             select: {
               riderId: true,
