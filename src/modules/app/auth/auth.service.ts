@@ -778,7 +778,23 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-      await this.mail.sendResetPasswordEmail(data, randomOtp);
+
+      // await this.mail.sendResetPasswordEmail(data, randomOtp); umair
+
+      const context = {
+        pp_name: this.config.get('APP_NAME'),
+        app_url: this.config.get('APP_URL'),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        randomOtp,
+      };
+      await this.mail.sendEmail(
+        data.email,
+        this.config.get('MAIL_FROM'),
+        `${this.config.get('APP_NAME')} - Reset Your Password`,
+        'resetPassword', // `.hbs` extension is appended automatically
+        context,
+      );
+
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
       throw error;
@@ -852,7 +868,22 @@ export class AuthService {
           },
         });
         if (user.userType === UserType.RIDER || UserType.VENDOR) {
-          await this.mail.riderVendorCreationEmail(user);
+          const context = {
+            app_name: this.config.get('APP_NAME'),
+            app_url: `${this.config.get('APP_URL')}`,
+            first_name: user[user.userType.toLowerCase()].fullName,
+            message: `${`${
+              user[user.userType.toLowerCase()].fullName
+            } has signed up and waiting for approval.`}`,
+            copyright_year: this.config.get('COPYRIGHT_YEAR'),
+          };
+          await this.mail.sendEmail(
+            user.email,
+            this.config.get('MAIL_FROM'),
+            this.config.get('APP_NAME'),
+            'vendorApprovedRejected',
+            context,
+          );
         }
         return {
           statusCode: 202,
@@ -1112,6 +1143,19 @@ export class AuthService {
   async sendEncryptedDataToMail(user: any, userType: UserType) {
     const encrypted = this.encryptData(user.userMasterId.toString());
 
-    await this.mail.sendUserVerificationEmail(user, userType, encrypted);
+    const context = {
+      app_name: this.config.get('APP_NAME'),
+      app_url: `${this.config.get('APP_URL')}/auth/verify-email/${encrypted}`,
+      first_name: user[userType.toLowerCase()].fullName,
+      copyright_year: this.config.get('COPYRIGHT_YEAR'),
+    };
+
+    await this.mail.sendEmail(
+      user.email,
+      this.config.get('MAIL_FROM'),
+      this.config.get('APP_NAME'),
+      'userRegistration',
+      context,
+    );
   }
 }

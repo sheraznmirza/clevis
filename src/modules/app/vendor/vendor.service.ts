@@ -7,7 +7,8 @@ import {
 } from './dto';
 import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
-import { Vendor } from '@prisma/client';
+import { Status, Vendor } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 import {
   ListingParams,
   RiderVendorTabs,
@@ -20,6 +21,7 @@ export class VendorService {
   constructor(
     private repository: VendorRepository,
     private mail: MailService,
+    private config: ConfigService,
   ) {}
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
@@ -39,8 +41,29 @@ export class VendorService {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
-      const vendor: Vendor = await this.repository.approveVendor(id, dto);
-      await this.mail.sendVendorRiderApprovalEmail(vendor);
+      const vendor: any = await this.repository.approveVendor(id, dto);
+      // await this.mail.sendVendorRiderApprovalEmail(vendor);   umair
+
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+        app_url: `${this.config.get('APP_URL')}`,
+        first_name: vendor.fullName,
+        message:
+          vendor.status === Status.APPROVED
+            ? 'Your account has been approved. You can now log in and start your journey with us!'
+            : 'Your account has been rejected. Please contact our support for further information.',
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+      await this.mail.sendEmail(
+        vendor.companyEmail,
+        this.config.get('MAIL_FROM'),
+        `${this.config.get('APP_NAME')} - ${
+          vendor.userType[0] + vendor.userType.slice(1).toLowerCase()
+        } ${vendor.status.toLowerCase()}`,
+        'vendorApprovedRejected',
+        context, // `.hbs` extension is appended automatically
+      );
+
       return successResponse(
         200,
         `Vendor successfully ${vendor.status.toLowerCase()}.`,
