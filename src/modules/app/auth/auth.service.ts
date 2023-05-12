@@ -487,8 +487,6 @@ export class AuthService {
                     },
                   },
                 },
-                longitude: true,
-                latitude: true,
               },
             },
             fullName: true,
@@ -759,7 +757,10 @@ export class AuthService {
 
   async forgotPassword(data: ForgotPasswordDto) {
     try {
-      const randomOtp = Math.floor(Math.random() * 10000);
+      let randomOtp = Math.floor(Math.random() * 10000).toString();
+      for (let i = 0; i < 4 - randomOtp.length; i++) {
+        randomOtp = '0' + randomOtp;
+      }
       const user = await this.prisma.userMaster.findFirst({
         where: {
           email: data.email,

@@ -1,7 +1,11 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import { ListingParams } from '../../../core/dto';
+import {
+  ListingParams,
+  ServiceCategorySubCategoryListingParams,
+} from '../../../core/dto';
+import { successResponse } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CategoryRepository {
@@ -27,7 +31,7 @@ export class CategoryRepository {
 
   async updateCategory(id: number, data: CategoryUpdateDto) {
     try {
-      await this.prisma.category.update({
+      const category = await this.prisma.category.update({
         where: {
           categoryId: id,
         },
@@ -36,6 +40,11 @@ export class CategoryRepository {
           ...(data.serviceType && { serviceType: data.serviceType }),
         },
       });
+
+      return {
+        ...successResponse(200, 'Category updated successfully'),
+        ...category,
+      };
     } catch (error) {
       return false;
     }
@@ -53,16 +62,16 @@ export class CategoryRepository {
     }
   }
 
-  async getAllCategory(listingParams: ListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+  async getAllCategory(listingParams: ServiceCategorySubCategoryListingParams) {
+    const { page = 1, take = 10, search, serviceType } = listingParams;
     try {
       const category = await this.prisma.category.findMany({
-        take: take,
-        skip: take * (page - 1),
+        take: +take,
+        skip: +take * (+page - 1),
         orderBy: {
           createdAt: 'desc',
         },
-        ...(search.length && {
+        ...(search && {
           where: {
             isDeleted: false,
             categoryName: {
@@ -72,14 +81,23 @@ export class CategoryRepository {
         }),
       });
 
+      const totalCount = await this.prisma.category.count({
+        where: {
+          isDeleted: false,
+          ...(serviceType && {
+            serviceType: serviceType,
+          }),
+        },
+      });
+
       return {
-        ...category,
+        data: category,
         page,
         take,
-        totalCount: await this.prisma.category.count(),
+        totalCount,
       };
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 

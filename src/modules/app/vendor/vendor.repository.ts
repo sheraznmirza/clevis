@@ -11,6 +11,7 @@ import {
 } from './dto';
 import { Media, UserType, Vendor } from '@prisma/client';
 import { ListingParams, VendorListingParams } from 'src/core/dto';
+import { successResponse } from 'src/helpers/response.helper';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -67,15 +68,6 @@ export class VendorRepository {
   async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
     try {
       let profilePicture: Media;
-      let dtoWorkspaceImages: Media[];
-      let dtoBusinessLicense: Media[];
-
-      if (dto.workspaceImages) {
-        // const workspaceImages =
-      }
-
-      if (dto.businessLicense) {
-      }
 
       if (dto.profilePicture) {
         profilePicture = await this.prisma.media.create({
@@ -86,16 +78,21 @@ export class VendorRepository {
           },
         });
       }
-      await this.prisma.userMaster.update({
+      const vendor = await this.prisma.userMaster.update({
         where: {
           userMasterId: userMasterId,
         },
         data: {
           phone: dto.phone !== null ? dto.phone : undefined,
-          profilePictureId: profilePicture.id ? profilePicture.id : undefined,
+          profilePictureId: profilePicture ? profilePicture.id : undefined,
+          isActive: dto.isActive !== null ? dto.isActive : undefined,
           vendor: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
+              companyName:
+                dto.companyName !== null ? dto.companyName : undefined,
+              companyEmail:
+                dto.companyEmail !== null ? dto.companyEmail : undefined,
               userAddress: {
                 ...(dto.userAddressId &&
                   dto.fullAddress &&
@@ -122,8 +119,13 @@ export class VendorRepository {
           },
         },
       });
+
+      return {
+        ...successResponse(200, 'Vendor updated successfully.'),
+        ...vendor,
+      };
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 
@@ -611,6 +613,10 @@ export class VendorRepository {
           isEmailVerified: true,
           isDeleted: false,
           userType: UserType.VENDOR,
+          vendor: {
+            status:
+              listingParams.status !== null ? listingParams.status : undefined,
+          },
         },
       });
 

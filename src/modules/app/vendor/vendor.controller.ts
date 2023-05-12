@@ -66,8 +66,8 @@ export class VendorController {
   @Authorized(UserType.VENDOR)
   @HttpCode(HttpStatus.OK)
   @Patch('/me')
-  updateMe(@GetUser() userMasterId, @Body() dto: UpdateVendorDto) {
-    return this.vendorService.updateVendor(userMasterId, dto);
+  updateMe(@GetUser() user, @Body() dto: UpdateVendorDto) {
+    return this.vendorService.updateVendor(user.userMasterId, dto);
   }
 
   @Authorized(UserType.ADMIN)

@@ -1,7 +1,10 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
-import { ListingParams } from '../../../core/dto';
+import {
+  ListingParams,
+  ServiceCategorySubCategoryListingParams,
+} from '../../../core/dto';
 
 @Injectable()
 export class SubcategoryRepository {
@@ -27,7 +30,7 @@ export class SubcategoryRepository {
 
   async updateSubcategory(id: number, data: SubcategoryUpdateDto) {
     try {
-      await this.prisma.subCategory.update({
+      return await this.prisma.subCategory.update({
         where: {
           subCategoryId: id,
         },
@@ -55,17 +58,19 @@ export class SubcategoryRepository {
     }
   }
 
-  async getAllSubcategory(listingParams: ListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+  async getAllSubcategory(
+    listingParams: ServiceCategorySubCategoryListingParams,
+  ) {
+    const { page = 1, take = 10, search, serviceType } = listingParams;
 
     try {
       const subCategories = await this.prisma.subCategory.findMany({
-        take: take,
-        skip: take * (page - 1),
+        take: +take,
+        skip: +take * (+page - 1),
         orderBy: {
           subCategoryName: 'asc',
         },
-        ...(search.length && {
+        ...(search && {
           where: {
             isDeleted: false,
             subCategoryName: {
@@ -75,14 +80,23 @@ export class SubcategoryRepository {
         }),
       });
 
+      const totalCount = await this.prisma.subCategory.count({
+        where: {
+          isDeleted: false,
+          ...(serviceType && {
+            serviceType: serviceType,
+          }),
+        },
+      });
+
       return {
-        ...subCategories,
+        data: subCategories,
         page,
         take,
-        totalCount: await this.prisma.subCategory.count(),
+        totalCount,
       };
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 

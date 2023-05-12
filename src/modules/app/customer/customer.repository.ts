@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import { CustomerListingParams } from '../../../core/dto';
-import { Media, UserType } from '@prisma/client';
-import { UpdateCustomerDto } from './dto';
+import {
+  CustomerListingParams,
+  CustomerVendorListingParams,
+  ListingParams,
+} from '../../../core/dto';
+import { Media, ServiceType, UserType } from '@prisma/client';
+import { UpdateCustomerDto, VendorLocationDto } from './dto';
+import { successResponse } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CustomerRepository {
@@ -52,6 +57,11 @@ export class CustomerRepository {
           isDeleted: false,
         },
         select: {
+          email: true,
+          userMasterId: true,
+          phone: true,
+          isActive: true,
+
           customer: {
             select: {
               fullName: true,
@@ -98,11 +108,13 @@ export class CustomerRepository {
           }),
         },
         select: {
+          userMasterId: true,
           phone: true,
           email: true,
           userType: true,
           customer: {
             select: {
+              customerId: true,
               fullName: true,
               userAddress: {
                 where: {
@@ -243,6 +255,24 @@ export class CustomerRepository {
     }
   }
 
+  async getVendorsByLocation(listingParams: CustomerVendorListingParams) {
+    const { page = 1, take = 10, search } = listingParams;
+    try {
+      const vendors = await this.prisma
+        .$queryRaw`select * from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
+        listingParams.serviceType
+      } ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
+        listingParams.longitude,
+      )}, ${Number(listingParams.latitude)}))) ASC Limit ${BigInt(
+        take,
+      )} offset ${(Number(page) - 1) * Number(take)}`;
+      return vendors;
+    } catch (error) {
+      debugger;
+      throw error;
+    }
+  }
+
   async deleteCustomer(id: number) {
     try {
       await this.prisma.userMaster.update({
@@ -253,7 +283,7 @@ export class CustomerRepository {
           isDeleted: true,
         },
       });
-      return true;
+      return successResponse(200, 'Customer deleted successfully.');
     } catch (error) {
       return false;
     }

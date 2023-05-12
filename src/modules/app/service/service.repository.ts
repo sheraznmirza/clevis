@@ -1,7 +1,11 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { ServiceCreateDto, ServiceUpdateDto } from './dto';
-import { ListingParams } from '../../../core/dto';
+import {
+  ListingParams,
+  ServiceCategorySubCategoryListingParams,
+} from '../../../core/dto';
+import { successResponse } from 'src/helpers/response.helper';
 
 @Injectable()
 export class ServiceRepository {
@@ -39,7 +43,7 @@ export class ServiceRepository {
 
   async updateService(id: number, data: ServiceUpdateDto) {
     try {
-      await this.prisma.services.update({
+      const service = await this.prisma.services.update({
         where: {
           serviceId: id,
         },
@@ -48,6 +52,10 @@ export class ServiceRepository {
           ...(data.serviceType && { serviceType: data.serviceType }),
         },
       });
+      return {
+        ...successResponse(200, 'Service updated successfully.'),
+        ...service,
+      };
     } catch (error) {
       return false;
     }
@@ -87,36 +95,47 @@ export class ServiceRepository {
   //   }
   // }
 
-  async getAllService(listingParams: ListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+  async getAllService(listingParams: ServiceCategorySubCategoryListingParams) {
+    const { page = 1, take = 10, search, serviceType } = listingParams;
     try {
       const services = await this.prisma.services.findMany({
         where: {
           isDeleted: false,
-        },
-        take: take,
-        skip: take * (page - 1),
-        orderBy: {
-          createdAt: 'desc',
-        },
-        ...(search.length && {
-          where: {
-            isDeleted: false,
+
+          ...(serviceType && {
+            serviceType: serviceType,
+          }),
+
+          ...(search && {
             serviceName: {
               contains: search,
             },
-          },
-        }),
+          }),
+        },
+        take: +take,
+        skip: +take * (+page - 1),
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      const totalCount = await this.prisma.services.count({
+        where: {
+          isDeleted: false,
+          ...(serviceType && {
+            serviceType: serviceType,
+          }),
+        },
       });
 
       return {
-        ...services,
+        data: services,
         page,
         take,
-        totalCount: await this.prisma.services.count(),
+        totalCount,
       };
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 

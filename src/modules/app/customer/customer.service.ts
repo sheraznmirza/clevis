@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import { CustomerListingParams } from '../../../core/dto';
+import {
+  CustomerListingParams,
+  CustomerVendorListingParams,
+  ListingParams,
+} from '../../../core/dto';
 import { CustomerRepository } from './customer.repository';
-import { UpdateCustomerDto } from './dto';
+import { UpdateCustomerDto, VendorLocationDto } from './dto';
 
 @Injectable()
 export class CustomerService {
@@ -35,6 +39,14 @@ export class CustomerService {
   async getAllCustomers(listingParams: CustomerListingParams) {
     try {
       return await this.repository.getAllCustomers(listingParams);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorsByLocation(listingParams: CustomerVendorListingParams) {
+    try {
+      return await this.repository.getVendorsByLocation(listingParams);
     } catch (error) {
       throw error;
     }

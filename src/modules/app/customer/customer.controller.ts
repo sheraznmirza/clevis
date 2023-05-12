@@ -5,11 +5,16 @@ import {
   Query,
   Param,
   Patch,
+  Body,
 } from '@nestjs/common';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { ApiTags } from '@nestjs/swagger';
-import { CustomerListingParams } from '../../../core/dto';
+import {
+  CustomerListingParams,
+  CustomerVendorListingParams,
+  ListingParams,
+} from '../../../core/dto';
 import { CustomerService } from './customer.service';
 import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
@@ -27,22 +32,22 @@ export class CustomerController {
     return this.customerService.getCustomerById(user.userMasterId);
   }
 
-  @Authorized(UserType.CUSTOMER)
-  @Get('/:userMasterId')
+  @Authorized(UserType.ADMIN)
+  @Get('/byId/:userMasterId')
   getCustomerById(@Param('userMasterId') customerId: number) {
     return this.customerService.getCustomerById(customerId);
   }
 
   @Authorized(UserType.CUSTOMER)
-  @Patch('/me')
+  @Patch('me')
   updateMe(@GetUser() user, dto: UpdateCustomerDto) {
     return this.customerService.updateCustomer(user.userMasterId, dto);
   }
 
   @Authorized(UserType.CUSTOMER)
-  @Get('/vendors')
-  getVendors(@GetUser() user) {
-    return this.customerService.getCustomerById(user);
+  @Get('vendors')
+  getVendors(@Query() listingParams: CustomerVendorListingParams) {
+    return this.customerService.getVendorsByLocation(listingParams);
   }
 
   @Authorized(UserType.ADMIN)

@@ -4,9 +4,10 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RiderUpdateStatusDto } from './dto';
-import { ServiceType, UserType, Vendor } from '@prisma/client';
+import { RiderUpdateDto, RiderUpdateStatusDto } from './dto';
+import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
 import { RiderListingParams, VendorListingParams } from 'src/core/dto';
+import { successResponse } from 'src/helpers/response.helper';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -72,6 +73,7 @@ export class RiderRepository {
               riderId: true,
               banking: {
                 select: {
+                  id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
@@ -394,6 +396,10 @@ export class RiderRepository {
           isEmailVerified: true,
           isDeleted: false,
           userType: UserType.RIDER,
+          rider: {
+            status:
+              listingParams.status !== null ? listingParams.status : undefined,
+          },
         },
       });
 
@@ -406,6 +412,177 @@ export class RiderRepository {
     } catch (error) {
       console.log('error: ', error);
       throw error;
+    }
+  }
+
+  async updateRider(userMasterId: number, dto: RiderUpdateDto) {
+    try {
+      let profilePicture: Media;
+
+      if (dto.profilePicture) {
+        profilePicture = await this.prisma.media.create({
+          data: {
+            name: dto.profilePicture.name,
+            key: dto.profilePicture.key,
+            location: dto.profilePicture.location,
+          },
+        });
+      }
+      const rider = await this.prisma.userMaster.update({
+        where: {
+          userMasterId: userMasterId,
+        },
+        data: {
+          phone: dto.phone !== null ? dto.phone : undefined,
+          profilePictureId: profilePicture ? profilePicture.id : undefined,
+          isActive: dto.isActive !== null ? dto.isActive : undefined,
+          rider: {
+            update: {
+              fullName: dto.fullName !== null ? dto.fullName : undefined,
+              companyName:
+                dto.companyName !== null ? dto.companyName : undefined,
+              companyEmail:
+                dto.companyEmail !== null ? dto.companyEmail : undefined,
+              description:
+                dto.description !== null ? dto.description : undefined,
+
+              ...(dto.bankingId &&
+                dto.accountNumber &&
+                dto.accountTitle &&
+                dto.bankName && {
+                  banking: {
+                    update: {
+                      where: {
+                        id: dto.bankingId,
+                      },
+                      data: {
+                        isDeleted: true,
+                      },
+                    },
+                    create: {
+                      accountTitle:
+                        dto.accountTitle !== null
+                          ? dto.accountTitle
+                          : undefined,
+                      accountNumber:
+                        dto.accountNumber !== null
+                          ? dto.accountNumber
+                          : undefined,
+                      bankName:
+                        dto.bankName !== null ? dto.bankName : undefined,
+                    },
+                  },
+                }),
+
+              userAddress: {
+                ...(dto.userAddressId &&
+                  dto.fullAddress &&
+                  dto.cityId &&
+                  dto.longitude &&
+                  dto.latitude && {
+                    update: {
+                      where: {
+                        userAddressId: dto.userAddressId,
+                      },
+                      data: {
+                        isDeleted: true,
+                      },
+                    },
+                    create: {
+                      fullAddress: dto.fullAddress,
+                      cityId: dto.cityId,
+                      latitude: dto.latitude,
+                      longitude: dto.longitude,
+                    },
+                  }),
+              },
+            },
+          },
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          roleId: true,
+          userType: true,
+          phone: true,
+          createdAt: true,
+          rider: {
+            select: {
+              riderId: true,
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              companyEmail: true,
+              description: true,
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              fullName: true,
+              companyName: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              status: true,
+            },
+          },
+        },
+      });
+
+      return {
+        ...successResponse(200, 'Rider updated successfully.'),
+        ...rider,
+      };
+    } catch (error) {
+      return error.message;
     }
   }
 

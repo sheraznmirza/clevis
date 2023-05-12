@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsArray,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Media } from '../../../../core/globalTypes';
@@ -62,10 +63,29 @@ export class RiderUpdateDto {
   @IsOptional()
   businessLicense: Media[];
 
+  @ApiProperty({})
+  @IsOptional()
+  profilePicture: Media;
+
   @ApiProperty()
   @IsString()
   @IsOptional()
   description: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  accountTitle: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  accountNumber: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  bankName: string;
 
   @ApiProperty()
   @IsNumber()
@@ -81,4 +101,19 @@ export class RiderUpdateDto {
   @IsNumber()
   @IsOptional()
   longitude: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  userAddressId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  bankingId: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isActive: boolean;
 }

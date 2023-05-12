@@ -72,3 +72,53 @@
 //     return this._mediaService.UploadFinalize(data, user);
 //   }
 // }
+
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+  Query,
+  Delete,
+} from '@nestjs/common';
+import { UserType } from '@prisma/client';
+import { GetUser } from '../auth/decorator';
+import { JwtGuard } from '../auth/guard';
+import { RolesGuard } from '../../../core/guards';
+import { Authorized } from '../../../core/decorators';
+import { ApiTags } from '@nestjs/swagger';
+//   import {
+//     UpdateVendorDto,
+//     VendorCreateServiceDto,
+//     VendorUpdateStatusDto,
+//   } from './dto';
+//   import { VendorService } from './vendor.service';
+
+//   import {
+//     ListingParams,
+//     VendorListingParams,
+//     VendorRiderByIdParams,
+//   } from 'src/core/dto';
+import MediaService from './media.service';
+@UseGuards(JwtGuard, RolesGuard)
+@ApiTags('Media')
+@Controller('media')
+export class MediaController {
+  constructor(private mediaService: MediaService) {}
+  @Authorized([
+    UserType.ADMIN,
+    UserType.CUSTOMER,
+    UserType.RIDER,
+    UserType.VENDOR,
+  ])
+  @Delete('/:mediaId')
+  deleteMedia(@Param('mediaId') mediaId: number) {
+    //   return this.mediaService.deleteMedia(mediaId);
+  }
+}

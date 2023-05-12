@@ -1,10 +1,10 @@
-// import {
-//   BadRequestException,
-//   ForbiddenException,
-//   Injectable,
-//   NotFoundException,
-// } from '@nestjs/common';
-// import { MediaAccess, MediaStatus, MediaType, User } from '@prisma/client';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+// // import { MediaAccess, MediaStatus, MediaType, User } from '@prisma/client';
 // import AppConfig from 'src/configs/app.config';
 // // import {
 // //   BadRequestException,
@@ -22,6 +22,8 @@
 //   UploadInitiateMediaResponseDTO,
 // } from './dto/response/upload.response';
 // import S3Service from './s3.service';
+
+import { PrismaService } from 'src/modules/prisma/prisma.service';
 
 // @Injectable()
 // export default class MediaService {
@@ -148,3 +150,8 @@
 //     return media;
 //   }
 // }
+
+@Injectable()
+export default class MediaService {
+  constructor(private prisma: PrismaService) {}
+}

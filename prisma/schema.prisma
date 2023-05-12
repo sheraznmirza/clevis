@@ -116,7 +116,7 @@ model Otp {
   otpId        String     @id @default(uuid())
   userMasterId Int
   userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
-  otp          Int
+  otp          String
   createdAt    DateTime   @default(now())
   expired      Boolean    @default(false)
 }
@@ -147,19 +147,15 @@ model Vendor {
   serviceType     ServiceType
   companyName     String
   companyEmail    String
+  isBusy          Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
-  // workspaceImagesId Int
-  // businessLicenseId Int[]
   description     String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
   vendorService   VendorService[]
-  // logo              Media           @relation("VendorLogo", fields: [logoId], references: [id])
-  // workspaceImages   Media[]         @relation("VendorWorkSpaceImages")
-  // businessLicense   Media           @relation("VendorBusinessLicense", fields: [businessLicenseId], references: [id])
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
-  banking         Banking?
+  banking         Banking[]
   companySchedule CompanySchedule?
 }
 
@@ -171,13 +167,14 @@ model Rider {
   fullName        String
   companyName     String
   companyEmail    String
+  isBusy          Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
   description     String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
-  banking         Banking?
+  banking         Banking[]
   companySchedule CompanySchedule?
 }
 
@@ -199,6 +196,7 @@ model UserAddress {
   riderId       Int?
   // User          Admin?    @relation(fields: [adminId], references: [id])
   adminId       Int?
+  isActive      Boolean   @default(true)
 }
 
 model Banking {
