@@ -162,9 +162,9 @@ export class AuthService {
           roleId: roleId,
           // profilePicture: {
           //   create: {
-          //     location: dto.logo.Location,
-          //     key: dto.logo.Key,
-          //     name: dto.logo.ETag,
+          //     location: dto.logo.location,
+          //     key: dto.logo.key,
+          //     name: dto.logo.name,
           //   },
           // },
           vendor: {
@@ -487,8 +487,6 @@ export class AuthService {
                     },
                   },
                 },
-                longitude: true,
-                latitude: true,
               },
             },
             fullName: true,
@@ -759,7 +757,10 @@ export class AuthService {
 
   async forgotPassword(data: ForgotPasswordDto) {
     try {
-      const randomOtp = Math.floor(Math.random() * 10000);
+      let randomOtp = Math.floor(Math.random() * 10000).toString();
+      for (let i = 0; i < 4 - randomOtp.length; i++) {
+        randomOtp = '0' + randomOtp;
+      }
       const user = await this.prisma.userMaster.findFirst({
         where: {
           email: data.email,
@@ -927,7 +928,7 @@ export class AuthService {
 
   async logout(dto: LogoutDto) {
     try {
-      const token = await this.prisma.refreshToken.update({
+      await this.prisma.refreshToken.update({
         where: {
           refreshToken: dto.refreshToken,
         },
@@ -935,10 +936,9 @@ export class AuthService {
           deleted: true,
         },
       });
-      console.log('token: ', token);
       return successResponse(200, 'Logged out successfully.');
     } catch (error) {
-      throw error;
+      throw new BadRequestException(error.meta.cause);
     }
   }
 
@@ -947,12 +947,14 @@ export class AuthService {
     email: string,
     userType: UserType,
     serviceType?: ServiceType,
+    userTypeId?: number,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = {
       sub: userId,
       email,
       userType,
       ...(serviceType && { serviceType }),
+      ...(userTypeId && { userTypeId }),
     };
     const jwtSecret = this.config.get('JWT_SECRET');
     const jwtRefreshSecret = this.config.get('JWT_REFRESH_SECRET');

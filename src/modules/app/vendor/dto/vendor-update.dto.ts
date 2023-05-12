@@ -1,29 +1,16 @@
 import {
+  IsArray,
+  IsBoolean,
   IsEmail,
+  IsNumber,
+  IsOptional,
   IsString,
   MaxLength,
-  MinLength,
-  IsNumber,
-  IsArray,
-  IsOptional,
-  IsBoolean,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '../../../../core/globalTypes';
+import { Media } from '@prisma/client';
 
-export class RiderUpdateDto {
-  @ApiProperty()
-  @IsEmail()
-  @IsOptional()
-  email: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @MinLength(6)
-  @MaxLength(50)
-  password: string;
-
+export class UpdateVendorDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
@@ -40,57 +27,13 @@ export class RiderUpdateDto {
   fullAddress: string;
 
   @ApiProperty()
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  companyName: string;
-
-  @ApiProperty()
-  @IsEmail()
-  @IsOptional()
-  companyEmail: string;
-
-  @ApiProperty()
-  @IsOptional()
-  logo: Media;
-
-  @ApiProperty()
-  @IsArray()
-  @IsOptional()
-  workspaceImages: Media[];
-
-  @ApiProperty()
-  @IsArray()
-  @IsOptional()
-  businessLicense: Media[];
+  cityId: number;
 
   @ApiProperty({})
   @IsOptional()
   profilePicture: Media;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  description: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  accountTitle: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  accountNumber: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  bankName: string;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsOptional()
-  cityId: number;
 
   @ApiProperty()
   @IsNumber()
@@ -108,9 +51,49 @@ export class RiderUpdateDto {
   userAddressId: number;
 
   @ApiProperty()
-  @IsNumber()
+  @IsArray()
   @IsOptional()
-  bankingId: number;
+  workspaceImages: Media[];
+
+  @ApiProperty()
+  @IsArray()
+  @IsOptional()
+  businessLicense: Media[];
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  description: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  bankName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  accountTitle: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  accountNumber: string;
+
+  @ApiProperty()
+  @IsOptional()
+  logo: Media;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  companyName: string;
+
+  @ApiProperty()
+  @IsEmail()
+  @IsOptional()
+  companyEmail: string;
 
   @ApiProperty()
   @IsOptional()

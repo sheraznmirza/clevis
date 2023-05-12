@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { RiderRepository } from './rider.repository';
-import { RiderUpdateStatusDto } from './dto';
+import { RiderUpdateDto, RiderUpdateStatusDto } from './dto';
 import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import { Rider } from '@prisma/client';
 import {
+  RiderListingParams,
   RiderVendorTabs,
-  VendorListingParams,
   VendorRiderByIdParams,
 } from 'src/core/dto';
 
@@ -29,19 +29,30 @@ export class RiderService {
 
   async getRiderById(id: number, query?: VendorRiderByIdParams) {
     try {
-      switch (query.tabName) {
-        case RiderVendorTabs.PROFILE:
-          return await this.repository.getRiderByIdProfile(id);
-        case RiderVendorTabs.COMPANY_PROFILE:
-          return await this.repository.getRiderByIdCompany(id);
-        case RiderVendorTabs.ACCOUNT_DETAILS:
-          return await this.repository.getRiderByIdAccount(id);
-        case RiderVendorTabs.COMPANY_SCHEDULE:
-          return await this.repository.getRiderByIdSchedule(id);
-        default:
-          return await this.repository.getRiderById(id);
+      if (query) {
+        switch (query.tabName) {
+          case RiderVendorTabs.PROFILE:
+            return await this.repository.getRiderByIdProfile(id);
+          case RiderVendorTabs.COMPANY_PROFILE:
+            return await this.repository.getRiderByIdCompany(id);
+          case RiderVendorTabs.ACCOUNT_DETAILS:
+            return await this.repository.getRiderByIdAccount(id);
+          case RiderVendorTabs.COMPANY_SCHEDULE:
+            return await this.repository.getRiderByIdSchedule(id);
+          default:
+            return await this.repository.getRiderById(id);
+        }
+      } else {
+        return await this.repository.getRiderById(id);
       }
-      // return await this.repository.getRiderById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateRider(userMasterId: number, dto: RiderUpdateDto) {
+    try {
+      return await this.repository.updateRider(userMasterId, dto);
     } catch (error) {
       throw error;
     }
@@ -55,7 +66,7 @@ export class RiderService {
     }
   }
 
-  async getAllRiders(listingParams: VendorListingParams) {
+  async getAllRiders(listingParams: RiderListingParams) {
     try {
       return await this.repository.getAllRiders(listingParams);
     } catch (error) {

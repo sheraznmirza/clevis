@@ -1,6 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
-import { VendorCreateServiceDto, VendorUpdateStatusDto } from './dto';
+import {
+  UpdateVendorDto,
+  VendorCreateServiceDto,
+  VendorUpdateStatusDto,
+} from './dto';
 import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import { Vendor } from '@prisma/client';
@@ -46,6 +50,14 @@ export class VendorService {
     }
   }
 
+  async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
+    try {
+      return await this.repository.updateVendor(userMasterId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getVendorAllService(id: number, listingParams: ListingParams) {
     try {
       return await this.repository.getAllVendorService(id, listingParams);
@@ -56,26 +68,22 @@ export class VendorService {
 
   async getVendorById(id: number, query?: VendorRiderByIdParams) {
     try {
-      switch (query.tabName) {
-        case RiderVendorTabs.PROFILE:
-          return await this.repository.getVendorByIdProfile(id);
-        case RiderVendorTabs.COMPANY_PROFILE:
-          return await this.repository.getVendorByIdCompany(id);
-        case RiderVendorTabs.ACCOUNT_DETAILS:
-          return await this.repository.getVendorByIdAccount(id);
-        case RiderVendorTabs.COMPANY_SCHEDULE:
-          return await this.repository.getVendorByIdSchedule(id);
-        default:
-          return await this.repository.getVendorById(id);
+      if (query) {
+        switch (query.tabName) {
+          case RiderVendorTabs.PROFILE:
+            return await this.repository.getVendorByIdProfile(id);
+          case RiderVendorTabs.COMPANY_PROFILE:
+            return await this.repository.getVendorByIdCompany(id);
+          case RiderVendorTabs.ACCOUNT_DETAILS:
+            return await this.repository.getVendorByIdAccount(id);
+          case RiderVendorTabs.COMPANY_SCHEDULE:
+            return await this.repository.getVendorByIdSchedule(id);
+          default:
+            return await this.repository.getVendorById(id);
+        }
+      } else {
+        return await this.repository.getVendorById(id);
       }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async updateCategory(id: number, data: VendorUpdateStatusDto) {
-    try {
-      return await this.repository.updateCategory(id, data);
     } catch (error) {
       throw error;
     }

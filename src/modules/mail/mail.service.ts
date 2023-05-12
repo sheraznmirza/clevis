@@ -33,7 +33,7 @@ export class MailService {
 
   async sendResetPasswordEmail(
     resetPasswordDataDto: ForgotPasswordDto,
-    otp: number,
+    otp: string,
   ) {
     try {
       await this.mailerService.sendMail({
