@@ -123,6 +123,109 @@ export class VendorRepository {
             },
           },
         },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          roleId: true,
+          userType: true,
+          phone: true,
+          createdAt: true,
+          isActive: true,
+          vendor: {
+            select: {
+              vendorId: true,
+              vendorService: {
+                select: {
+                  vendorServiceId: true,
+                  service: {
+                    select: {
+                      serviceName: true,
+                    },
+                  },
+                },
+              },
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              companyEmail: true,
+              description: true,
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              banking: {
+                select: {
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
+              fullName: true,
+              companyName: true,
+              serviceType: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              status: true,
+            },
+          },
+          earnings: {
+            select: {
+              id: true,
+              jobType: true,
+              serviceType: true,
+              status: true,
+            },
+          },
+        },
       });
 
       return {
