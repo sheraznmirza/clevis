@@ -44,9 +44,12 @@ export class CustomerService {
     }
   }
 
-  async getVendorsByLocation(listingParams: CustomerVendorListingParams) {
+  async getVendorsByLocation(
+    listingParams: CustomerVendorListingParams,
+    dto: VendorLocationDto,
+  ) {
     try {
-      return await this.repository.getVendorsByLocation(listingParams);
+      return await this.repository.getVendorsByLocation(listingParams, dto);
     } catch (error) {
       throw error;
     }

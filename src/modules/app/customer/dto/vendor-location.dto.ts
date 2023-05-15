@@ -1,14 +1,25 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
+class ServiceNames {
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  serviceId: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  serviceName: string;
+}
 export class VendorLocationDto {
-  @ApiProperty()
-  @IsNumber()
+  @ApiProperty({
+    isArray: true,
+    type: ServiceNames,
+  })
+  @IsArray()
+  @Type(() => ServiceNames)
   @IsOptional()
-  latitude: number;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsOptional()
-  longitude: number;
+  services: ServiceNames[];
 }

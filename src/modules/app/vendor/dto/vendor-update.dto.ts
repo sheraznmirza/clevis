@@ -1,14 +1,17 @@
 import {
   IsArray,
   IsBoolean,
+  IsDate,
   IsEmail,
+  IsEnum,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   MaxLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '@prisma/client';
+import { Days, Media } from '@prisma/client';
 
 export class UpdateVendorDto {
   @ApiProperty()
@@ -104,4 +107,47 @@ export class UpdateVendorDto {
   @IsOptional()
   @IsBoolean()
   isActive: boolean;
+}
+
+export class VendorSchedule {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  id: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  isActive: boolean;
+
+  @ApiProperty({
+    required: true,
+    description: 'Day of the week',
+    enum: Days,
+  })
+  @IsNotEmpty()
+  @IsEnum(Days)
+  day: Days;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsDate()
+  startTime: Date;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsDate()
+  endTime: Date;
+}
+
+export class UpdateVendorScheduleDto {
+  @ApiProperty()
+  @IsArray()
+  @IsOptional()
+  schedule: VendorSchedule[];
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  alwaysOpen?: boolean;
 }

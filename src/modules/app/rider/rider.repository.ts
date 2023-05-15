@@ -187,11 +187,13 @@ export class RiderRepository {
           rider: {
             select: {
               riderId: true,
-              banking: {
+              companySchedule: {
                 select: {
-                  accountNumber: true,
-                  accountTitle: true,
-                  bankName: true,
+                  id: true,
+                  day: true,
+                  startTime: true,
+                  endTime: true,
+                  isActive: true,
                 },
               },
             },
@@ -217,6 +219,7 @@ export class RiderRepository {
           userType: true,
           phone: true,
           createdAt: true,
+          isActive: true,
           rider: {
             select: {
               riderId: true,

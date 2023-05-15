@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   UpdateVendorDto,
+  UpdateVendorScheduleDto,
   VendorCreateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
@@ -67,6 +68,17 @@ export class VendorRepository {
       } else {
         throw error;
       }
+    }
+  }
+
+  async updateVendorSchedule(vendorId: number, dto: UpdateVendorScheduleDto) {
+    try {
+      await this.prisma.companySchedule.updateMany({
+        data: dto.schedule,
+      });
+      successResponse(200, 'Schedule updated successfully!');
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -525,11 +537,13 @@ export class VendorRepository {
           vendor: {
             select: {
               vendorId: true,
-              banking: {
+              companySchedule: {
                 select: {
-                  accountNumber: true,
-                  accountTitle: true,
-                  bankName: true,
+                  id: true,
+                  day: true,
+                  startTime: true,
+                  endTime: true,
+                  isActive: true,
                 },
               },
             },

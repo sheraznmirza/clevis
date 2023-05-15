@@ -73,6 +73,18 @@ export class CustomerRepository {
                     select: {
                       cityName: true,
                       cityId: true,
+                      State: {
+                        select: {
+                          stateId: true,
+                          stateName: true,
+                          country: {
+                            select: {
+                              countryId: true,
+                              countryName: true,
+                            },
+                          },
+                        },
+                      },
                     },
                   },
                 },
@@ -255,17 +267,25 @@ export class CustomerRepository {
     }
   }
 
-  async getVendorsByLocation(listingParams: CustomerVendorListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+  async getVendorsByLocation(
+    listingParams: CustomerVendorListingParams,
+    dto: VendorLocationDto,
+  ) {
+    const { page = 1, take = 10, search, distance = 500 } = listingParams;
     try {
       const vendors = await this.prisma
-        .$queryRaw`select * from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
-        listingParams.serviceType
-      } ${
-        search ? `AND "public"."Vendor"."companyName" = '${search}'` : ''
-      } ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
+        .$queryRaw`select *, ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
         listingParams.longitude,
-      )}, ${Number(listingParams.latitude)}))) ASC Limit ${BigInt(
+      )}, ${Number(
+        listingParams.latitude,
+      )}))) from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
+        listingParams.serviceType
+      } where ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
+        listingParams.longitude,
+      )}, ${Number(listingParams.latitude)}))) < ${+distance}
+        ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
+          listingParams.longitude,
+        )}, ${Number(listingParams.latitude)}))) ASC Limit ${BigInt(
         take,
       )} offset ${(Number(page) - 1) * Number(take)}`;
 
