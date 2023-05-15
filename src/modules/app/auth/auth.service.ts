@@ -31,6 +31,7 @@ import {
   VerifyOtpDto,
 } from './dto';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
+import { companySchedule } from 'src/core/constants';
 
 @Injectable()
 export class AuthService {
@@ -105,9 +106,10 @@ export class AuthService {
         user.userMasterId,
         user.email,
         user.userType,
+        user.customer.customerId,
       );
       await this.updateRt(user.userMasterId, response.refreshToken);
-      await this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
+      this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
       return {
         tokens: response,
         ...user,
@@ -186,13 +188,15 @@ export class AuthService {
                 create: {
                   fullAddress: dto.fullAddress,
                   cityId: dto.cityId,
+                  latitude: dto.latitude,
+                  longitude: dto.longitude,
                 },
               },
-              // companySchedule: {
-              //   createMany: {
-              //     data: []
-              //   }
-              // }
+              companySchedule: {
+                createMany: {
+                  data: companySchedule(),
+                },
+              },
             },
           },
         },
@@ -240,7 +244,7 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      await this.sendEncryptedDataToMail(user, UserType.VENDOR);
+      this.sendEncryptedDataToMail(user, UserType.VENDOR);
       const payload: CreateNotificationDto = {
         toUser: 1,
         fromUser: user.userMasterId,
@@ -271,6 +275,7 @@ export class AuthService {
       });
 
       if (userCount > 0) {
+        console.log('hello bharway');
         throw new ForbiddenException('Credentials taken');
       }
 
@@ -326,6 +331,11 @@ export class AuthService {
                   longitude: dto.longitude,
                 },
               },
+              companySchedule: {
+                createMany: {
+                  data: companySchedule(),
+                },
+              },
             },
           },
         },
@@ -372,7 +382,7 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      await this.sendEncryptedDataToMail(user, UserType.RIDER);
+      this.sendEncryptedDataToMail(user, UserType.RIDER);
       return successResponse(
         201,
         'Rider successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -434,6 +444,7 @@ export class AuthService {
       user.userMasterId,
       user.email,
       user.userType,
+      user.admin.id,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
     // const profileImage = await this.getImages(user.profileImage);
@@ -504,9 +515,9 @@ export class AuthService {
       user.userMasterId,
       user.email,
       user.userType,
+      user.customer.customerId,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
-    // const profileImage = await this.getImages(user.profileImage);
     delete user.password;
     return { tokens: response, ...user };
   }
@@ -594,6 +605,7 @@ export class AuthService {
       user.userMasterId,
       user.email,
       user.userType,
+      user.vendor.vendorId,
       user.vendor.serviceType,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
@@ -692,6 +704,7 @@ export class AuthService {
       user.userMasterId,
       user.email,
       user.userType,
+      user.rider.riderId,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
     // const profileImage = await this.getImages(user.profileImage);
@@ -729,6 +742,9 @@ export class AuthService {
         select: {
           email: true,
           vendor: true,
+          admin: true,
+          customer: true,
+          rider: true,
           userType: true,
         },
       });
@@ -737,6 +753,10 @@ export class AuthService {
         previousRefreshToken.userMasterId,
         user.email,
         user.userType,
+        user.vendor.vendorId ||
+          user.admin.id ||
+          user.customer.customerId ||
+          user.rider.riderId,
         user.vendor.serviceType || null,
       );
       await this.updateRt(
@@ -975,15 +995,15 @@ export class AuthService {
     userId: number,
     email: string,
     userType: UserType,
+    userTypeId: number,
     serviceType?: ServiceType,
-    userTypeId?: number,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = {
       sub: userId,
       email,
       userType,
+      userTypeId,
       ...(serviceType && { serviceType }),
-      ...(userTypeId && { userTypeId }),
     };
     const jwtSecret = this.config.get('JWT_SECRET');
     const jwtRefreshSecret = this.config.get('JWT_REFRESH_SECRET');
@@ -1150,7 +1170,7 @@ export class AuthService {
       copyright_year: this.config.get('COPYRIGHT_YEAR'),
     };
 
-    await this.mail.sendEmail(
+    this.mail.sendEmail(
       user.email,
       this.config.get('MAIL_FROM'),
       this.config.get('APP_NAME'),

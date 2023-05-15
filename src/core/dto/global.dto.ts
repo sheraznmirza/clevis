@@ -155,6 +155,14 @@ export class CustomerVendorListingParams extends ListingParams {
 
   @ApiProperty({
     required: false,
+    description: 'The distance radius',
+  })
+  @IsString()
+  @IsOptional()
+  distance: number;
+
+  @ApiProperty({
+    required: false,
     description: 'Select the respective service type.',
     enum: ServiceType,
   })
