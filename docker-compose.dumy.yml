@@ -1,11 +1,11 @@
 version: '3.8'
 services:
   dev-db:
-    image: postgres:13-alpine
+    image: kartoza/postgis:14-3.2
     restart: always
     ports:
       - 5434:5432
-    volumes: 
+    volumes:
       - pgdb-clevis:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: SECRETS_POSTGRES_USER
