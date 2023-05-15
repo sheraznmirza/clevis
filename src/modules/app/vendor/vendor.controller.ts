@@ -46,8 +46,6 @@ export class VendorController {
   @Authorized(UserType.VENDOR)
   @Post('/service')
   createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
-    console.log('req: ', req.user?.userMasterId);
-    console.log('dto: ', dto);
     return this.vendorService.createVendorService(dto, req.user?.userMasterId);
   }
 

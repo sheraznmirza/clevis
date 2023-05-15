@@ -1,6 +1,13 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ServiceType, Status } from '@prisma/client';
+import { ServiceType, Status, UserType } from '@prisma/client';
+
+export type GetUserType = {
+  userMasterId: number;
+  userType: UserType;
+  email: string;
+  userTypeId: number;
+};
 
 enum OrderOf {
   asc = 'asc',
