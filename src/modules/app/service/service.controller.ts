@@ -16,7 +16,10 @@ import { UserType } from '@prisma/client';
 import { Roles, Authorized } from '../../../core/decorators';
 import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from '../../../core/dto';
+import {
+  ListingParams,
+  ServiceCategorySubCategoryListingParams,
+} from '../../../core/dto';
 
 @ApiTags('Service')
 @Controller('service')
@@ -44,7 +47,9 @@ export class ServiceController {
 
   @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get()
-  getAllService(@Query() listingParams: ListingParams) {
+  getAllService(
+    @Query() listingParams: ServiceCategorySubCategoryListingParams,
+  ) {
     return this.serviceService.getAllService(listingParams);
   }
 

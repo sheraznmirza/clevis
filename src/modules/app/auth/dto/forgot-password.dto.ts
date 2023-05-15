@@ -5,7 +5,9 @@ import {
   IsNumber,
   IsString,
   Max,
+  MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -23,8 +25,8 @@ export class ForgotPasswordDto {
 
 export class VerifyOtpDto {
   @ApiProperty()
-  @IsNumber()
-  @Min(1000)
-  @Max(9999)
-  otp: number;
+  @IsString()
+  @MaxLength(4)
+  @MinLength(4)
+  otp: string;
 }

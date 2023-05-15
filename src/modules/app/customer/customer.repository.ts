@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import { CustomerListingParams } from '../../../core/dto';
-import { UserType } from '@prisma/client';
+import {
+  CustomerListingParams,
+  CustomerVendorListingParams,
+  ListingParams,
+} from '../../../core/dto';
+import { Media, ServiceType, UserType } from '@prisma/client';
+import { UpdateCustomerDto, VendorLocationDto } from './dto';
+import { successResponse } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CustomerRepository {
@@ -51,11 +57,17 @@ export class CustomerRepository {
           isDeleted: false,
         },
         select: {
+          email: true,
+          userMasterId: true,
+          phone: true,
+          isActive: true,
+
           customer: {
             select: {
               fullName: true,
               userAddress: {
                 select: {
+                  userAddressId: true,
                   fullAddress: true,
                   city: {
                     select: {
@@ -96,13 +108,18 @@ export class CustomerRepository {
           }),
         },
         select: {
+          userMasterId: true,
           phone: true,
           email: true,
           userType: true,
           customer: {
             select: {
+              customerId: true,
               fullName: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {
@@ -136,6 +153,129 @@ export class CustomerRepository {
     }
   }
 
+  async updateCustomer(userMasterId: number, dto: UpdateCustomerDto) {
+    try {
+      let media: Media;
+      if (dto.profilePicture) {
+        media = await this.prisma.media.create({
+          data: {
+            name: dto.profilePicture.name,
+            key: dto.profilePicture.key,
+            location: dto.profilePicture.location,
+          },
+        });
+      }
+
+      return await this.prisma.userMaster.update({
+        where: {
+          userMasterId: userMasterId,
+        },
+        data: {
+          phone: dto.phone !== null ? dto.phone : undefined,
+          profilePictureId: media.id ? media.id : undefined,
+          customer: {
+            update: {
+              fullName: dto.fullName !== null ? dto.fullName : undefined,
+              userAddress: {
+                ...(dto.userAddressId &&
+                  dto.fullAddress &&
+                  dto.cityId &&
+                  dto.longitude &&
+                  dto.latitude && {
+                    update: {
+                      where: {
+                        userAddressId: dto.userAddressId,
+                      },
+                      data: {
+                        isDeleted: true,
+                      },
+                    },
+                    create: {
+                      fullAddress: dto.fullAddress,
+                      cityId: dto.cityId,
+                      latitude: dto.latitude,
+                      longitude: dto.longitude,
+                    },
+                  }),
+              },
+            },
+          },
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isActive: true,
+          phone: true,
+          profilePicture: {
+            select: {
+              id: true,
+              name: true,
+              location: true,
+              key: true,
+            },
+          },
+          customer: {
+            select: {
+              customerId: true,
+              fullName: true,
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorsByLocation(listingParams: CustomerVendorListingParams) {
+    const { page = 1, take = 10, search } = listingParams;
+    try {
+      const vendors = await this.prisma
+        .$queryRaw`select * from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
+        listingParams.serviceType
+      } ${
+        search ? `AND "public"."Vendor"."companyName" = '${search}'` : ''
+      } ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
+        listingParams.longitude,
+      )}, ${Number(listingParams.latitude)}))) ASC Limit ${BigInt(
+        take,
+      )} offset ${(Number(page) - 1) * Number(take)}`;
+
+      return vendors;
+    } catch (error) {
+      debugger;
+      throw error;
+    }
+  }
+
   async deleteCustomer(id: number) {
     try {
       await this.prisma.userMaster.update({
@@ -146,7 +286,7 @@ export class CustomerRepository {
           isDeleted: true,
         },
       });
-      return true;
+      return successResponse(200, 'Customer deleted successfully.');
     } catch (error) {
       return false;
     }

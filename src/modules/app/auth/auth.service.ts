@@ -30,6 +30,7 @@ import {
   VendorSignUpDto,
   VerifyOtpDto,
 } from './dto';
+import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 
 @Injectable()
 export class AuthService {
@@ -162,9 +163,9 @@ export class AuthService {
           roleId: roleId,
           // profilePicture: {
           //   create: {
-          //     location: dto.logo.Location,
-          //     key: dto.logo.Key,
-          //     name: dto.logo.ETag,
+          //     location: dto.logo.location,
+          //     key: dto.logo.key,
+          //     name: dto.logo.name,
           //   },
           // },
           vendor: {
@@ -179,13 +180,6 @@ export class AuthService {
                   name: dto.logo.name,
                 },
               },
-              // workspaceImages: {
-              //   createMany: {
-              //     data: dto.workspaceImages,
-              //   },
-              // },
-              // workspaceImages: dto.workspaceImages,
-              // businessLicense: dto.businessLicense,
               description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
@@ -194,6 +188,11 @@ export class AuthService {
                   cityId: dto.cityId,
                 },
               },
+              // companySchedule: {
+              //   createMany: {
+              //     data: []
+              //   }
+              // }
             },
           },
         },
@@ -248,7 +247,6 @@ export class AuthService {
         message: 'message',
         type: 'VendorCreated',
       };
-
       await this.notification.createNotification(payload);
       return successResponse(
         201,
@@ -487,8 +485,6 @@ export class AuthService {
                     },
                   },
                 },
-                longitude: true,
-                latitude: true,
               },
             },
             fullName: true,
@@ -759,7 +755,10 @@ export class AuthService {
 
   async forgotPassword(data: ForgotPasswordDto) {
     try {
-      const randomOtp = Math.floor(Math.random() * 10000);
+      let randomOtp = Math.floor(Math.random() * 10000).toString();
+      for (let i = 0; i < 4 - randomOtp.length; i++) {
+        randomOtp = '0' + randomOtp;
+      }
       const user = await this.prisma.userMaster.findFirst({
         where: {
           email: data.email,
@@ -777,7 +776,23 @@ export class AuthService {
           otp: randomOtp,
         },
       });
-      await this.mail.sendResetPasswordEmail(data, randomOtp);
+
+      // await this.mail.sendResetPasswordEmail(data, randomOtp); umair
+
+      const context = {
+        pp_name: this.config.get('APP_NAME'),
+        app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        randomOtp,
+      };
+      await this.mail.sendEmail(
+        data.email,
+        this.config.get('MAIL_FROM'),
+        `${this.config.get('APP_NAME')} - Reset Your Password`,
+        'resetPassword', // `.hbs` extension is appended automatically
+        context,
+      );
+
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
       throw error;
@@ -851,7 +866,22 @@ export class AuthService {
           },
         });
         if (user.userType === UserType.RIDER || UserType.VENDOR) {
-          await this.mail.riderVendorCreationEmail(user);
+          const context = {
+            app_name: this.config.get('APP_NAME'),
+            app_url: `${this.config.get(dynamicUrl(user.userType))}`,
+            first_name: user[user.userType.toLowerCase()].fullName,
+            message: `${`${
+              user[user.userType.toLowerCase()].fullName
+            } has signed up and waiting for approval.`}`,
+            copyright_year: this.config.get('COPYRIGHT_YEAR'),
+          };
+          await this.mail.sendEmail(
+            user.email,
+            this.config.get('MAIL_FROM'),
+            this.config.get('APP_NAME'),
+            'vendorApprovedRejected',
+            context,
+          );
         }
         return {
           statusCode: 202,
@@ -927,7 +957,7 @@ export class AuthService {
 
   async logout(dto: LogoutDto) {
     try {
-      const token = await this.prisma.refreshToken.update({
+      await this.prisma.refreshToken.update({
         where: {
           refreshToken: dto.refreshToken,
         },
@@ -935,10 +965,9 @@ export class AuthService {
           deleted: true,
         },
       });
-      console.log('token: ', token);
       return successResponse(200, 'Logged out successfully.');
     } catch (error) {
-      throw error;
+      throw new BadRequestException(error.meta.cause);
     }
   }
 
@@ -947,12 +976,14 @@ export class AuthService {
     email: string,
     userType: UserType,
     serviceType?: ServiceType,
+    userTypeId?: number,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = {
       sub: userId,
       email,
       userType,
       ...(serviceType && { serviceType }),
+      ...(userTypeId && { userTypeId }),
     };
     const jwtSecret = this.config.get('JWT_SECRET');
     const jwtRefreshSecret = this.config.get('JWT_REFRESH_SECRET');
@@ -1110,6 +1141,21 @@ export class AuthService {
   async sendEncryptedDataToMail(user: any, userType: UserType) {
     const encrypted = this.encryptData(user.userMasterId.toString());
 
-    await this.mail.sendUserVerificationEmail(user, userType, encrypted);
+    const context = {
+      app_name: this.config.get('APP_NAME'),
+      app_url: `${this.config.get(
+        dynamicUrl(userType),
+      )}/auth/verify-email/${encrypted}`,
+      first_name: user[userType.toLowerCase()].fullName,
+      copyright_year: this.config.get('COPYRIGHT_YEAR'),
+    };
+
+    await this.mail.sendEmail(
+      user.email,
+      this.config.get('MAIL_FROM'),
+      this.config.get('APP_NAME'),
+      'userRegistration',
+      context,
+    );
   }
 }

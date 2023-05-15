@@ -1,7 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
 import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import { ListingParams } from '../../../core/dto';
+import {
+  ListingParams,
+  ServiceCategorySubCategoryListingParams,
+} from '../../../core/dto';
 
 @Injectable()
 export class CategoryService {
@@ -35,7 +38,7 @@ export class CategoryService {
     }
   }
 
-  async getAllCategory(listingParams: ListingParams) {
+  async getAllCategory(listingParams: ServiceCategorySubCategoryListingParams) {
     try {
       return await this.repository.getAllCategory(listingParams);
     } catch (error) {

@@ -22,6 +22,11 @@ enum ServiceType {
   LAUNDRY
 }
 
+enum JobType {
+  DELIVERY
+  PICKUP
+}
+
 enum Status {
   APPROVED
   PENDING
@@ -78,7 +83,7 @@ model UserMaster {
   isEmailVerified  Boolean        @default(false)
   password         String
   roleId           Int
-  profilePictureId Int?
+  profilePictureId Int?           @unique
   userType         UserType       @default(CUSTOMER)
   phone            String
   isActive         Boolean        @default(true)
@@ -95,6 +100,7 @@ model UserMaster {
   ToNotification   Notification[] @relation("ToNotification")
   FromNotification Notification[] @relation("FromNotification")
   profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
+  earnings         Earnings[]
 }
 
 model RefreshToken {
@@ -110,7 +116,7 @@ model Otp {
   otpId        String     @id @default(uuid())
   userMasterId Int
   userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
-  otp          Int
+  otp          String
   createdAt    DateTime   @default(now())
   expired      Boolean    @default(false)
 }
@@ -135,44 +141,41 @@ model Customer {
 model Vendor {
   vendorId        Int               @id @default(autoincrement())
   userMasterId    Int               @unique
-  logoId          Int
+  logoId          Int               @unique
   userMaster      UserMaster        @relation(fields: userMasterId, references: userMasterId)
   fullName        String
   serviceType     ServiceType
   companyName     String
   companyEmail    String
+  isBusy          Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
-  // workspaceImagesId Int
-  // businessLicenseId Int[]
   description     String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
-  VendorService   VendorService[]
-  // logo              Media           @relation("VendorLogo", fields: [logoId], references: [id])
-  // workspaceImages   Media[]         @relation("VendorWorkSpaceImages")
-  // businessLicense   Media           @relation("VendorBusinessLicense", fields: [businessLicenseId], references: [id])
+  vendorService   VendorService[]
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
-  banking         Banking?
-  companySchedule CompanySchedule?
+  banking         Banking[]
+  companySchedule CompanySchedule[]
 }
 
 model Rider {
   riderId         Int               @id @default(autoincrement())
   userMasterId    Int               @unique
-  logoId          Int
+  logoId          Int               @unique
   userMaster      UserMaster        @relation(fields: userMasterId, references: userMasterId)
   fullName        String
   companyName     String
   companyEmail    String
+  isBusy          Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
   description     String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
-  banking         Banking?
-  companySchedule CompanySchedule?
+  banking         Banking[]
+  companySchedule CompanySchedule[]
 }
 
 model UserAddress {
@@ -193,6 +196,7 @@ model UserAddress {
   riderId       Int?
   // User          Admin?    @relation(fields: [adminId], references: [id])
   adminId       Int?
+  isActive      Boolean   @default(true)
 }
 
 model Banking {
@@ -204,6 +208,7 @@ model Banking {
   riderId       Int?    @unique
   rider         Rider?  @relation(fields: [riderId], references: [riderId])
   vendor        Vendor? @relation(fields: [vendorId], references: [vendorId])
+  isDeleted     Boolean @default(false)
 }
 
 model CompanySchedule {
@@ -246,7 +251,7 @@ model Services {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @default(now()) @updatedAt
   isDeleted     Boolean         @default(false)
-  VendorService VendorService[]
+  vendorService VendorService[]
 }
 
 model Category {
@@ -381,8 +386,8 @@ model Media {
   // type            MediaType
   // access          MediaAccess
   size            Float?
-  location        String
-  key             String
+  location        String            @unique
+  key             String            @unique
   // status          MediaStatus       @default(UPLOADING)
   meta            Json?             @db.JsonB
   createdAt       DateTime          @default(now()) @db.Timestamptz()
@@ -390,9 +395,9 @@ model Media {
   deletedAt       DateTime?         @db.Timestamptz()
   BusinessLicense BusinessLicense[]
   WorkspaceImages WorkspaceImages[]
-  Vendor          Vendor[]
-  Rider           Rider[]
-  UserMaster      UserMaster[]
+  Vendor          Vendor?
+  Rider           Rider?
+  UserMaster      UserMaster?
   ServiceImage    ServiceImage[]
 }
 
@@ -404,6 +409,7 @@ model BusinessLicense {
   media          Media   @relation(fields: [mediaId], references: [id])
   vendor         Vendor? @relation(fields: [vendorVendorId], references: [vendorId])
   rider          Rider?  @relation(fields: [riderRiderId], references: [riderId])
+  isDeleted      Boolean @default(false)
 }
 
 model ServiceImage {
@@ -412,6 +418,7 @@ model ServiceImage {
   vendorServiceId Int?
   media           Media          @relation(fields: [mediaId], references: [id])
   vendorService   VendorService? @relation(fields: [vendorServiceId], references: [vendorServiceId])
+  isDeleted       Boolean        @default(false)
 }
 
 model WorkspaceImages {
@@ -422,4 +429,16 @@ model WorkspaceImages {
   media          Media   @relation(fields: [mediaId], references: [id])
   vendor         Vendor? @relation(fields: [vendorVendorId], references: [vendorId])
   rider          Rider?  @relation(fields: [riderRiderId], references: [riderId])
+  isDeleted      Boolean @default(false)
+}
+
+model Earnings {
+  id           Int         @id @default(autoincrement())
+  userMaster   UserMaster  @relation(fields: [userMasterId], references: [userMasterId])
+  userMasterId Int
+  status       Status      @default(PENDING)
+  jobType      JobType
+  serviceType  ServiceType
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now()) @updatedAt
 }

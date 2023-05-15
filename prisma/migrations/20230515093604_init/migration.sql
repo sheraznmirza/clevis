@@ -5,6 +5,9 @@ CREATE TYPE "UserType" AS ENUM ('CUSTOMER', 'VENDOR', 'ADMIN', 'RIDER');
 CREATE TYPE "ServiceType" AS ENUM ('CAR_WASH', 'LAUNDRY');
 
 -- CreateEnum
+CREATE TYPE "JobType" AS ENUM ('DELIVERY', 'PICKUP');
+
+-- CreateEnum
 CREATE TYPE "Status" AS ENUM ('APPROVED', 'PENDING', 'REJECTED');
 
 -- CreateEnum
@@ -64,7 +67,7 @@ CREATE TABLE "RefreshToken" (
 CREATE TABLE "Otp" (
     "otpId" TEXT NOT NULL,
     "userMasterId" INTEGER NOT NULL,
-    "otp" INTEGER NOT NULL,
+    "otp" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expired" BOOLEAN NOT NULL DEFAULT false,
 
@@ -100,6 +103,7 @@ CREATE TABLE "Vendor" (
     "serviceType" "ServiceType" NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
+    "isBusy" BOOLEAN NOT NULL DEFAULT false,
     "description" TEXT,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -114,6 +118,7 @@ CREATE TABLE "Rider" (
     "fullName" TEXT NOT NULL,
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
+    "isBusy" BOOLEAN NOT NULL DEFAULT false,
     "description" TEXT,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -134,6 +139,7 @@ CREATE TABLE "UserAddress" (
     "latitude" DOUBLE PRECISION,
     "riderId" INTEGER,
     "adminId" INTEGER,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "UserAddress_pkey" PRIMARY KEY ("userAddressId")
 );
@@ -146,6 +152,7 @@ CREATE TABLE "Banking" (
     "accountNumber" TEXT NOT NULL,
     "vendorId" INTEGER,
     "riderId" INTEGER,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Banking_pkey" PRIMARY KEY ("id")
 );
@@ -345,6 +352,7 @@ CREATE TABLE "BusinessLicense" (
     "vendorVendorId" INTEGER,
     "riderRiderId" INTEGER,
     "mediaId" INTEGER NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "BusinessLicense_pkey" PRIMARY KEY ("id")
 );
@@ -354,6 +362,7 @@ CREATE TABLE "ServiceImage" (
     "id" SERIAL NOT NULL,
     "mediaId" INTEGER NOT NULL,
     "vendorServiceId" INTEGER,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "ServiceImage_pkey" PRIMARY KEY ("id")
 );
@@ -364,9 +373,26 @@ CREATE TABLE "WorkspaceImages" (
     "mediaId" INTEGER NOT NULL,
     "vendorVendorId" INTEGER,
     "riderRiderId" INTEGER,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "WorkspaceImages_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateTable
+CREATE TABLE "Earnings" (
+    "id" SERIAL NOT NULL,
+    "userMasterId" INTEGER NOT NULL,
+    "status" "Status" NOT NULL DEFAULT 'PENDING',
+    "jobType" "JobType" NOT NULL,
+    "serviceType" "ServiceType" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Earnings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UserMaster_profilePictureId_key" ON "UserMaster"("profilePictureId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RefreshToken_refreshToken_key" ON "RefreshToken"("refreshToken");
@@ -387,7 +413,13 @@ CREATE UNIQUE INDEX "Customer_userMasterId_key" ON "Customer"("userMasterId");
 CREATE UNIQUE INDEX "Vendor_userMasterId_key" ON "Vendor"("userMasterId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Vendor_logoId_key" ON "Vendor"("logoId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Rider_userMasterId_key" ON "Rider"("userMasterId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Rider_logoId_key" ON "Rider"("logoId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Banking_vendorId_key" ON "Banking"("vendorId");
@@ -406,6 +438,12 @@ CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VendorService_serviceImageId_key" ON "VendorService"("serviceImageId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Media_location_key" ON "Media"("location");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Media_key_key" ON "Media"("key");
 
 -- AddForeignKey
 ALTER TABLE "UserMaster" ADD CONSTRAINT "UserMaster_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -526,3 +564,6 @@ ALTER TABLE "WorkspaceImages" ADD CONSTRAINT "WorkspaceImages_vendorVendorId_fke
 
 -- AddForeignKey
 ALTER TABLE "WorkspaceImages" ADD CONSTRAINT "WorkspaceImages_riderRiderId_fkey" FOREIGN KEY ("riderRiderId") REFERENCES "Rider"("riderId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Earnings" ADD CONSTRAINT "Earnings_userMasterId_fkey" FOREIGN KEY ("userMasterId") REFERENCES "UserMaster"("userMasterId") ON DELETE RESTRICT ON UPDATE CASCADE;
