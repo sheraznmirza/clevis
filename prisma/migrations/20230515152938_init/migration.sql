@@ -163,6 +163,7 @@ CREATE TABLE "CompanySchedule" (
     "vendorId" INTEGER,
     "riderId" INTEGER,
     "day" "Days" NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "startTime" TIMESTAMP(3) NOT NULL,
     "endTime" TIMESTAMP(3) NOT NULL,
 
@@ -428,22 +429,10 @@ CREATE UNIQUE INDEX "Banking_vendorId_key" ON "Banking"("vendorId");
 CREATE UNIQUE INDEX "Banking_riderId_key" ON "Banking"("riderId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CompanySchedule_vendorId_key" ON "CompanySchedule"("vendorId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CompanySchedule_riderId_key" ON "CompanySchedule"("riderId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VendorService_serviceImageId_key" ON "VendorService"("serviceImageId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Media_location_key" ON "Media"("location");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Media_key_key" ON "Media"("key");
 
 -- AddForeignKey
 ALTER TABLE "UserMaster" ADD CONSTRAINT "UserMaster_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

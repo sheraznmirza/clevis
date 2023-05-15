@@ -212,7 +212,7 @@ export class MailService {
     context: any,
   ) {
     try {
-      await this.mailerService.sendMail({
+      this.mailerService.sendMail({
         to,
         from,
         subject: `${this.config.get('APP_NAME')} - ${subject}`,

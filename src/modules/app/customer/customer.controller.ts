@@ -1,10 +1,12 @@
 import {
   Controller,
+  Post,
   Get,
   UseGuards,
   Query,
   Param,
   Patch,
+  Delete,
   Body,
 } from '@nestjs/common';
 import { GetUser } from '../auth/decorator';
@@ -13,13 +15,12 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   CustomerListingParams,
   CustomerVendorListingParams,
-  ListingParams,
 } from '../../../core/dto';
 import { CustomerService } from './customer.service';
 import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { UserType } from '@prisma/client';
-import { UpdateCustomerDto } from './dto';
+import { UpdateCustomerDto, VendorLocationDto } from './dto';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Customers')
@@ -38,6 +39,12 @@ export class CustomerController {
     return this.customerService.getCustomerById(customerId);
   }
 
+  @Authorized(UserType.ADMIN)
+  @Patch('/byId/:userMasterId')
+  updateCustomer(@GetUser() user, dto: UpdateCustomerDto) {
+    return this.customerService.updateCustomer(user.userMasterId, dto);
+  }
+
   @Authorized(UserType.CUSTOMER)
   @Patch('me')
   updateMe(@GetUser() user, dto: UpdateCustomerDto) {
@@ -45,14 +52,23 @@ export class CustomerController {
   }
 
   @Authorized(UserType.CUSTOMER)
-  @Get('vendors')
-  getVendors(@Query() listingParams: CustomerVendorListingParams) {
-    return this.customerService.getVendorsByLocation(listingParams);
+  @Post('vendors')
+  getVendors(
+    @Query() listingParams: CustomerVendorListingParams,
+    @Body() dto: VendorLocationDto,
+  ) {
+    return this.customerService.getVendorsByLocation(listingParams, dto);
   }
 
   @Authorized(UserType.ADMIN)
   @Get()
   getAllCustomers(@Query() listingParams: CustomerListingParams) {
     return this.customerService.getAllCustomers(listingParams);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Delete('/:userMasterId')
+  deleteCustomer(@Param('userMasterId') userMasterId: number) {
+    return this.customerService.deleteCustomer(userMasterId);
   }
 }

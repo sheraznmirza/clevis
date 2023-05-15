@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import {
   UpdateVendorDto,
+  UpdateVendorScheduleDto,
   VendorCreateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
@@ -16,6 +17,7 @@ import {
   VendorRiderByIdParams,
 } from 'src/core/dto';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
+import { setAlwaysOpen } from 'src/helpers/alwaysOpen.helper';
 
 @Injectable()
 export class VendorService {
@@ -77,6 +79,17 @@ export class VendorService {
   async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
     try {
       return await this.repository.updateVendor(userMasterId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateVendorSchedule(vendorId: number, dto: UpdateVendorScheduleDto) {
+    try {
+      if (dto.alwaysOpen) {
+        dto.schedule = setAlwaysOpen(dto.schedule);
+      }
+      return await this.repository.updateVendorSchedule(vendorId, dto);
     } catch (error) {
       throw error;
     }

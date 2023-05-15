@@ -20,6 +20,7 @@ import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import {
   UpdateVendorDto,
+  UpdateVendorScheduleDto,
   VendorCreateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
@@ -78,6 +79,13 @@ export class VendorController {
     @Body() dto: UpdateVendorDto,
   ) {
     return this.vendorService.updateVendor(userMasterId, dto);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/schedule')
+  updateVendorSchedule(@GetUser() user, @Body() dto: UpdateVendorScheduleDto) {
+    return this.vendorService.updateVendorSchedule(user.vendorId, dto);
   }
 
   @Authorized([UserType.ADMIN, UserType.CUSTOMER])
