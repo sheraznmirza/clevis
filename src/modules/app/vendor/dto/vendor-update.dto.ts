@@ -66,6 +66,11 @@ export class UpdateVendorDto {
   description: string;
 
   @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  bankingId: number;
+
+  @ApiProperty()
   @IsString()
   @IsOptional()
   bankName: string;

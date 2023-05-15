@@ -30,6 +30,7 @@ import {
   VendorSignUpDto,
   VerifyOtpDto,
 } from './dto';
+import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 
 @Injectable()
 export class AuthService {
@@ -179,13 +180,6 @@ export class AuthService {
                   name: dto.logo.name,
                 },
               },
-              // workspaceImages: {
-              //   createMany: {
-              //     data: dto.workspaceImages,
-              //   },
-              // },
-              // workspaceImages: dto.workspaceImages,
-              // businessLicense: dto.businessLicense,
               description: dto.description,
               serviceType: dto.serviceType,
               userAddress: {
@@ -194,6 +188,11 @@ export class AuthService {
                   cityId: dto.cityId,
                 },
               },
+              // companySchedule: {
+              //   createMany: {
+              //     data: []
+              //   }
+              // }
             },
           },
         },
@@ -248,7 +247,6 @@ export class AuthService {
         message: 'message',
         type: 'VendorCreated',
       };
-
       await this.notification.createNotification(payload);
       return successResponse(
         201,
@@ -783,7 +781,7 @@ export class AuthService {
 
       const context = {
         pp_name: this.config.get('APP_NAME'),
-        app_url: this.config.get('APP_URL'),
+        app_url: this.config.get(dynamicUrl(user.userType)),
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
         randomOtp,
       };
@@ -870,7 +868,7 @@ export class AuthService {
         if (user.userType === UserType.RIDER || UserType.VENDOR) {
           const context = {
             app_name: this.config.get('APP_NAME'),
-            app_url: `${this.config.get('APP_URL')}`,
+            app_url: `${this.config.get(dynamicUrl(user.userType))}`,
             first_name: user[user.userType.toLowerCase()].fullName,
             message: `${`${
               user[user.userType.toLowerCase()].fullName
@@ -1145,7 +1143,9 @@ export class AuthService {
 
     const context = {
       app_name: this.config.get('APP_NAME'),
-      app_url: `${this.config.get('APP_URL')}/auth/verify-email/${encrypted}`,
+      app_url: `${this.config.get(
+        dynamicUrl(userType),
+      )}/auth/verify-email/${encrypted}`,
       first_name: user[userType.toLowerCase()].fullName,
       copyright_year: this.config.get('COPYRIGHT_YEAR'),
     };

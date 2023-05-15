@@ -15,6 +15,7 @@ import {
   VendorListingParams,
   VendorRiderByIdParams,
 } from 'src/core/dto';
+import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 
 @Injectable()
 export class VendorService {
@@ -46,7 +47,7 @@ export class VendorService {
 
       const context = {
         app_name: this.config.get('APP_NAME'),
-        app_url: `${this.config.get('APP_URL')}`,
+        app_url: `${this.config.get(dynamicUrl(vendor.userType))}`,
         first_name: vendor.fullName,
         message:
           vendor.status === Status.APPROVED

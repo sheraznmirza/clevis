@@ -98,12 +98,34 @@ export class VendorRepository {
                 dto.companyName !== null ? dto.companyName : undefined,
               companyEmail:
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
-              userAddress: {
-                ...(dto.userAddressId &&
-                  dto.fullAddress &&
-                  dto.cityId &&
-                  dto.longitude &&
-                  dto.latitude && {
+              // userAddress: {
+              //   ...(dto.userAddressId &&
+              //     dto.fullAddress &&
+              //     dto.cityId &&
+              //     dto.longitude &&
+              //     dto.latitude && {
+              //       update: {
+              //         where: {
+              //           userAddressId: dto.userAddressId,
+              //         },
+              //         data: {
+              //           isDeleted: true,
+              //         },
+              //       },
+              //       create: {
+              //         fullAddress: dto.fullAddress,
+              //         cityId: dto.cityId,
+              //         latitude: dto.latitude,
+              //         longitude: dto.longitude,
+              //       },
+              //     }),
+              // },
+              ...(dto.userAddressId &&
+                dto.fullAddress &&
+                dto.cityId &&
+                dto.longitude &&
+                dto.latitude && {
+                  userAddress: {
                     update: {
                       where: {
                         userAddressId: dto.userAddressId,
@@ -118,8 +140,35 @@ export class VendorRepository {
                       latitude: dto.latitude,
                       longitude: dto.longitude,
                     },
-                  }),
-              },
+                  },
+                }),
+              ...(dto.bankingId &&
+                dto.accountNumber &&
+                dto.accountTitle &&
+                dto.bankName && {
+                  banking: {
+                    update: {
+                      where: {
+                        id: dto.bankingId,
+                      },
+                      data: {
+                        isDeleted: true,
+                      },
+                    },
+                    create: {
+                      accountTitle:
+                        dto.accountTitle !== null
+                          ? dto.accountTitle
+                          : undefined,
+                      accountNumber:
+                        dto.accountNumber !== null
+                          ? dto.accountNumber
+                          : undefined,
+                      bankName:
+                        dto.bankName !== null ? dto.bankName : undefined,
+                    },
+                  },
+                }),
             },
           },
         },

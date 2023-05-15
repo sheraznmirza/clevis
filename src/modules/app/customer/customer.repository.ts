@@ -261,11 +261,14 @@ export class CustomerRepository {
       const vendors = await this.prisma
         .$queryRaw`select * from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
         listingParams.serviceType
+      } ${
+        search ? `AND "public"."Vendor"."companyName" = '${search}'` : ''
       } ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
         listingParams.longitude,
       )}, ${Number(listingParams.latitude)}))) ASC Limit ${BigInt(
         take,
       )} offset ${(Number(page) - 1) * Number(take)}`;
+
       return vendors;
     } catch (error) {
       debugger;

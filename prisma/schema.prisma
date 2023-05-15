@@ -156,7 +156,7 @@ model Vendor {
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
   banking         Banking[]
-  companySchedule CompanySchedule?
+  companySchedule CompanySchedule[]
 }
 
 model Rider {
@@ -175,7 +175,7 @@ model Rider {
   businessLicense BusinessLicense[]
   workspaceImages WorkspaceImages[]
   banking         Banking[]
-  companySchedule CompanySchedule?
+  companySchedule CompanySchedule[]
 }
 
 model UserAddress {

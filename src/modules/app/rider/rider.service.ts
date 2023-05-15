@@ -11,6 +11,7 @@ import {
 import { Rider, Status } from '@prisma/client';
 import { VendorListingParams } from 'src/core/dto';
 import { ConfigService } from '@nestjs/config';
+import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 
 @Injectable()
 export class RiderService {
@@ -26,7 +27,7 @@ export class RiderService {
 
       const context = {
         app_name: this.config.get('APP_NAME'),
-        app_url: `${this.config.get('APP_URL')}`,
+        app_url: `${this.config.get(dynamicUrl(rider.userType))}`,
         first_name: rider.fullName,
         message:
           rider.status === Status.APPROVED
