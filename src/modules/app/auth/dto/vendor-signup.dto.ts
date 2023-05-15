@@ -72,11 +72,11 @@ export class VendorSignUpDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
   description: string;
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   cityId: number;
 
   @ApiProperty()

@@ -37,14 +37,16 @@ export class ListingParams {
     description: 'Listing parameters Page Number',
   })
   @IsOptional()
-  page?: number;
+  @IsString()
+  page?: string;
 
   @ApiProperty({
     required: false,
     description: 'Listing parameters Per Page Limit',
   })
   @IsOptional()
-  take?: number;
+  @IsString()
+  take?: string;
 
   @ApiProperty({
     required: false,
@@ -103,6 +105,26 @@ export class VendorListingParams extends ListingParams {
   columnName?: VendorColumns;
 }
 
+export class RiderListingParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'Enum for status of the vendor',
+    enum: Status,
+  })
+  @IsOptional()
+  @IsEnum(Status)
+  status?: Status;
+
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective column you want to order',
+    enum: VendorColumns,
+  })
+  @IsOptional()
+  @IsEnum(VendorColumns)
+  columnName?: VendorColumns;
+}
+
 export class VendorRiderByIdParams {
   @ApiProperty({
     required: false,
@@ -112,4 +134,41 @@ export class VendorRiderByIdParams {
   @IsOptional()
   @IsEnum(RiderVendorTabs)
   tabName: RiderVendorTabs;
+}
+
+export class CustomerVendorListingParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'The longitude',
+  })
+  @IsString()
+  @IsOptional()
+  longitude: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'The latitude',
+  })
+  @IsString()
+  @IsOptional()
+  latitude: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective service type.',
+    enum: ServiceType,
+  })
+  @IsOptional()
+  @IsEnum(ServiceType)
+  serviceType: ServiceType;
+}
+export class ServiceCategorySubCategoryListingParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective service type you want to order',
+    enum: ServiceType,
+  })
+  @IsOptional()
+  @IsEnum(ServiceType)
+  serviceType: ServiceType;
 }

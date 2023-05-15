@@ -4,3 +4,9 @@ export const successResponse = (statusCode: number, message: string) => {
     message,
   };
 };
+
+// export const errorResponse = (error : prismaerr) = {
+//   return {
+//     error.code
+//   }
+// }

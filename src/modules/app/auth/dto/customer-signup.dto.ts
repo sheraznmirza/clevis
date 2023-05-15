@@ -33,5 +33,6 @@ export class CustomerSignUpDto {
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   cityId: number;
 }

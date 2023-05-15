@@ -16,7 +16,7 @@ import { UserType } from '@prisma/client';
 import { Authorized, Roles } from '../../../core/decorators';
 import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from '../../../core/dto';
+import { ServiceCategorySubCategoryListingParams } from '../../../core/dto';
 
 @ApiTags('Subcategory')
 @Controller('subcategory')
@@ -44,7 +44,9 @@ export class SubcategoryController {
 
   @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get()
-  getAllSubcategory(@Query() listingParams: ListingParams) {
+  getAllSubcategory(
+    @Query() listingParams: ServiceCategorySubCategoryListingParams,
+  ) {
     return this.subcategoryService.getAllSubcategory(listingParams);
   }
 
