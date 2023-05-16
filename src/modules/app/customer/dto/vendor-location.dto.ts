@@ -76,7 +76,7 @@ export class VendorLocationDto extends ListingParams {
   // currentDay: Days;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsDate()
-  currentDay: Date;
+  @IsOptional()
+  @IsString()
+  currentDay: string;
 }
