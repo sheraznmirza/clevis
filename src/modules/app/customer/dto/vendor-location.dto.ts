@@ -9,7 +9,8 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { Days } from '@prisma/client';
+import { Days, ServiceType } from '@prisma/client';
+import { ListingParams } from 'src/core/dto';
 
 class ServiceNames {
   @ApiProperty()
@@ -22,7 +23,40 @@ class ServiceNames {
   @IsOptional()
   serviceName: string;
 }
-export class VendorLocationDto {
+export class VendorLocationDto extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'The longitude',
+  })
+  @IsString()
+  @IsOptional()
+  longitude: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'The latitude',
+  })
+  @IsString()
+  @IsOptional()
+  latitude: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'The distance radius',
+  })
+  @IsString()
+  @IsOptional()
+  distance: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective service type.',
+    enum: ServiceType,
+  })
+  @IsOptional()
+  @IsEnum(ServiceType)
+  serviceType: ServiceType;
+
   @ApiProperty({
     isArray: true,
     type: ServiceNames,

@@ -4,9 +4,8 @@ import { PrismaService } from '../../../modules/prisma/prisma.service';
 import {
   CustomerListingParams,
   CustomerVendorListingParams,
-  ListingParams,
 } from '../../../core/dto';
-import { Media, ServiceType, UserType } from '@prisma/client';
+import { Media, UserType } from '@prisma/client';
 import { UpdateCustomerDto, VendorLocationDto } from './dto';
 import { successResponse } from 'src/helpers/response.helper';
 
