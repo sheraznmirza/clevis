@@ -45,7 +45,7 @@ export class ServiceController {
     return this.serviceService.getService(id);
   }
 
-  @Authorized([UserType.ADMIN, UserType.VENDOR])
+  @Authorized([UserType.ADMIN, UserType.VENDOR, UserType.CUSTOMER])
   @Get()
   getAllService(
     @Query() listingParams: ServiceCategorySubCategoryListingParams,
