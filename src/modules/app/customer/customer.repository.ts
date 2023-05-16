@@ -273,12 +273,8 @@ export class CustomerRepository {
   ) {
     const { page = 1, take = 10, search, distance = 500 } = listingParams;
     try {
-      const vendors = await this.prisma
-        .$queryRaw`select *, ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
-        listingParams.longitude,
-      )}, ${Number(
-        listingParams.latitude,
-      )}))) from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
+      const vendors: Array<{ vendorId: number }> = await this.prisma
+        .$queryRaw`select "public"."Vendor"."vendorId" from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
         listingParams.serviceType
       } where ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
         listingParams.longitude,
@@ -289,7 +285,62 @@ export class CustomerRepository {
         take,
       )} offset ${(Number(page) - 1) * Number(take)}`;
 
-      return vendors;
+      const vendorIds = vendors.map((vendor) => vendor.vendorId);
+
+      const result = await this.prisma.userMaster.findMany({
+        where: {
+          isDeleted: false,
+          isActive: true,
+
+          vendor: {
+            vendorId: {
+              in: vendorIds,
+            },
+
+            companySchedule: {
+              // every: {
+              //   startTime: {
+              //     gte:
+              //   }
+              // }
+            },
+            ...(search && {
+              companyName: {
+                contains: search,
+              },
+            }),
+            // ...(dto.services && {
+            //   vendorService: {
+            //     every: {
+            //       service: {
+            //         serviceName: {
+            //           equals: dto.services,
+            //         },
+            //       },
+            //     },
+            //   },
+            // }),
+          },
+        },
+        select: {
+          userMasterId: true,
+          vendor: {
+            select: {
+              fullName: true,
+              companyName: true,
+              logo: {
+                select: {
+                  key: true,
+                  id: true,
+                  name: true,
+                  location: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return result;
     } catch (error) {
       debugger;
       throw error;
