@@ -41,13 +41,16 @@ export class CustomerController {
 
   @Authorized(UserType.ADMIN)
   @Patch('/byId/:userMasterId')
-  updateCustomer(@GetUser() user, dto: UpdateCustomerDto) {
-    return this.customerService.updateCustomer(user.userMasterId, dto);
+  updateCustomer(
+    @Param('userMasterId') userMasterId: number,
+    @Body() dto: UpdateCustomerDto,
+  ) {
+    return this.customerService.updateCustomer(userMasterId, dto);
   }
 
   @Authorized(UserType.CUSTOMER)
   @Patch('me')
-  updateMe(@GetUser() user, dto: UpdateCustomerDto) {
+  updateMe(@GetUser() user, @Body() dto: UpdateCustomerDto) {
     return this.customerService.updateCustomer(user.userMasterId, dto);
   }
 

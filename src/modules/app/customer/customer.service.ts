@@ -7,6 +7,7 @@ import {
 } from '../../../core/dto';
 import { CustomerRepository } from './customer.repository';
 import { UpdateCustomerDto, VendorLocationDto } from './dto';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class CustomerService {
@@ -49,6 +50,8 @@ export class CustomerService {
     dto: VendorLocationDto,
   ) {
     try {
+      const day = dayjs(dto.currentDay).day();
+      console.log('the day: ', day);
       return await this.repository.getVendorsByLocation(listingParams, dto);
     } catch (error) {
       throw error;

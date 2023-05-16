@@ -4,9 +4,8 @@ import { PrismaService } from '../../../modules/prisma/prisma.service';
 import {
   CustomerListingParams,
   CustomerVendorListingParams,
-  ListingParams,
 } from '../../../core/dto';
-import { Media, ServiceType, UserType } from '@prisma/client';
+import { Media, UserType } from '@prisma/client';
 import { UpdateCustomerDto, VendorLocationDto } from './dto';
 import { successResponse } from 'src/helpers/response.helper';
 
@@ -178,13 +177,13 @@ export class CustomerRepository {
         });
       }
 
-      return await this.prisma.userMaster.update({
+      const customer = await this.prisma.userMaster.update({
         where: {
           userMasterId: userMasterId,
         },
         data: {
           phone: dto.phone !== null ? dto.phone : undefined,
-          profilePictureId: media.id ? media.id : undefined,
+          profilePictureId: media ? media.id : undefined,
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
@@ -262,6 +261,10 @@ export class CustomerRepository {
           },
         },
       });
+      return {
+        ...successResponse(200, 'Customer updated successfully.'),
+        ...customer,
+      };
     } catch (error) {
       throw error;
     }
@@ -273,12 +276,8 @@ export class CustomerRepository {
   ) {
     const { page = 1, take = 10, search, distance = 500 } = listingParams;
     try {
-      const vendors = await this.prisma
-        .$queryRaw`select *, ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
-        listingParams.longitude,
-      )}, ${Number(
-        listingParams.latitude,
-      )}))) from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
+      const vendors: Array<{ vendorId: number }> = await this.prisma
+        .$queryRaw`select "public"."Vendor"."vendorId" from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
         listingParams.serviceType
       } where ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
         listingParams.longitude,
@@ -289,7 +288,67 @@ export class CustomerRepository {
         take,
       )} offset ${(Number(page) - 1) * Number(take)}`;
 
-      return vendors;
+      const vendorIds = vendors.map((vendor) => vendor.vendorId);
+
+      const result = await this.prisma.userMaster.findMany({
+        where: {
+          isDeleted: false,
+          isActive: true,
+
+          vendor: {
+            AND: [
+              {
+                vendorId: {
+                  in: vendorIds,
+                },
+              },
+              {},
+            ],
+
+            companySchedule: {
+              // every: {
+              //   startTime: {
+              //     gte:Wit
+              //   }
+              // }
+            },
+            ...(search && {
+              companyName: {
+                contains: search,
+              },
+            }),
+            // ...(dto.services && {
+            //   vendorService: {
+            //     every: {
+            //       service: {
+            //         serviceName: {
+            //           equals: dto.services,
+            //         },
+            //       },
+            //     },
+            //   },
+            // }),
+          },
+        },
+        select: {
+          userMasterId: true,
+          vendor: {
+            select: {
+              fullName: true,
+              companyName: true,
+              logo: {
+                select: {
+                  key: true,
+                  id: true,
+                  name: true,
+                  location: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return result;
     } catch (error) {
       debugger;
       throw error;
