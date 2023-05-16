@@ -454,19 +454,23 @@ export class RiderRepository {
               description:
                 dto.description !== null ? dto.description : undefined,
 
-              ...(dto.bankingId &&
-                dto.accountNumber &&
+              ...(dto.bankingId && {
+                banking: {
+                  update: {
+                    where: {
+                      id: dto.bankingId,
+                    },
+                    data: {
+                      isDeleted: true,
+                    },
+                  },
+                },
+              }),
+
+              ...(dto.accountNumber &&
                 dto.accountTitle &&
                 dto.bankName && {
                   banking: {
-                    update: {
-                      where: {
-                        id: dto.bankingId,
-                      },
-                      data: {
-                        isDeleted: true,
-                      },
-                    },
                     create: {
                       accountTitle:
                         dto.accountTitle !== null
@@ -482,28 +486,31 @@ export class RiderRepository {
                   },
                 }),
 
-              userAddress: {
-                ...(dto.userAddressId &&
-                  dto.fullAddress &&
-                  dto.cityId &&
-                  dto.longitude &&
-                  dto.latitude && {
-                    update: {
-                      where: {
-                        userAddressId: dto.userAddressId,
-                      },
-                      data: {
-                        isDeleted: true,
-                      },
+              ...(dto.userAddressId && {
+                userAddress: {
+                  update: {
+                    where: {
+                      userAddressId: dto.userAddressId,
                     },
+                    data: {
+                      isDeleted: true,
+                    },
+                  },
+                },
+              }),
+              ...(dto.fullAddress &&
+                dto.cityId &&
+                dto.longitude &&
+                dto.latitude && {
+                  userAddress: {
                     create: {
                       fullAddress: dto.fullAddress,
                       cityId: dto.cityId,
                       latitude: dto.latitude,
                       longitude: dto.longitude,
                     },
-                  }),
-              },
+                  },
+                }),
             },
           },
         },
@@ -555,6 +562,9 @@ export class RiderRepository {
               fullName: true,
               companyName: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {

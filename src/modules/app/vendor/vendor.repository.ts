@@ -132,20 +132,23 @@ export class VendorRepository {
               //       },
               //     }),
               // },
-              ...(dto.userAddressId &&
-                dto.fullAddress &&
+              ...(dto.userAddressId && {
+                userAddress: {
+                  update: {
+                    where: {
+                      userAddressId: dto.userAddressId,
+                    },
+                    data: {
+                      isDeleted: true,
+                    },
+                  },
+                },
+              }),
+              ...(dto.fullAddress &&
                 dto.cityId &&
                 dto.longitude &&
                 dto.latitude && {
                   userAddress: {
-                    update: {
-                      where: {
-                        userAddressId: dto.userAddressId,
-                      },
-                      data: {
-                        isDeleted: true,
-                      },
-                    },
                     create: {
                       fullAddress: dto.fullAddress,
                       cityId: dto.cityId,
@@ -154,19 +157,23 @@ export class VendorRepository {
                     },
                   },
                 }),
-              ...(dto.bankingId &&
-                dto.accountNumber &&
+
+              ...(dto.bankingId && {
+                banking: {
+                  update: {
+                    where: {
+                      id: dto.bankingId,
+                    },
+                    data: {
+                      isDeleted: true,
+                    },
+                  },
+                },
+              }),
+              ...(dto.accountNumber &&
                 dto.accountTitle &&
                 dto.bankName && {
                   banking: {
-                    update: {
-                      where: {
-                        id: dto.bankingId,
-                      },
-                      data: {
-                        isDeleted: true,
-                      },
-                    },
                     create: {
                       accountTitle:
                         dto.accountTitle !== null
@@ -251,6 +258,9 @@ export class VendorRepository {
               companyName: true,
               serviceType: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {
