@@ -45,14 +45,9 @@ export class CustomerService {
     }
   }
 
-  async getVendorsByLocation(
-    listingParams: CustomerVendorListingParams,
-    dto: VendorLocationDto,
-  ) {
+  async getVendorsByLocation(dto: VendorLocationDto) {
     try {
-      const day = dayjs(dto.currentDay).day();
-      console.log('the day: ', day);
-      return await this.repository.getVendorsByLocation(listingParams, dto);
+      return await this.repository.getVendorsByLocation(dto);
     } catch (error) {
       throw error;
     }

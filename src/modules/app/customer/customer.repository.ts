@@ -270,23 +270,20 @@ export class CustomerRepository {
     }
   }
 
-  async getVendorsByLocation(
-    listingParams: CustomerVendorListingParams,
-    dto: VendorLocationDto,
-  ) {
-    const { page = 1, take = 10, search, distance = 500 } = listingParams;
+  async getVendorsByLocation(dto: VendorLocationDto) {
+    const { page = 1, take = 10, search, distance = 500 } = dto;
     try {
       const vendors: Array<{ vendorId: number }> = await this.prisma
         .$queryRaw`select "public"."Vendor"."vendorId" from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
-        listingParams.serviceType
+        dto.serviceType
       } where ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
-        listingParams.longitude,
-      )}, ${Number(listingParams.latitude)}))) < ${+distance}
+        dto.longitude,
+      )}, ${Number(dto.latitude)}))) < ${+distance}
         ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
-          listingParams.longitude,
-        )}, ${Number(listingParams.latitude)}))) ASC Limit ${BigInt(
-        take,
-      )} offset ${(Number(page) - 1) * Number(take)}`;
+          dto.longitude,
+        )}, ${Number(dto.latitude)}))) ASC Limit ${BigInt(take)} offset ${
+        (Number(page) - 1) * Number(take)
+      }`;
 
       const vendorIds = vendors.map((vendor) => vendor.vendorId);
 
