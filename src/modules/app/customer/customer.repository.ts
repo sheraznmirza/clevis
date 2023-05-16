@@ -178,13 +178,13 @@ export class CustomerRepository {
         });
       }
 
-      return await this.prisma.userMaster.update({
+      const customer = await this.prisma.userMaster.update({
         where: {
           userMasterId: userMasterId,
         },
         data: {
           phone: dto.phone !== null ? dto.phone : undefined,
-          profilePictureId: media.id ? media.id : undefined,
+          profilePictureId: media ? media.id : undefined,
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
@@ -262,6 +262,10 @@ export class CustomerRepository {
           },
         },
       });
+      return {
+        ...successResponse(200, 'Customer updated successfully.'),
+        ...customer,
+      };
     } catch (error) {
       throw error;
     }
@@ -293,14 +297,19 @@ export class CustomerRepository {
           isActive: true,
 
           vendor: {
-            vendorId: {
-              in: vendorIds,
-            },
+            AND: [
+              {
+                vendorId: {
+                  in: vendorIds,
+                },
+              },
+              {},
+            ],
 
             companySchedule: {
               // every: {
               //   startTime: {
-              //     gte:
+              //     gte:Wit
               //   }
               // }
             },
