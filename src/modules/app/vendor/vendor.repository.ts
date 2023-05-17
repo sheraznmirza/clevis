@@ -74,7 +74,6 @@ export class VendorRepository {
 
   async updateVendorSchedule(vendorId: number, dto: UpdateVendorScheduleDto) {
     try {
-      console.log('dto: ', dto.companySchedule);
       dto.companySchedule.forEach(async (element) => {
         await this.prisma.companySchedule.update({
           where: {
@@ -116,6 +115,7 @@ export class VendorRepository {
   async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
     try {
       let profilePicture: Media;
+      let logo: Media;
 
       if (dto.profilePicture) {
         profilePicture = await this.prisma.media.create({
@@ -123,6 +123,16 @@ export class VendorRepository {
             name: dto.profilePicture.name,
             key: dto.profilePicture.key,
             location: dto.profilePicture.location,
+          },
+        });
+      }
+
+      if (dto.logo) {
+        logo = await this.prisma.media.create({
+          data: {
+            name: dto.logo.name,
+            key: dto.logo.key,
+            location: dto.logo.location,
           },
         });
       }
@@ -164,6 +174,7 @@ export class VendorRepository {
                 dto.companyName !== null ? dto.companyName : undefined,
               companyEmail:
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
+              logoId: logo ? logo.id : undefined,
 
               ...(dto.fullAddress &&
                 dto.cityId &&
@@ -578,6 +589,9 @@ export class VendorRepository {
             select: {
               vendorId: true,
               companySchedule: {
+                orderBy: {
+                  id: 'asc',
+                },
                 select: {
                   id: true,
                   day: true,

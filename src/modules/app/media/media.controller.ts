@@ -119,6 +119,6 @@ export class MediaController {
   ])
   @Delete('/:mediaId')
   deleteMedia(@Param('mediaId') mediaId: number) {
-    //   return this.mediaService.deleteMedia(mediaId);
+    return this.mediaService.deleteMedia(mediaId);
   }
 }

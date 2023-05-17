@@ -384,16 +384,14 @@ model Media {
   id              Int               @id @default(autoincrement())
   name            String
   extension       String?
-  // type            MediaType
-  // access          MediaAccess
   size            Float?
   location        String
   key             String
-  // status          MediaStatus       @default(UPLOADING)
   meta            Json?             @db.JsonB
   createdAt       DateTime          @default(now()) @db.Timestamptz()
   updatedAt       DateTime          @default(now()) @updatedAt @db.Timestamptz()
   deletedAt       DateTime?         @db.Timestamptz()
+  isDeleted       Boolean           @default(false)
   BusinessLicense BusinessLicense[]
   WorkspaceImages WorkspaceImages[]
   Vendor          Vendor?

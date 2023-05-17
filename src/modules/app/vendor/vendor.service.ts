@@ -93,11 +93,8 @@ export class VendorService {
       if (dto.alwaysOpen) {
         dto.companySchedule = setAlwaysOpen(dto.companySchedule);
       } else {
-        console.log('I am here: ', dto);
         if (dto.companySchedule) {
-          console.log('am I in dto companySchedule');
           const isValid = dto.companySchedule.every((day) => {
-            console.log(dayjs(day.endTime).isValid());
             return (
               dayjs(day.endTime).isValid() && dayjs(day.startTime).isValid()
             );

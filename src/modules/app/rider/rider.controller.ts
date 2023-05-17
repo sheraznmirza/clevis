@@ -60,7 +60,7 @@ export class RiderController {
 
   @Authorized(UserType.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @Patch('/:userMasterId')
+  @Patch('/byId/:userMasterId')
   updateRider(
     @Param('userMasterId') userMasterId: number,
     @Body() dto: RiderUpdateDto,
@@ -68,7 +68,7 @@ export class RiderController {
     return this.riderService.updateRider(userMasterId, dto);
   }
 
-  @Authorized(UserType.VENDOR)
+  @Authorized(UserType.RIDER)
   @HttpCode(HttpStatus.OK)
   @Patch('/schedule')
   updateRiderSchedule(@GetUser() user, @Body() dto: UpdateRiderScheduleDto) {

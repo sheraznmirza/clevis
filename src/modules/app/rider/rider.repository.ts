@@ -192,6 +192,9 @@ export class RiderRepository {
             select: {
               riderId: true,
               companySchedule: {
+                orderBy: {
+                  id: 'asc',
+                },
                 select: {
                   id: true,
                   day: true,
@@ -478,6 +481,7 @@ export class RiderRepository {
   async updateRider(userMasterId: number, dto: RiderUpdateDto) {
     try {
       let profilePicture: Media;
+      let logo: Media;
 
       if (dto.profilePicture) {
         profilePicture = await this.prisma.media.create({
@@ -485,6 +489,16 @@ export class RiderRepository {
             name: dto.profilePicture.name,
             key: dto.profilePicture.key,
             location: dto.profilePicture.location,
+          },
+        });
+      }
+
+      if (dto.logo) {
+        logo = await this.prisma.media.create({
+          data: {
+            name: dto.logo.name,
+            key: dto.logo.key,
+            location: dto.logo.location,
           },
         });
       }
@@ -528,6 +542,7 @@ export class RiderRepository {
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
               description:
                 dto.description !== null ? dto.description : undefined,
+              logoId: logo ? logo.id : undefined,
 
               ...(dto.accountNumber &&
                 dto.accountTitle &&
