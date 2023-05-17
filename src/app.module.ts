@@ -15,6 +15,7 @@ import { RouteModule } from './modules/app/route/route.module';
 import { NotificationModule } from './modules/app/notification/notification.module';
 import { MailModule } from './modules/mail/mail.module';
 import { RiderModule } from './modules/app/rider/rider.module';
+import MediaModule from './modules/app/media/media.module';
 // import DatabaseModule from './database/database.module';
 
 @Module({
@@ -27,7 +28,7 @@ import { RiderModule } from './modules/app/rider/rider.module';
     ServiceModule,
     CategoryModule,
     SubcategoryModule,
-    // MediaModule,
+    MediaModule,
     MailModule,
     AddressModule,
     VendorModule,

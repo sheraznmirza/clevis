@@ -17,7 +17,11 @@ import {
   VendorRiderByIdParams,
 } from 'src/core/dto';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
-import { setAlwaysOpen } from 'src/helpers/alwaysOpen.helper';
+import {
+  convertDateTimeToTimeString,
+  setAlwaysOpen,
+} from 'src/helpers/alwaysOpen.helper';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class VendorService {
@@ -88,7 +92,25 @@ export class VendorService {
     try {
       if (dto.alwaysOpen) {
         dto.schedule = setAlwaysOpen(dto.schedule);
+      } else {
+        if (dto.schedule) {
+          const isValid = dto.schedule.every((day) => {
+            console.log(dayjs(day.endTime).isValid());
+            return (
+              dayjs(day.endTime).isValid() && dayjs(day.startTime).isValid()
+            );
+          });
+
+          if (!isValid) {
+            throw new BadRequestException(
+              'Please provide valid start and end times for the schedule.',
+            );
+          }
+
+          console.log('isValid: ', isValid);
+        }
       }
+      dto.schedule = convertDateTimeToTimeString(dto.schedule);
       return await this.repository.updateVendorSchedule(vendorId, dto);
     } catch (error) {
       throw error;

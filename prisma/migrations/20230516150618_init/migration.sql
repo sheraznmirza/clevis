@@ -164,8 +164,8 @@ CREATE TABLE "CompanySchedule" (
     "riderId" INTEGER,
     "day" "Days" NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "startTime" TIMESTAMP(3) NOT NULL,
-    "endTime" TIMESTAMP(3) NOT NULL,
+    "startTime" TEXT NOT NULL,
+    "endTime" TEXT NOT NULL,
 
     CONSTRAINT "CompanySchedule_pkey" PRIMARY KEY ("id")
 );
