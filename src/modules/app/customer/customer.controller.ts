@@ -8,6 +8,8 @@ import {
   Patch,
   Delete,
   Body,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
@@ -54,6 +56,7 @@ export class CustomerController {
     return this.customerService.updateCustomer(user.userMasterId, dto);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Authorized(UserType.CUSTOMER)
   @Post('vendors')
   getVendors(@GetUser() user, @Body() dto: VendorLocationDto) {

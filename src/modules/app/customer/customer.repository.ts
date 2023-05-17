@@ -303,7 +303,7 @@ export class CustomerRepository {
                     in: vendorIds,
                   },
                 },
-                {},
+                { serviceType: dto.serviceType },
               ],
 
               companySchedule: {
@@ -355,6 +355,9 @@ export class CustomerRepository {
             isEmailVerified: true,
             isDeleted: false,
             userType: UserType.VENDOR,
+            vendor: {
+              serviceType: dto.serviceType,
+            },
           },
         });
 
@@ -389,8 +392,6 @@ export class CustomerRepository {
           },
         });
 
-        console.log('customerCity: ', customerCity);
-
         const vendors = await this.prisma.userMaster.findMany({
           where: {
             isDeleted: false,
@@ -398,12 +399,18 @@ export class CustomerRepository {
             isEmailVerified: true,
             vendor: {
               status: Status.APPROVED,
+              serviceType: dto.serviceType,
               userAddress: {
                 some: {
                   cityId: customerCity.customer.userAddress[0].cityId,
                   isDeleted: false,
                 },
               },
+            },
+          },
+          orderBy: {
+            vendor: {
+              companyName: 'asc',
             },
           },
           select: {
@@ -469,6 +476,15 @@ export class CustomerRepository {
             isEmailVerified: true,
             isDeleted: false,
             userType: UserType.VENDOR,
+            vendor: {
+              serviceType: dto.serviceType,
+              userAddress: {
+                some: {
+                  cityId: customerCity.customer.userAddress[0].cityId,
+                  isDeleted: false,
+                },
+              },
+            },
           },
         });
 

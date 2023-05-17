@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { VendorSchedule } from 'src/modules/app/vendor/dto';
 
 type Schedule = {
-  // id: number;
+  id: number;
   day: Days;
   startTime: string;
   endTime: string;
@@ -21,7 +21,7 @@ export const setAlwaysOpen = (schedule: VendorSchedule[]): Schedule[] => {
 
   const twentyFourSevenWeek = schedule.map((today) => {
     return {
-      // id: today.id,
+      id: today.id,
       day: today.day,
       startTime: startTime,
       endTime: endTime,
@@ -43,7 +43,7 @@ export const convertDateTimeToTimeString = (
 
   const datefor = schedule.map((today) => {
     return {
-      // id: today.id,
+      id: today.id,
       day: Days.Monday,
       startTime: dayjs(today.startTime).format('HH:mm'),
       endTime: dayjs(today.endTime).format('HH:mm'),
