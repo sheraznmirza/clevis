@@ -187,28 +187,31 @@ export class CustomerRepository {
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
-              userAddress: {
-                ...(dto.userAddressId &&
-                  dto.fullAddress &&
-                  dto.cityId &&
-                  dto.longitude &&
-                  dto.latitude && {
-                    update: {
-                      where: {
-                        userAddressId: dto.userAddressId,
-                      },
-                      data: {
-                        isDeleted: true,
-                      },
+              ...(dto.userAddressId && {
+                userAddress: {
+                  update: {
+                    where: {
+                      userAddressId: dto.userAddressId,
                     },
+                    data: {
+                      isDeleted: true,
+                    },
+                  },
+                },
+              }),
+              ...(dto.fullAddress &&
+                dto.cityId &&
+                dto.longitude &&
+                dto.latitude && {
+                  userAddress: {
                     create: {
                       fullAddress: dto.fullAddress,
                       cityId: dto.cityId,
                       latitude: dto.latitude,
                       longitude: dto.longitude,
                     },
-                  }),
-              },
+                  },
+                }),
             },
           },
         },
@@ -345,7 +348,21 @@ export class CustomerRepository {
           },
         },
       });
-      return result;
+
+      const totalCount = await this.prisma.userMaster.count({
+        where: {
+          isEmailVerified: true,
+          isDeleted: false,
+          userType: UserType.VENDOR,
+        },
+      });
+
+      return {
+        ...result,
+        page,
+        take,
+        totalCount,
+      };
     } catch (error) {
       debugger;
       throw error;

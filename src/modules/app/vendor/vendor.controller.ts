@@ -43,7 +43,7 @@ export class VendorController {
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('/:userMasterId')
+  @Get('byId/:userMasterId')
   getVendorById(@Param('userMasterId') userMasterId: number) {
     return this.vendorService.getVendorById(userMasterId);
   }
@@ -97,8 +97,9 @@ export class VendorController {
   @Authorized([UserType.VENDOR, UserType.CUSTOMER])
   @Get('/services')
   getAllVendorService(@GetUser() user, @Query() listingParams: ListingParams) {
+    console.log('user: ', user);
     return this.vendorService.getVendorAllService(
-      user.userMasterId,
+      user.userTypeId,
       listingParams,
     );
   }
