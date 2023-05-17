@@ -4,7 +4,11 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RiderUpdateDto, RiderUpdateStatusDto } from './dto';
+import {
+  RiderUpdateDto,
+  RiderUpdateStatusDto,
+  UpdateRiderScheduleDto,
+} from './dto';
 import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
 import { RiderListingParams, VendorListingParams } from 'src/core/dto';
 import { successResponse } from 'src/helpers/response.helper';
@@ -188,6 +192,9 @@ export class RiderRepository {
             select: {
               riderId: true,
               companySchedule: {
+                orderBy: {
+                  id: 'asc',
+                },
                 select: {
                   id: true,
                   day: true,
@@ -220,6 +227,14 @@ export class RiderRepository {
           phone: true,
           createdAt: true,
           isActive: true,
+          profilePicture: {
+            select: {
+              key: true,
+              location: true,
+              name: true,
+              id: true,
+            },
+          },
           rider: {
             select: {
               riderId: true,
@@ -423,9 +438,50 @@ export class RiderRepository {
     }
   }
 
+  async updateRiderSchedule(riderId: number, dto: UpdateRiderScheduleDto) {
+    try {
+      dto.companySchedule.forEach(async (element) => {
+        await this.prisma.companySchedule.update({
+          where: {
+            id: element.id,
+          },
+          data: {
+            startTime: element.startTime,
+            endTime: element.endTime,
+            isActive: element.isActive,
+          },
+        });
+      });
+
+      const scheduleArray = await this.prisma.companySchedule.findMany({
+        where: {
+          riderId: riderId,
+        },
+        orderBy: {
+          id: 'asc',
+        },
+        select: {
+          id: true,
+          day: true,
+          startTime: true,
+          endTime: true,
+          isActive: true,
+        },
+      });
+      return {
+        ...successResponse(200, 'Schedule updated successfully!'),
+        data: scheduleArray,
+        alwaysOpen: dto.alwaysOpen,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async updateRider(userMasterId: number, dto: RiderUpdateDto) {
     try {
       let profilePicture: Media;
+      let logo: Media;
 
       if (dto.profilePicture) {
         profilePicture = await this.prisma.media.create({
@@ -436,6 +492,39 @@ export class RiderRepository {
           },
         });
       }
+
+      if (dto.logo) {
+        logo = await this.prisma.media.create({
+          data: {
+            name: dto.logo.name,
+            key: dto.logo.key,
+            location: dto.logo.location,
+          },
+        });
+      }
+
+      if (dto.bankingId) {
+        await this.prisma.banking.update({
+          where: {
+            id: dto.bankingId,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
+      if (dto.userAddressId) {
+        await this.prisma.userAddress.update({
+          where: {
+            userAddressId: dto.userAddressId,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
       const rider = await this.prisma.userMaster.update({
         where: {
           userMasterId: userMasterId,
@@ -453,19 +542,7 @@ export class RiderRepository {
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
               description:
                 dto.description !== null ? dto.description : undefined,
-
-              ...(dto.bankingId && {
-                banking: {
-                  update: {
-                    where: {
-                      id: dto.bankingId,
-                    },
-                    data: {
-                      isDeleted: true,
-                    },
-                  },
-                },
-              }),
+              logoId: logo ? logo.id : undefined,
 
               ...(dto.accountNumber &&
                 dto.accountTitle &&
@@ -486,18 +563,6 @@ export class RiderRepository {
                   },
                 }),
 
-              ...(dto.userAddressId && {
-                userAddress: {
-                  update: {
-                    where: {
-                      userAddressId: dto.userAddressId,
-                    },
-                    data: {
-                      isDeleted: true,
-                    },
-                  },
-                },
-              }),
               ...(dto.fullAddress &&
                 dto.cityId &&
                 dto.longitude &&

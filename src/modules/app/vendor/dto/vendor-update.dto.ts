@@ -1,7 +1,6 @@
 import {
   IsArray,
   IsBoolean,
-  IsDate,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -13,6 +12,23 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Days, Media } from '@prisma/client';
 import { Type } from 'class-transformer';
+
+class MediaFormat {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  key: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  location: string;
+}
 
 export class UpdateVendorDto {
   @ApiProperty()
@@ -35,9 +51,13 @@ export class UpdateVendorDto {
   @IsOptional()
   cityId: number;
 
-  @ApiProperty({})
+  @ApiProperty({
+    type: MediaFormat,
+    required: false,
+  })
   @IsOptional()
-  profilePicture: Media;
+  @Type(() => MediaFormat)
+  profilePicture: MediaFormat;
 
   @ApiProperty()
   @IsNumber()
@@ -54,15 +74,25 @@ export class UpdateVendorDto {
   @IsOptional()
   userAddressId: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    isArray: true,
+    type: MediaFormat,
+    required: false,
+  })
   @IsArray()
   @IsOptional()
-  workspaceImages: Media[];
+  @Type(() => MediaFormat)
+  workspaceImages: MediaFormat[];
 
-  @ApiProperty()
+  @ApiProperty({
+    isArray: true,
+    type: MediaFormat,
+    required: false,
+  })
   @IsArray()
   @IsOptional()
-  businessLicense: Media[];
+  @Type(() => MediaFormat)
+  businessLicense: MediaFormat[];
 
   @ApiProperty()
   @IsString()
@@ -149,7 +179,7 @@ export class UpdateVendorScheduleDto {
   @IsArray()
   @IsOptional()
   @Type(() => VendorSchedule)
-  schedule: VendorSchedule[];
+  companySchedule: VendorSchedule[];
 
   @ApiProperty()
   @IsOptional()

@@ -333,16 +333,55 @@ export class CustomerRepository {
           },
           select: {
             userMasterId: true,
+            email: true,
+            phone: true,
             vendor: {
               select: {
-                fullName: true,
-                companyName: true,
+                vendorId: true,
+                vendorService: {
+                  select: {
+                    vendorServiceId: true,
+                    service: {
+                      select: {
+                        serviceName: true,
+                      },
+                    },
+                  },
+                },
                 logo: {
                   select: {
                     key: true,
-                    id: true,
-                    name: true,
                     location: true,
+                    name: true,
+                    id: true,
+                  },
+                },
+                fullName: true,
+                companyName: true,
+                serviceType: true,
+                userAddress: {
+                  select: {
+                    city: {
+                      select: {
+                        cityName: true,
+                        cityId: true,
+                        State: {
+                          select: {
+                            stateName: true,
+                            stateId: true,
+                            country: {
+                              select: {
+                                countryName: true,
+                                countryId: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    fullAddress: true,
+                    latitude: true,
+                    longitude: true,
                   },
                 },
               },

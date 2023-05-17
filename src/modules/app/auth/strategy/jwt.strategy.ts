@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { UserType } from '@prisma/client';
+import { ServiceType, UserType } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../../../modules/prisma/prisma.service';
 
@@ -14,7 +14,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: { sub: number; email: string; userType: UserType }) {
+  async validate(payload: {
+    sub: number;
+    email: string;
+    userType: UserType;
+    userTypeId: number;
+    serviceType?: ServiceType;
+  }) {
     const user = await this.prisma.userMaster.findUnique({
       where: {
         userMasterId: payload.sub,
@@ -25,6 +31,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         email: true,
       },
     });
-    return user;
+    return {
+      ...user,
+      userTypeId: payload.userTypeId,
+      ...(payload.serviceType && { serviceType: payload.serviceType }),
+    };
   }
 }

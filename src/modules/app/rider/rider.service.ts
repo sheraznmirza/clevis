@@ -1,6 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { RiderRepository } from './rider.repository';
-import { RiderUpdateDto, RiderUpdateStatusDto } from './dto';
+import {
+  RiderUpdateDto,
+  RiderUpdateStatusDto,
+  UpdateRiderScheduleDto,
+} from './dto';
 import { successResponse } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import {
@@ -12,6 +16,11 @@ import { Rider, Status } from '@prisma/client';
 import { VendorListingParams } from 'src/core/dto';
 import { ConfigService } from '@nestjs/config';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
+import {
+  convertDateTimeToTimeString,
+  setAlwaysOpen,
+} from 'src/helpers/alwaysOpen.helper';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class RiderService {
@@ -49,6 +58,34 @@ export class RiderService {
         200,
         `Vendor successfully ${rider.status.toLowerCase()}.`,
       );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateRiderSchedule(riderId: number, dto: UpdateRiderScheduleDto) {
+    try {
+      if (dto.alwaysOpen) {
+        dto.companySchedule = setAlwaysOpen(dto.companySchedule);
+      } else {
+        if (dto.companySchedule) {
+          const isValid = dto.companySchedule.every((day) => {
+            return (
+              dayjs(day.endTime).isValid() && dayjs(day.startTime).isValid()
+            );
+          });
+
+          if (!isValid) {
+            throw new BadRequestException(
+              'Please provide valid start and end times for the companySchedule.',
+            );
+          }
+
+          console.log('isValid: ', isValid);
+        }
+      }
+      dto.companySchedule = convertDateTimeToTimeString(dto.companySchedule);
+      return await this.repository.updateRiderSchedule(riderId, dto);
     } catch (error) {
       throw error;
     }

@@ -6,7 +6,6 @@ import { PrismaModule } from './modules/prisma/prisma.module';
 import { ServiceModule } from './modules/app/service/service.module';
 import { CategoryModule } from './modules/app/category/category.module';
 import { SubcategoryModule } from './modules/app/subcategory/subcategory.module';
-// import { MediaModule } from './modules/app/media/media.module';
 import { AddressModule } from './modules/app/country/address.module';
 import { VendorModule } from './modules/app/vendor/vendor.module';
 import { RoleModule } from './modules/app/role/role.module';
@@ -16,7 +15,6 @@ import { NotificationModule } from './modules/app/notification/notification.modu
 import { MailModule } from './modules/mail/mail.module';
 import { RiderModule } from './modules/app/rider/rider.module';
 import MediaModule from './modules/app/media/media.module';
-// import DatabaseModule from './database/database.module';
 
 @Module({
   imports: [
