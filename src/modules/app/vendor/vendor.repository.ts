@@ -74,9 +74,9 @@ export class VendorRepository {
 
   async updateVendorSchedule(vendorId: number, dto: UpdateVendorScheduleDto) {
     try {
-      await this.prisma.companySchedule.updateMany({
-        data: dto.schedule,
-      });
+      // await this.prisma.companySchedule.update({
+      //   // data: dto.schedule,
+      // });
       successResponse(200, 'Schedule updated successfully!');
     } catch (error) {
       throw error;

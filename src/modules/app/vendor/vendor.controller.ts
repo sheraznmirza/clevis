@@ -73,7 +73,7 @@ export class VendorController {
 
   @Authorized(UserType.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @Patch('/:userMasterId')
+  @Patch('/byId/:userMasterId')
   updateVendor(
     @Param('userMasterId') userMasterId: number,
     @Body() dto: UpdateVendorDto,
@@ -85,7 +85,7 @@ export class VendorController {
   @HttpCode(HttpStatus.OK)
   @Patch('/schedule')
   updateVendorSchedule(@GetUser() user, @Body() dto: UpdateVendorScheduleDto) {
-    return this.vendorService.updateVendorSchedule(user.vendorId, dto);
+    return this.vendorService.updateVendorSchedule(user.userTypeId, dto);
   }
 
   @Authorized([UserType.ADMIN, UserType.CUSTOMER])

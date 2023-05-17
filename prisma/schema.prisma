@@ -212,15 +212,15 @@ model Banking {
 }
 
 model CompanySchedule {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   vendorId  Int?
   riderId   Int?
   day       Days
-  isActive  Boolean  @default(true)
-  startTime DateTime
-  endTime   DateTime
-  rider     Rider?   @relation(fields: [riderId], references: [riderId])
-  vendor    Vendor?  @relation(fields: [vendorId], references: [vendorId])
+  isActive  Boolean @default(true)
+  startTime String
+  endTime   String
+  rider     Rider?  @relation(fields: [riderId], references: [riderId])
+  vendor    Vendor? @relation(fields: [vendorId], references: [vendorId])
 }
 
 model Country {

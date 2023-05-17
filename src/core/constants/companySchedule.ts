@@ -2,16 +2,13 @@ import { Days } from '@prisma/client';
 
 type Schedule = {
   day: Days;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
+  endTime: string;
 };
 
 export const companySchedule = (): Schedule[] => {
-  const startTime = new Date();
-  const endTime = new Date();
-
-  startTime.setHours(9, 0, 0);
-  endTime.setHours(21, 0, 0);
+  const startTime = '09:00';
+  const endTime = '21:00';
 
   return [
     {
