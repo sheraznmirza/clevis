@@ -21,6 +21,7 @@ export class VendorRepository {
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId) {
     try {
+      debugger;
       const vendor = await this.prisma.vendor.findUnique({
         where: {
           userMasterId,
@@ -73,9 +74,9 @@ export class VendorRepository {
 
   async updateVendorSchedule(vendorId: number, dto: UpdateVendorScheduleDto) {
     try {
-      await this.prisma.companySchedule.updateMany({
-        data: dto.schedule,
-      });
+      // await this.prisma.companySchedule.update({
+      //   // data: dto.schedule,
+      // });
       successResponse(200, 'Schedule updated successfully!');
     } catch (error) {
       throw error;
@@ -110,42 +111,23 @@ export class VendorRepository {
                 dto.companyName !== null ? dto.companyName : undefined,
               companyEmail:
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
-              // userAddress: {
-              //   ...(dto.userAddressId &&
-              //     dto.fullAddress &&
-              //     dto.cityId &&
-              //     dto.longitude &&
-              //     dto.latitude && {
-              //       update: {
-              //         where: {
-              //           userAddressId: dto.userAddressId,
-              //         },
-              //         data: {
-              //           isDeleted: true,
-              //         },
-              //       },
-              //       create: {
-              //         fullAddress: dto.fullAddress,
-              //         cityId: dto.cityId,
-              //         latitude: dto.latitude,
-              //         longitude: dto.longitude,
-              //       },
-              //     }),
-              // },
-              ...(dto.userAddressId &&
-                dto.fullAddress &&
+              ...(dto.userAddressId && {
+                userAddress: {
+                  update: {
+                    where: {
+                      userAddressId: dto.userAddressId,
+                    },
+                    data: {
+                      isDeleted: true,
+                    },
+                  },
+                },
+              }),
+              ...(dto.fullAddress &&
                 dto.cityId &&
                 dto.longitude &&
                 dto.latitude && {
                   userAddress: {
-                    update: {
-                      where: {
-                        userAddressId: dto.userAddressId,
-                      },
-                      data: {
-                        isDeleted: true,
-                      },
-                    },
                     create: {
                       fullAddress: dto.fullAddress,
                       cityId: dto.cityId,
@@ -154,19 +136,23 @@ export class VendorRepository {
                     },
                   },
                 }),
-              ...(dto.bankingId &&
-                dto.accountNumber &&
+
+              ...(dto.bankingId && {
+                banking: {
+                  update: {
+                    where: {
+                      id: dto.bankingId,
+                    },
+                    data: {
+                      isDeleted: true,
+                    },
+                  },
+                },
+              }),
+              ...(dto.accountNumber &&
                 dto.accountTitle &&
                 dto.bankName && {
                   banking: {
-                    update: {
-                      where: {
-                        id: dto.bankingId,
-                      },
-                      data: {
-                        isDeleted: true,
-                      },
-                    },
                     create: {
                       accountTitle:
                         dto.accountTitle !== null
@@ -242,6 +228,7 @@ export class VendorRepository {
               },
               banking: {
                 select: {
+                  id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
@@ -251,6 +238,9 @@ export class VendorRepository {
               companyName: true,
               serviceType: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {
@@ -300,8 +290,11 @@ export class VendorRepository {
 
   async getAllVendorService(vendorId: number, listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
+    console.log('hello');
+    console.log('vendorId: ', vendorId);
     try {
-      await this.prisma.vendorService.findMany({
+      debugger;
+      return await this.prisma.vendorService.findMany({
         take: +take,
         skip: +take * (+page - 1),
         where: {
@@ -323,6 +316,7 @@ export class VendorRepository {
                   vendorServiceId: true,
                   status: true,
                   description: true,
+                  vendorId: true,
                   // serviceImage: {
                   //   select: {
                   //     key: true,
@@ -512,6 +506,7 @@ export class VendorRepository {
               vendorId: true,
               banking: {
                 select: {
+                  id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
@@ -619,6 +614,7 @@ export class VendorRepository {
               },
               banking: {
                 select: {
+                  id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
@@ -825,7 +821,7 @@ export class VendorRepository {
   ) {
     try {
       const serviceImages = [];
-
+      debugger;
       dto.serviceImages.forEach(async (serviceImage) => {
         const result = await this.prisma.media.create({
           data: serviceImage,
