@@ -70,16 +70,16 @@ export class SubcategoryRepository {
         orderBy: {
           subCategoryName: 'asc',
         },
-        ...(search && {
-          where: {
-            isDeleted: false,
+        where: {
+          isDeleted: false,
+          ...(search && {
             subCategoryName: {
               contains: search,
             },
-          },
-        }),
+          }),
+          serviceType: serviceType,
+        },
       });
-
       const totalCount = await this.prisma.subCategory.count({
         where: {
           isDeleted: false,

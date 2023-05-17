@@ -21,6 +21,7 @@ export class VendorRepository {
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId) {
     try {
+      debugger;
       const vendor = await this.prisma.vendor.findUnique({
         where: {
           userMasterId,
@@ -110,28 +111,6 @@ export class VendorRepository {
                 dto.companyName !== null ? dto.companyName : undefined,
               companyEmail:
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
-              // userAddress: {
-              //   ...(dto.userAddressId &&
-              //     dto.fullAddress &&
-              //     dto.cityId &&
-              //     dto.longitude &&
-              //     dto.latitude && {
-              //       update: {
-              //         where: {
-              //           userAddressId: dto.userAddressId,
-              //         },
-              //         data: {
-              //           isDeleted: true,
-              //         },
-              //       },
-              //       create: {
-              //         fullAddress: dto.fullAddress,
-              //         cityId: dto.cityId,
-              //         latitude: dto.latitude,
-              //         longitude: dto.longitude,
-              //       },
-              //     }),
-              // },
               ...(dto.userAddressId && {
                 userAddress: {
                   update: {
@@ -249,6 +228,7 @@ export class VendorRepository {
               },
               banking: {
                 select: {
+                  id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
@@ -310,8 +290,11 @@ export class VendorRepository {
 
   async getAllVendorService(vendorId: number, listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
+    console.log('hello');
+    console.log('vendorId: ', vendorId);
     try {
-      await this.prisma.vendorService.findMany({
+      debugger;
+      return await this.prisma.vendorService.findMany({
         take: +take,
         skip: +take * (+page - 1),
         where: {
@@ -333,6 +316,7 @@ export class VendorRepository {
                   vendorServiceId: true,
                   status: true,
                   description: true,
+                  vendorId: true,
                   // serviceImage: {
                   //   select: {
                   //     key: true,
@@ -522,6 +506,7 @@ export class VendorRepository {
               vendorId: true,
               banking: {
                 select: {
+                  id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
@@ -629,6 +614,7 @@ export class VendorRepository {
               },
               banking: {
                 select: {
+                  id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
@@ -835,7 +821,7 @@ export class VendorRepository {
   ) {
     try {
       const serviceImages = [];
-
+      debugger;
       dto.serviceImages.forEach(async (serviceImage) => {
         const result = await this.prisma.media.create({
           data: serviceImage,

@@ -352,7 +352,21 @@ export class CustomerRepository {
           },
         },
       });
-      return result;
+
+      const totalCount = await this.prisma.userMaster.count({
+        where: {
+          isEmailVerified: true,
+          isDeleted: false,
+          userType: UserType.VENDOR,
+        },
+      });
+
+      return {
+        ...result,
+        page,
+        take,
+        totalCount,
+      };
     } catch (error) {
       debugger;
       throw error;
