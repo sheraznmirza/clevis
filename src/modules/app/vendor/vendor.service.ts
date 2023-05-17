@@ -91,10 +91,12 @@ export class VendorService {
   async updateVendorSchedule(vendorId: number, dto: UpdateVendorScheduleDto) {
     try {
       if (dto.alwaysOpen) {
-        dto.schedule = setAlwaysOpen(dto.schedule);
+        dto.companySchedule = setAlwaysOpen(dto.companySchedule);
       } else {
-        if (dto.schedule) {
-          const isValid = dto.schedule.every((day) => {
+        console.log('I am here: ', dto);
+        if (dto.companySchedule) {
+          console.log('am I in dto companySchedule');
+          const isValid = dto.companySchedule.every((day) => {
             console.log(dayjs(day.endTime).isValid());
             return (
               dayjs(day.endTime).isValid() && dayjs(day.startTime).isValid()
@@ -103,14 +105,14 @@ export class VendorService {
 
           if (!isValid) {
             throw new BadRequestException(
-              'Please provide valid start and end times for the schedule.',
+              'Please provide valid start and end times for the companySchedule.',
             );
           }
 
           console.log('isValid: ', isValid);
         }
       }
-      dto.schedule = convertDateTimeToTimeString(dto.schedule);
+      dto.companySchedule = convertDateTimeToTimeString(dto.companySchedule);
       return await this.repository.updateVendorSchedule(vendorId, dto);
     } catch (error) {
       throw error;

@@ -74,10 +74,40 @@ export class VendorRepository {
 
   async updateVendorSchedule(vendorId: number, dto: UpdateVendorScheduleDto) {
     try {
-      // await this.prisma.companySchedule.update({
-      //   // data: dto.schedule,
-      // });
-      successResponse(200, 'Schedule updated successfully!');
+      console.log('dto: ', dto.companySchedule);
+      dto.companySchedule.forEach(async (element) => {
+        await this.prisma.companySchedule.update({
+          where: {
+            id: element.id,
+          },
+          data: {
+            startTime: element.startTime,
+            endTime: element.endTime,
+            isActive: element.isActive,
+          },
+        });
+      });
+
+      const scheduleArray = await this.prisma.companySchedule.findMany({
+        where: {
+          vendorId: vendorId,
+        },
+        orderBy: {
+          id: 'asc',
+        },
+        select: {
+          id: true,
+          day: true,
+          startTime: true,
+          endTime: true,
+          isActive: true,
+        },
+      });
+      return {
+        ...successResponse(200, 'Schedule updated successfully!'),
+        data: scheduleArray,
+        alwaysOpen: dto.alwaysOpen,
+      };
     } catch (error) {
       throw error;
     }
@@ -96,6 +126,29 @@ export class VendorRepository {
           },
         });
       }
+
+      if (dto.bankingId) {
+        await this.prisma.banking.update({
+          where: {
+            id: dto.bankingId,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
+      if (dto.userAddressId) {
+        await this.prisma.userAddress.update({
+          where: {
+            userAddressId: dto.userAddressId,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
       const vendor = await this.prisma.userMaster.update({
         where: {
           userMasterId: userMasterId,
@@ -111,18 +164,7 @@ export class VendorRepository {
                 dto.companyName !== null ? dto.companyName : undefined,
               companyEmail:
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
-              ...(dto.userAddressId && {
-                userAddress: {
-                  update: {
-                    where: {
-                      userAddressId: dto.userAddressId,
-                    },
-                    data: {
-                      isDeleted: true,
-                    },
-                  },
-                },
-              }),
+
               ...(dto.fullAddress &&
                 dto.cityId &&
                 dto.longitude &&
@@ -137,18 +179,6 @@ export class VendorRepository {
                   },
                 }),
 
-              ...(dto.bankingId && {
-                banking: {
-                  update: {
-                    where: {
-                      id: dto.bankingId,
-                    },
-                    data: {
-                      isDeleted: true,
-                    },
-                  },
-                },
-              }),
               ...(dto.accountNumber &&
                 dto.accountTitle &&
                 dto.bankName && {
@@ -179,6 +209,15 @@ export class VendorRepository {
           phone: true,
           createdAt: true,
           isActive: true,
+
+          profilePicture: {
+            select: {
+              key: true,
+              location: true,
+              name: true,
+              id: true,
+            },
+          },
           vendor: {
             select: {
               vendorId: true,
@@ -227,11 +266,15 @@ export class VendorRepository {
                 },
               },
               banking: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
+                  isDeleted: true,
                 },
               },
               fullName: true,
@@ -290,8 +333,6 @@ export class VendorRepository {
 
   async getAllVendorService(vendorId: number, listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
-    console.log('hello');
-    console.log('vendorId: ', vendorId);
     try {
       debugger;
       return await this.prisma.vendorService.findMany({
@@ -505,11 +546,15 @@ export class VendorRepository {
             select: {
               vendorId: true,
               banking: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   id: true,
                   accountNumber: true,
                   accountTitle: true,
                   bankName: true,
+                  isDeleted: true,
                 },
               },
             },

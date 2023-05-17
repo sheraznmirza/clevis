@@ -478,6 +478,7 @@ export class AuthService {
               select: {
                 userAddressId: true,
                 fullAddress: true,
+                isActive: true,
                 city: {
                   select: {
                     cityName: true,

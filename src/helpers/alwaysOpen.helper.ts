@@ -40,7 +40,7 @@ export const convertDateTimeToTimeString = (
 
   // startTime.setHours(24, 0, 0);
   // endTime.setHours(23, 59, 59);
-
+  console.log('schedule: ', schedule);
   const datefor = schedule.map((today) => {
     return {
       id: today.id,

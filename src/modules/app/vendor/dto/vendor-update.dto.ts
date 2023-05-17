@@ -149,7 +149,7 @@ export class UpdateVendorScheduleDto {
   @IsArray()
   @IsOptional()
   @Type(() => VendorSchedule)
-  schedule: VendorSchedule[];
+  companySchedule: VendorSchedule[];
 
   @ApiProperty()
   @IsOptional()

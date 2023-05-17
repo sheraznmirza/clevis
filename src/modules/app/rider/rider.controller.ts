@@ -16,7 +16,11 @@ import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
-import { RiderUpdateDto, RiderUpdateStatusDto } from './dto';
+import {
+  RiderUpdateDto,
+  RiderUpdateStatusDto,
+  UpdateRiderScheduleDto,
+} from './dto';
 import { RiderListingParams, VendorRiderByIdParams } from 'src/core/dto';
 import { RiderService } from './rider.service';
 
@@ -62,6 +66,13 @@ export class RiderController {
     @Body() dto: RiderUpdateDto,
   ) {
     return this.riderService.updateRider(userMasterId, dto);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/schedule')
+  updateRiderSchedule(@GetUser() user, @Body() dto: UpdateRiderScheduleDto) {
+    return this.riderService.updateRiderSchedule(user.userTypeId, dto);
   }
 
   @Authorized(UserType.ADMIN)

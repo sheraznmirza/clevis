@@ -423,12 +423,6 @@ CREATE UNIQUE INDEX "Rider_userMasterId_key" ON "Rider"("userMasterId");
 CREATE UNIQUE INDEX "Rider_logoId_key" ON "Rider"("logoId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Banking_vendorId_key" ON "Banking"("vendorId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Banking_riderId_key" ON "Banking"("riderId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
 
 -- CreateIndex

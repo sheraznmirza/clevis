@@ -7,9 +7,13 @@ import {
   IsArray,
   IsOptional,
   IsBoolean,
+  IsNotEmpty,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Media } from '../../../../core/globalTypes';
+import { Type } from 'class-transformer';
+import { Days } from '@prisma/client';
 
 export class RiderUpdateDto {
   @ApiProperty()
@@ -116,4 +120,51 @@ export class RiderUpdateDto {
   @IsOptional()
   @IsBoolean()
   isActive: boolean;
+}
+
+export class RiderSchedule {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  id: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  isActive: boolean;
+
+  @ApiProperty({
+    required: true,
+    description: 'Day of the week',
+    enum: Days,
+  })
+  @IsNotEmpty()
+  @IsEnum(Days)
+  day: Days;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  startTime: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  endTime: string;
+}
+
+export class UpdateRiderScheduleDto {
+  @ApiProperty({
+    isArray: true,
+    type: RiderSchedule,
+  })
+  @IsArray()
+  @IsOptional()
+  @Type(() => RiderSchedule)
+  companySchedule: RiderSchedule[];
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  alwaysOpen?: boolean;
 }
