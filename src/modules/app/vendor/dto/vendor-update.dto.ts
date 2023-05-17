@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Days, Media } from '@prisma/client';
+import { Type } from 'class-transformer';
 
 export class UpdateVendorDto {
   @ApiProperty()
@@ -131,19 +132,23 @@ export class VendorSchedule {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsDate()
-  startTime: Date;
+  @IsString()
+  startTime: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsDate()
-  endTime: Date;
+  @IsString()
+  endTime: string;
 }
 
 export class UpdateVendorScheduleDto {
-  @ApiProperty()
+  @ApiProperty({
+    isArray: true,
+    type: VendorSchedule,
+  })
   @IsArray()
   @IsOptional()
+  @Type(() => VendorSchedule)
   schedule: VendorSchedule[];
 
   @ApiProperty()

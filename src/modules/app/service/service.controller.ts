@@ -20,6 +20,7 @@ import {
   ListingParams,
   ServiceCategorySubCategoryListingParams,
 } from '../../../core/dto';
+import dayjs from 'dayjs';
 
 @ApiTags('Service')
 @Controller('service')
@@ -50,6 +51,7 @@ export class ServiceController {
   getAllService(
     @Query() listingParams: ServiceCategorySubCategoryListingParams,
   ) {
+    console.log(dayjs('umair').isValid());
     return this.serviceService.getAllService(listingParams);
   }
 
