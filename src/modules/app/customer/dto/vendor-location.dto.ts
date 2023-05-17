@@ -1,7 +1,6 @@
 import {
   IsArray,
-  IsDate,
-  IsNotEmpty,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
@@ -22,12 +21,37 @@ class ServiceNames {
   @IsOptional()
   serviceName: string;
 }
-export class VendorLocationDto extends ListingParams {
+export class VendorLocationDto {
+  @ApiProperty({
+    required: false,
+    description: 'Listing parameters Page Number',
+  })
+  @IsOptional()
+  @IsNumber()
+  page?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Listing parameters Per Page Limit',
+  })
+  @IsOptional()
+  @IsNumber()
+  take?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Search by name, title or code',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
   @ApiProperty({
     required: false,
     description: 'The longitude',
   })
-  @IsString()
+  @IsNumber()
+  @IsNumber()
   @IsOptional()
   longitude: number;
 
@@ -35,7 +59,8 @@ export class VendorLocationDto extends ListingParams {
     required: false,
     description: 'The latitude',
   })
-  @IsString()
+  @IsNumber()
+  @IsNumber()
   @IsOptional()
   latitude: number;
 
@@ -43,7 +68,7 @@ export class VendorLocationDto extends ListingParams {
     required: false,
     description: 'The distance radius',
   })
-  @IsString()
+  @IsNumber()
   @IsOptional()
   distance: number;
 

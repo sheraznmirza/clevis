@@ -5,7 +5,7 @@ import {
   CustomerListingParams,
   CustomerVendorListingParams,
 } from '../../../core/dto';
-import { Media, UserType } from '@prisma/client';
+import { Media, Status, UserType } from '@prisma/client';
 import { UpdateCustomerDto, VendorLocationDto } from './dto';
 import { successResponse } from 'src/helpers/response.helper';
 
@@ -273,96 +273,212 @@ export class CustomerRepository {
     }
   }
 
-  async getVendorsByLocation(dto: VendorLocationDto) {
-    const { page = 1, take = 10, search, distance = 500 } = dto;
+  async getVendorsByLocation(userMasterId: number, dto: VendorLocationDto) {
+    const { page = 1, take = 10, search, distance = 10000000 } = dto;
     try {
-      const vendors: Array<{ vendorId: number }> = await this.prisma
-        .$queryRaw`select "public"."Vendor"."vendorId" from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
-        dto.serviceType
-      } where ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
-        dto.longitude,
-      )}, ${Number(dto.latitude)}))) < ${+distance}
+      if (dto.latitude && dto.longitude) {
+        const vendors: Array<{ vendorId: number }> = await this.prisma
+          .$queryRaw`select "public"."Vendor"."vendorId" from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
+          dto.serviceType
+        } where ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
+          dto.longitude,
+        )}, ${Number(dto.latitude)}))) < ${+distance}
         ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
           dto.longitude,
         )}, ${Number(dto.latitude)}))) ASC Limit ${BigInt(take)} offset ${
-        (Number(page) - 1) * Number(take)
-      }`;
+          (Number(page) - 1) * Number(take)
+        }`;
 
-      const vendorIds = vendors.map((vendor) => vendor.vendorId);
+        const vendorIds = vendors.map((vendor) => vendor.vendorId);
 
-      const result = await this.prisma.userMaster.findMany({
-        where: {
-          isDeleted: false,
-          isActive: true,
+        const result = await this.prisma.userMaster.findMany({
+          where: {
+            isDeleted: false,
+            isActive: true,
 
-          vendor: {
-            AND: [
-              {
-                vendorId: {
-                  in: vendorIds,
+            vendor: {
+              AND: [
+                {
+                  vendorId: {
+                    in: vendorIds,
+                  },
                 },
-              },
-              {},
-            ],
+                {},
+              ],
 
-            companySchedule: {
-              // every: {
-              //   startTime: {
-              //     gte:Wit
-              //   }
-              // }
-            },
-            ...(search && {
-              companyName: {
-                contains: search,
+              companySchedule: {
+                // every: {
+                //   startTime: {
+                //     gte:Wit
+                //   }
+                // }
               },
-            }),
-            // ...(dto.services && {
-            //   vendorService: {
-            //     every: {
-            //       service: {
-            //         serviceName: {
-            //           equals: dto.services,
-            //         },
-            //       },
-            //     },
-            //   },
-            // }),
-          },
-        },
-        select: {
-          userMasterId: true,
-          vendor: {
-            select: {
-              fullName: true,
-              companyName: true,
-              logo: {
-                select: {
-                  key: true,
-                  id: true,
-                  name: true,
-                  location: true,
+              ...(search && {
+                companyName: {
+                  contains: search,
                 },
-              },
+              }),
+              // ...(dto.services && {
+              //   vendorService: {
+              //     every: {
+              //       service: {
+              //         serviceName: {
+              //           equals: dto.services,
+              //         },
+              //       },
+              //     },
+              //   },
+              // }),
             },
           },
-        },
-      });
+          select: {
+            userMasterId: true,
+            vendor: {
+              select: {
+                fullName: true,
+                companyName: true,
+                logo: {
+                  select: {
+                    key: true,
+                    id: true,
+                    name: true,
+                    location: true,
+                  },
+                },
+              },
+            },
+          },
+        });
 
-      const totalCount = await this.prisma.userMaster.count({
-        where: {
-          isEmailVerified: true,
-          isDeleted: false,
-          userType: UserType.VENDOR,
-        },
-      });
+        const totalCount = await this.prisma.userMaster.count({
+          where: {
+            isEmailVerified: true,
+            isDeleted: false,
+            userType: UserType.VENDOR,
+          },
+        });
 
-      return {
-        ...result,
-        page,
-        take,
-        totalCount,
-      };
+        return {
+          data: result,
+          page,
+          take,
+          totalCount,
+        };
+      } else {
+        const customerCity = await this.prisma.userMaster.findUnique({
+          where: {
+            userMasterId: userMasterId,
+          },
+          select: {
+            customer: {
+              select: {
+                userAddress: {
+                  where: {
+                    isActive: true,
+                    isDeleted: false,
+                  },
+                  select: {
+                    cityId: true,
+                  },
+                  // select: {
+                  //   cityId: true,
+                  // },
+                },
+              },
+            },
+          },
+        });
+
+        console.log('customerCity: ', customerCity);
+
+        const vendors = await this.prisma.userMaster.findMany({
+          where: {
+            isDeleted: false,
+            isActive: true,
+            isEmailVerified: true,
+            vendor: {
+              status: Status.APPROVED,
+              userAddress: {
+                some: {
+                  cityId: customerCity.customer.userAddress[0].cityId,
+                  isDeleted: false,
+                },
+              },
+            },
+          },
+          select: {
+            userMasterId: true,
+            email: true,
+            phone: true,
+            vendor: {
+              select: {
+                vendorId: true,
+                vendorService: {
+                  select: {
+                    vendorServiceId: true,
+                    service: {
+                      select: {
+                        serviceName: true,
+                      },
+                    },
+                  },
+                },
+                logo: {
+                  select: {
+                    key: true,
+                    location: true,
+                    name: true,
+                    id: true,
+                  },
+                },
+                fullName: true,
+                companyName: true,
+                serviceType: true,
+                userAddress: {
+                  select: {
+                    city: {
+                      select: {
+                        cityName: true,
+                        cityId: true,
+                        State: {
+                          select: {
+                            stateName: true,
+                            stateId: true,
+                            country: {
+                              select: {
+                                countryName: true,
+                                countryId: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    fullAddress: true,
+                    latitude: true,
+                    longitude: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const totalCount = await this.prisma.userMaster.count({
+          where: {
+            isEmailVerified: true,
+            isDeleted: false,
+            userType: UserType.VENDOR,
+          },
+        });
+
+        return {
+          data: vendors,
+          page,
+          take,
+          totalCount,
+        };
+      }
     } catch (error) {
       debugger;
       throw error;

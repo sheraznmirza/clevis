@@ -56,8 +56,8 @@ export class CustomerController {
 
   @Authorized(UserType.CUSTOMER)
   @Post('vendors')
-  getVendors(@Body() dto: VendorLocationDto) {
-    return this.customerService.getVendorsByLocation(dto);
+  getVendors(@GetUser() user, @Body() dto: VendorLocationDto) {
+    return this.customerService.getVendorsByLocation(user.userMasterId, dto);
   }
 
   @Authorized(UserType.ADMIN)

@@ -45,9 +45,9 @@ export class CustomerService {
     }
   }
 
-  async getVendorsByLocation(dto: VendorLocationDto) {
+  async getVendorsByLocation(userMasterId: number, dto: VendorLocationDto) {
     try {
-      return await this.repository.getVendorsByLocation(dto);
+      return await this.repository.getVendorsByLocation(userMasterId, dto);
     } catch (error) {
       throw error;
     }
