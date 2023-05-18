@@ -53,6 +53,14 @@ export class CustomerService {
     }
   }
 
+  async getVendorById(userMasterId: number) {
+    try {
+      return await this.repository.getVendorById(userMasterId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async deleteCustomer(id: number) {
     try {
       return await this.repository.deleteCustomer(id);

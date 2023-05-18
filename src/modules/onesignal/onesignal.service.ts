@@ -1,21 +1,6 @@
-import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { UsersRepository } from 'src/users/users.repository';
-// import { NotificationService } from 'src/notification/notification.service';
 import { SendMobileNotificationDto } from './dto/send-notification-mobile.dto';
-// import { errorApiWrapper } from 'src/shared/utils';
-// import { PostRequest } from 'src/helper/request-url';
-// import { User } from 'src/users/entities/user.entity';
-// import { UserRelationRepository } from 'src/users/user-relation.repository';
-// import { ClassEnrolledRepository } from 'src/enrolled-course/class-enrolled/class-enrolled.respository';
-// import { EnrolledCourseRepository } from 'src/enrolled-course/enrolled-course.respository';
-// import { courseRequest } from 'src/enrolled-course/enums/enrolled-course.enum';
-// import { NotificationTypeEnum } from 'src/notification/enum/notification.enum';
-// import { RoomService } from 'src/chat/service/room-service/room.service';
-// import { INotificationData } from 'src/notification/interface/notification-data.interface';
-// import { RoomI } from 'src/chat/model/room/room.interface';
-// import { OnesignalController } from './onesignal.controller';
 
 @Injectable()
 export class OnesignalService {
@@ -235,70 +220,65 @@ export class OnesignalService {
   //   }
   // }
 
-  // async oneSignalSendNotification(
-  //   usePlayerIds: string[],
-  //   roomIds: string[],
-  //   subject: string,
-  //   message: string,
-  //   imageToSend?: string,
-  // ) {
-  //   // const redirectTo='';
-  //   var headers = {
-  //     'Content-Type': 'application/json; charset=utf-8',
-  //     Authorization: `Basic ${this.ONESIGNALAPIKEY}`,
-  //   };
-  //   // const data = {
-  //   //   app_id: this.ONESIGNALAPPID,
-  //   //   contents: { en: message },
-  //   //   include_player_ids: usePlayerIds,
-  //   //   ios_attachments: {
-  //   //     id1: imageToSend,
-  //   //   },
-  //   //   large_icon: imageToSend,
-  //   //   big_picture: imageToSend,
-  //   //   data:{
-  //   //     room_id : 1
-  //   //   }
-  //   // redirectTo: redirectTo,
-  //   // include_player_ids: ['004abf6d-b6d4-4c62-a3a8-16513aaa8ad6'],
-  //   // };
-  //   try {
-  //     for (let i = 0; i < usePlayerIds.length; i++) {
-  //       const element = usePlayerIds[i];
-  //       console.log('userPlayerIdssss', element, roomIds[i]);
-  //       const data = {
-  //         app_id: this.ONESIGNALAPPID,
-  //         contents: { en: message },
-  //         include_player_ids: [element],
-  //         ios_attachments: {
-  //           id1: imageToSend,
-  //         },
-  //         large_icon: imageToSend,
-  //         big_picture: imageToSend,
-  //         data: {
-  //           room_id: roomIds[i],
-  //           subject: subject,
-  //         },
-  //         // redirectTo: redirectTo,
-  //         // include_player_ids: ['004abf6d-b6d4-4c62-a3a8-16513aaa8ad6'],
-  //       };
-  //       await PostRequest(
-  //         `${this.ONESIGNALBASEURL}/notifications`,
-  //         data,
-  //         headers,
-  //       );
-  //     }
+  async oneSignalSendNotification(
+    usePlayerIds: string[],
+    roomIds: string[],
+    subject: string,
+    message: string,
+    imageToSend?: string,
+  ) {
+    // const redirectTo='';
+    const headers = {
+      'Content-Type': 'application/json; charset=utf-8',
+      Authorization: `Basic ${this.ONESIGNALAPIKEY}`,
+    };
+    // const data = {
+    //   app_id: this.ONESIGNALAPPID,
+    //   contents: { en: message },
+    //   include_player_ids: usePlayerIds,
+    //   ios_attachments: {
+    //     id1: imageToSend,
+    //   },
+    //   large_icon: imageToSend,
+    //   big_picture: imageToSend,
+    //   data:{
+    //     room_id : 1
+    //   }
+    // redirectTo: redirectTo,
+    // include_player_ids: ['004abf6d-b6d4-4c62-a3a8-16513aaa8ad6']/\,
+    // };
+    try {
+      for (let i = 0; i < usePlayerIds.length; i++) {
+        const element = usePlayerIds[i];
+        const data = {
+          app_id: this.ONESIGNALAPPID,
+          contents: { en: message },
+          include_player_ids: [element],
+          ios_attachments: {
+            id1: imageToSend,
+          },
+          large_icon: imageToSend,
+          big_picture: imageToSend,
+          data: {
+            room_id: roomIds[i],
+            subject: subject,
+          },
+          // redirectTo: redirectTo,
+          // include_player_ids: ['004abf6d-b6d4-4c62-a3a8-16513aaa8ad6'],
+        };
+        // await PostRequest(
+        //   `${this.ONESIGNALBASEURL}/notifications`,
+        //   data,
+        //   headers,
+        // );
+      }
 
-  //     return true;
-  //   } catch (error) {
-  //     console.log('error getting ', error.message);
-  //     throw new HttpException(
-  //       errorApiWrapper(
-  //         'error occured while sending the Mobile Notifications',
-  //         HttpStatus.FAILED_DEPENDENCY,
-  //       ),
-  //       HttpStatus.FAILED_DEPENDENCY,
-  //     );
-  //   }
-  // }
+      return true;
+    } catch (error) {
+      console.log('error getting ', error.message);
+      throw new UnprocessableEntityException(
+        'Error occured while sending the Mobile Notifications',
+      );
+    }
+  }
 }
