@@ -18,7 +18,7 @@ export class SendMobileNotificationDto {
   @MinLength(2, { message: 'minmum 8 charactors required for the message' })
   @MaxLength(200, { message: 'Can send maximum 200 charactors per message' })
   message: string;
-  z;
+
   @ApiProperty({
     required: false,
   })

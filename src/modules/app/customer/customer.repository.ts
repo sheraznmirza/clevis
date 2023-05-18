@@ -540,6 +540,117 @@ export class CustomerRepository {
     }
   }
 
+  async getVendorById(userMasterId: number) {
+    try {
+      return await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId: userMasterId,
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          userType: true,
+          phone: true,
+          createdAt: true,
+          isActive: true,
+          vendor: {
+            select: {
+              vendorId: true,
+              companySchedule: {
+                orderBy: {
+                  id: 'asc',
+                },
+                select: {
+                  id: true,
+                  day: true,
+                  startTime: true,
+                  endTime: true,
+                },
+              },
+              vendorService: {
+                select: {
+                  vendorServiceId: true,
+                  description: true,
+                  service: {
+                    select: {
+                      serviceName: true,
+                    },
+                  },
+                },
+              },
+              businessLicense: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              workspaceImages: {
+                select: {
+                  media: {
+                    select: {
+                      key: true,
+                      location: true,
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+              companyEmail: true,
+              description: true,
+              logo: {
+                select: {
+                  key: true,
+                  location: true,
+                  name: true,
+                  id: true,
+                },
+              },
+              fullName: true,
+              companyName: true,
+              serviceType: true,
+              userAddress: {
+                select: {
+                  city: {
+                    select: {
+                      cityName: true,
+                      cityId: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          stateId: true,
+                          country: {
+                            select: {
+                              countryName: true,
+                              countryId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  fullAddress: true,
+                  latitude: true,
+                  longitude: true,
+                },
+              },
+              status: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async deleteCustomer(id: number) {
     try {
       await this.prisma.userMaster.update({
