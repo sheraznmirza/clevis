@@ -243,6 +243,11 @@ export class VendorRepository {
                 },
               },
               businessLicense: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -255,6 +260,11 @@ export class VendorRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -480,6 +490,11 @@ export class VendorRepository {
               companyEmail: true,
               companyName: true,
               businessLicense: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -492,6 +507,11 @@ export class VendorRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -638,6 +658,11 @@ export class VendorRepository {
                 },
               },
               businessLicense: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -650,6 +675,11 @@ export class VendorRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -767,6 +797,11 @@ export class VendorRepository {
             select: {
               vendorId: true,
               businessLicense: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -779,6 +814,11 @@ export class VendorRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {

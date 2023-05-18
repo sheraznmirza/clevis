@@ -1,4 +1,5 @@
-import { ServiceType, UserType } from '@prisma/client';
+import { ServiceType, UserMaster, UserType } from '@prisma/client';
+import { VendorSignUpDto } from 'src/modules/app/auth/dto';
 
 export const roles = [
   {
@@ -218,4 +219,553 @@ export const categories = [
   { categoryName: 'Salwar', serviceType: ServiceType.LAUNDRY },
   { categoryName: 'Curtain', serviceType: ServiceType.LAUNDRY },
   { categoryName: 'Carpet', serviceType: ServiceType.LAUNDRY },
+];
+
+export const vendors: VendorSignUpDto[] = [
+  {
+    fullName: 'Donovan Justice',
+    email: 'lybaceqis@mailinator.com',
+    password: 'click123',
+    serviceType: 'CAR_WASH',
+    companyName: 'Brock and Nelson LLC',
+    companyEmail: 'bawyboxa@mailinator.com',
+    phone: '+1 (724) 274-3973',
+    fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
+    cityId: 32,
+    description: 'Quis libero molestia',
+    latitude: 25.204849299999992,
+    longitude: 55.270782800000006,
+    logo: {
+      name: '"6fbd2c6dd786a83ed54c0b331c452686"',
+      location: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+      key: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+    },
+    businessLicense: [
+      {
+        name: '"2d7a9477f6a4965ac16748e45f10ec9e"',
+        location: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+        key: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+      },
+      {
+        name: '"292dd544c38b2174d3099cabdf66b269"',
+        location: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+        key: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+      },
+    ],
+    workspaceImages: [
+      {
+        name: '"3f2f7efde9a06b33dc2f26bc8cd2d813"',
+        location: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+        key: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+      },
+      {
+        name: '"6fb1a43cbac5d913ef6f4ba4c9d52e33"',
+        location: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+        key: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+      },
+    ],
+  },
+
+  {
+    fullName: 'Vendor Justice',
+    email: 'lybaceqis1@mailinator.com',
+    password: 'click123',
+    serviceType: 'CAR_WASH',
+    companyName: 'Brock and Nelson LLC',
+    companyEmail: 'bawyboxa@mailinator.com',
+    phone: '+1 (724) 274-3973',
+    fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
+    cityId: 32,
+    description: 'Quis libero molestia',
+    latitude: 25.204849299999992,
+    longitude: 55.270782800000006,
+    logo: {
+      name: '"6fbd2c6dd786a83ed54c0b331c452686"',
+      location: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+      key: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+    },
+    businessLicense: [
+      {
+        name: '"2d7a9477f6a4965ac16748e45f10ec9e"',
+        location: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+        key: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+      },
+      {
+        name: '"292dd544c38b2174d3099cabdf66b269"',
+        location: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+        key: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+      },
+    ],
+    workspaceImages: [
+      {
+        name: '"3f2f7efde9a06b33dc2f26bc8cd2d813"',
+        location: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+        key: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+      },
+      {
+        name: '"6fb1a43cbac5d913ef6f4ba4c9d52e33"',
+        location: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+        key: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+      },
+    ],
+  },
+
+  {
+    fullName: 'Donovan Vendor',
+    email: 'lybaceqis2@mailinator.com',
+    password: 'click123',
+    serviceType: 'CAR_WASH',
+    companyName: 'Brock and Nelson LLC',
+    companyEmail: 'bawyboxa@mailinator.com',
+    phone: '+1 (724) 274-3973',
+    fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
+    cityId: 32,
+    description: 'Quis libero molestia',
+    latitude: 25.204849299999992,
+    longitude: 55.270782800000006,
+    logo: {
+      name: '"6fbd2c6dd786a83ed54c0b331c452686"',
+      location: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+      key: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+    },
+    businessLicense: [
+      {
+        name: '"2d7a9477f6a4965ac16748e45f10ec9e"',
+        location: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+        key: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+      },
+      {
+        name: '"292dd544c38b2174d3099cabdf66b269"',
+        location: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+        key: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+      },
+    ],
+    workspaceImages: [
+      {
+        name: '"3f2f7efde9a06b33dc2f26bc8cd2d813"',
+        location: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+        key: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+      },
+      {
+        name: '"6fb1a43cbac5d913ef6f4ba4c9d52e33"',
+        location: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+        key: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+      },
+    ],
+  },
+
+  {
+    fullName: 'Vendior',
+    email: 'lybaceqis3@mailinator.com',
+    password: 'click123',
+    serviceType: 'CAR_WASH',
+    companyName: 'Brock and Nelson LLC',
+    companyEmail: 'bawyboxa@mailinator.com',
+    phone: '+1 (724) 274-3973',
+    fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
+    cityId: 32,
+    description: 'Quis libero molestia',
+    latitude: 25.204849299999992,
+    longitude: 55.270782800000006,
+    logo: {
+      name: '"6fbd2c6dd786a83ed54c0b331c452686"',
+      location: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+      key: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+    },
+    businessLicense: [
+      {
+        name: '"2d7a9477f6a4965ac16748e45f10ec9e"',
+        location: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+        key: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+      },
+      {
+        name: '"292dd544c38b2174d3099cabdf66b269"',
+        location: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+        key: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+      },
+    ],
+    workspaceImages: [
+      {
+        name: '"3f2f7efde9a06b33dc2f26bc8cd2d813"',
+        location: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+        key: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+      },
+      {
+        name: '"6fb1a43cbac5d913ef6f4ba4c9d52e33"',
+        location: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+        key: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+      },
+    ],
+  },
+
+  {
+    fullName: 'Clevis Vendor',
+    email: 'lybaceqis4@mailinator.com',
+    password: 'click123',
+    serviceType: 'LAUNDRY',
+    companyName: 'Brock and Nelson LLC',
+    companyEmail: 'bawyboxa@mailinator.com',
+    phone: '+1 (724) 274-3973',
+    fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
+    cityId: 32,
+    description: 'Quis libero molestia',
+    latitude: 25.204849299999992,
+    longitude: 55.270782800000006,
+    logo: {
+      name: '"6fbd2c6dd786a83ed54c0b331c452686"',
+      location: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+      key: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+    },
+    businessLicense: [
+      {
+        name: '"2d7a9477f6a4965ac16748e45f10ec9e"',
+        location: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+        key: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+      },
+      {
+        name: '"292dd544c38b2174d3099cabdf66b269"',
+        location: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+        key: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+      },
+    ],
+    workspaceImages: [
+      {
+        name: '"3f2f7efde9a06b33dc2f26bc8cd2d813"',
+        location: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+        key: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+      },
+      {
+        name: '"6fb1a43cbac5d913ef6f4ba4c9d52e33"',
+        location: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+        key: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+      },
+    ],
+  },
+
+  {
+    fullName: 'Car Washing Vendor',
+    email: 'lybaceqis5@mailinator.com',
+    password: 'click123',
+    serviceType: 'LAUNDRY',
+    companyName: 'Brock and Nelson LLC',
+    companyEmail: 'bawyboxa@mailinator.com',
+    phone: '+1 (724) 274-3973',
+    fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
+    cityId: 32,
+    description: 'Quis libero molestia',
+    latitude: 25.204849299999992,
+    longitude: 55.270782800000006,
+    logo: {
+      name: '"6fbd2c6dd786a83ed54c0b331c452686"',
+      location: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+      key: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+    },
+    businessLicense: [
+      {
+        name: '"2d7a9477f6a4965ac16748e45f10ec9e"',
+        location: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+        key: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+      },
+      {
+        name: '"292dd544c38b2174d3099cabdf66b269"',
+        location: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+        key: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+      },
+    ],
+    workspaceImages: [
+      {
+        name: '"3f2f7efde9a06b33dc2f26bc8cd2d813"',
+        location: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+        key: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+      },
+      {
+        name: '"6fb1a43cbac5d913ef6f4ba4c9d52e33"',
+        location: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+        key: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+      },
+    ],
+  },
+
+  {
+    fullName: 'Clevis Vendor',
+    email: 'lybaceqis6@mailinator.com',
+    password: 'click123',
+    serviceType: 'LAUNDRY',
+    companyName: 'Brock and Nelson LLC',
+    companyEmail: 'bawyboxa@mailinator.com',
+    phone: '+1 (724) 274-3973',
+    fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
+    cityId: 32,
+    description: 'Quis libero molestia',
+    latitude: 25.204849299999992,
+    longitude: 55.270782800000006,
+    logo: {
+      name: '"6fbd2c6dd786a83ed54c0b331c452686"',
+      location: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+      key: 'Clevis/1684396768389-service-image-2.jpg/1684396768389',
+    },
+    businessLicense: [
+      {
+        name: '"2d7a9477f6a4965ac16748e45f10ec9e"',
+        location: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+        key: 'Clevis/1684396768403-workplace-img-5.jpg/1684396768403',
+      },
+      {
+        name: '"292dd544c38b2174d3099cabdf66b269"',
+        location: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+        key: 'Clevis/1684396770405-workplace-img-6.jpg/1684396770405',
+      },
+    ],
+    workspaceImages: [
+      {
+        name: '"3f2f7efde9a06b33dc2f26bc8cd2d813"',
+        location: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+        key: 'Clevis/1684396768400-service-image-4.jpg/1684396768400',
+      },
+      {
+        name: '"6fb1a43cbac5d913ef6f4ba4c9d52e33"',
+        location: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+        key: 'Clevis/1684396770421-service-image-5.jpg/1684396770421',
+      },
+    ],
+  },
+];
+
+export const riders = [
+  {
+    businessLicense: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+    cityId: 32,
+    companyEmail: 'fixyre@mailinator.com',
+    companyName: 'Alvarado and Kent LLC',
+    description: 'Non in in dolore inv',
+    email: 'sefytiroso@mailinator.com',
+    fullAddress: '100 Princess Rd, Hulme, Manchester M15 5AS, UK',
+    fullName: 'Ryder Gray',
+    latitude: 53.461141,
+    logo: {
+      key: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      location: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      name: '"9886b25f77acbbefa4d0304d169d7b47"',
+    },
+    longitude: -2.2455309999999997,
+    password: 'click123',
+    phone: '+1 (481) 993-4488',
+    state: '629',
+    workspaceImages: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+  },
+
+  {
+    businessLicense: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+    cityId: 32,
+    companyEmail: 'fixyre@mailinator.com',
+    companyName: 'Alvarado and Kent LLC',
+    description: 'Non in in dolore inv',
+    email: 'sefytiroso1@mailinator.com',
+    fullAddress: '100 Princess Rd, Hulme, Manchester M15 5AS, UK',
+    fullName: 'Lavinia Rider',
+    latitude: 53.461141,
+    logo: {
+      key: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      location: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      name: '"9886b25f77acbbefa4d0304d169d7b47"',
+    },
+    longitude: -2.2455309999999997,
+    password: 'click123',
+    phone: '+1 (481) 993-4488',
+    workspaceImages: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+  },
+
+  {
+    businessLicense: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+    cityId: 32,
+    companyEmail: 'fixyre@mailinator.com',
+    companyName: 'Alvarado and Kent LLC',
+    description: 'Non in in dolore inv',
+    email: 'sefytiroso2@mailinator.com',
+    fullAddress: '100 Princess Rd, Hulme, Manchester M15 5AS, UK',
+    fullName: 'Ryda Gray',
+    latitude: 53.461141,
+    logo: {
+      key: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      location: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      name: '"9886b25f77acbbefa4d0304d169d7b47"',
+    },
+    longitude: -2.2455309999999997,
+    password: 'click123',
+    phone: '+1 (481) 993-4488',
+    state: '629',
+    workspaceImages: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+  },
+
+  {
+    businessLicense: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+    cityId: 32,
+    companyEmail: 'fixyre@mailinator.com',
+    companyName: 'Alvarado and Kent LLC',
+    description: 'Non in in dolore inv',
+    email: 'sefytiroso3@mailinator.com',
+    fullAddress: '100 Princess Rd, Hulme, Manchester M15 5AS, UK',
+    fullName: 'Rider Clevis',
+    latitude: 53.461141,
+    logo: {
+      key: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      location: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      name: '"9886b25f77acbbefa4d0304d169d7b47"',
+    },
+    longitude: -2.2455309999999997,
+    password: 'click123',
+    phone: '+1 (481) 993-4488',
+    state: '629',
+    workspaceImages: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+  },
+
+  {
+    businessLicense: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+    cityId: 32,
+    companyEmail: 'fixyre@mailinator.com',
+    companyName: 'Alvarado and Kent LLC',
+    description: 'Non in in dolore inv',
+    email: 'sefytiroso4@mailinator.com',
+    fullAddress: '100 Princess Rd, Hulme, Manchester M15 5AS, UK',
+    fullName: 'Raydur Clevis',
+    latitude: 53.461141,
+    logo: {
+      key: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      location: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      name: '"9886b25f77acbbefa4d0304d169d7b47"',
+    },
+    longitude: -2.2455309999999997,
+    password: 'click123',
+    phone: '+1 (481) 993-4488',
+    state: '629',
+    workspaceImages: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+  },
+
+  {
+    businessLicense: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+    cityId: 32,
+    companyEmail: 'fixyre@mailinator.com',
+    companyName: 'Alvarado and Kent LLC',
+    description: 'Non in in dolore inv',
+    email: 'sefytiroso5@mailinator.com',
+    fullAddress: '100 Princess Rd, Hulme, Manchester M15 5AS, UK',
+    fullName: 'Riodur',
+    latitude: 53.461141,
+    logo: {
+      key: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      location: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      name: '"9886b25f77acbbefa4d0304d169d7b47"',
+    },
+    longitude: -2.2455309999999997,
+    password: 'click123',
+    phone: '+1 (481) 993-4488',
+    state: '629',
+    workspaceImages: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+  },
+
+  {
+    businessLicense: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547359',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+    cityId: 32,
+    companyEmail: 'fixyre@mailinator.com',
+    companyName: 'Alvarado and Kent LLC',
+    description: 'Non in in dolore inv',
+    email: 'sefytiroso6@mailinator.com',
+    fullAddress: '100 Princess Rd, Hulme, Manchester M15 5AS, UK',
+    fullName: 'Lavinia Gray',
+    latitude: 53.461141,
+    logo: {
+      key: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      location: '1683292172394-Fingerprint-bro 1.png/1684400547343',
+      name: '"9886b25f77acbbefa4d0304d169d7b47"',
+    },
+    longitude: -2.2455309999999997,
+    password: 'click123',
+    phone: '+1 (481) 993-4488',
+    state: '629',
+    workspaceImages: [
+      {
+        key: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        location: '1683292172394-Fingerprint-bro 1.png/1684400547351',
+        name: '"9886b25f77acbbefa4d0304d169d7b47"',
+      },
+    ],
+  },
 ];

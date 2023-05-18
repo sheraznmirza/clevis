@@ -63,6 +63,12 @@ export class CustomerController {
     return this.customerService.getVendorsByLocation(user.userMasterId, dto);
   }
 
+  @Authorized(UserType.CUSTOMER)
+  @Get('vendor/:userMasterId')
+  getVendorById(@Param('userMasterId') userMasterId: number) {
+    return this.customerService.getVendorById(userMasterId);
+  }
+
   @Authorized(UserType.ADMIN)
   @Get()
   getAllCustomers(@Query() listingParams: CustomerListingParams) {

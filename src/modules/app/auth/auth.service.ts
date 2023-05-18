@@ -275,7 +275,6 @@ export class AuthService {
       });
 
       if (userCount > 0) {
-        console.log('hello bharway');
         throw new ForbiddenException('Credentials taken');
       }
 

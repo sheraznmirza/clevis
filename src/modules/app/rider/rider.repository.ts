@@ -115,6 +115,11 @@ export class RiderRepository {
               companyEmail: true,
               companyName: true,
               businessLicense: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -127,6 +132,11 @@ export class RiderRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -251,6 +261,11 @@ export class RiderRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -348,6 +363,11 @@ export class RiderRepository {
             select: {
               riderId: true,
               businessLicense: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -360,6 +380,11 @@ export class RiderRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -587,10 +612,23 @@ export class RiderRepository {
           userType: true,
           phone: true,
           createdAt: true,
+          profilePicture: {
+            select: {
+              key: true,
+              location: true,
+              name: true,
+              id: true,
+            },
+          },
           rider: {
             select: {
               riderId: true,
               businessLicense: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
@@ -603,6 +641,11 @@ export class RiderRepository {
                 },
               },
               workspaceImages: {
+                where: {
+                  media: {
+                    isDeleted: false,
+                  },
+                },
                 select: {
                   media: {
                     select: {
