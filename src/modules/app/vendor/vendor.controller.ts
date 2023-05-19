@@ -22,6 +22,7 @@ import {
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
+  VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
 import { VendorService } from './vendor.service';
@@ -53,6 +54,20 @@ export class VendorController {
   @Post('/service')
   createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
     return this.vendorService.createVendorService(dto, req.user?.userMasterId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Patch('/service/:vendorServiceId')
+  updateVendorService(
+    @Param('vendorServiceId') vendorServiceId: number,
+    @Body() dto: VendorUpdateServiceDto,
+    @GetUser() user,
+  ) {
+    return this.vendorService.updateVendorService(
+      dto,
+      user.userMasterId,
+      vendorServiceId,
+    );
   }
 
   @Authorized(UserType.ADMIN)

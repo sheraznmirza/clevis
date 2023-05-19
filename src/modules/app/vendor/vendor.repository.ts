@@ -19,9 +19,8 @@ import { successResponse } from 'src/helpers/response.helper';
 export class VendorRepository {
   constructor(private prisma: PrismaService) {}
 
-  async createVendorService(dto: VendorCreateServiceDto, userMasterId) {
+  async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
     try {
-      debugger;
       const vendor = await this.prisma.vendor.findUnique({
         where: {
           userMasterId,
@@ -32,7 +31,29 @@ export class VendorRepository {
 
       return true;
     } catch (error) {
-      debugger;
+      if (error.code === 'P2002') {
+        throw new ForbiddenException('VendorService is already created');
+      }
+      throw error;
+    }
+  }
+
+  async updateVendorService(
+    dto: VendorCreateServiceDto,
+    userMasterId: number,
+    vendorServiceId: number,
+  ) {
+    try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          userMasterId,
+        },
+      });
+
+      await this.updateCarWashVendorService(dto, vendor, vendorServiceId);
+
+      return true;
+    } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('VendorService is already created');
       }
@@ -430,7 +451,6 @@ export class VendorRepository {
   ) {
     const { page = 1, take = 10, search, order = 'asc' } = listingParams;
     try {
-      debugger;
       return await this.prisma.vendorService.findMany({
         take: +take,
         skip: +take * (+page - 1),
@@ -1021,7 +1041,6 @@ export class VendorRepository {
   ) {
     try {
       const serviceImages = [];
-      debugger;
       dto.serviceImages.forEach(async (serviceImage) => {
         const result = await this.prisma.media.create({
           data: serviceImage,
@@ -1031,10 +1050,58 @@ export class VendorRepository {
         });
         serviceImages.push(result);
       });
-      debugger;
       const vendorService = await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,
+          serviceId: dto.serviceId,
+          AllocatePrice: {
+            createMany: {
+              data: dto.allocatePrice,
+            },
+          },
+          description: dto.description,
+        },
+        select: {
+          vendorServiceId: true,
+        },
+      });
+      await this.prisma.allocatePrice.createMany({
+        data: dto.allocatePrice.map((item) => ({
+          ...item,
+          vendorServiceId: vendorService.vendorServiceId,
+        })),
+      });
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateCarWashVendorService(
+    dto: VendorCreateServiceDto,
+    vendor: Vendor,
+    vendorServiceId: number,
+  ) {
+    try {
+      const serviceImages = [];
+
+      if (dto.serviceImages) {
+        dto.serviceImages.forEach(async (serviceImage) => {
+          const result = await this.prisma.media.create({
+            data: serviceImage,
+            select: {
+              id: true,
+            },
+          });
+          serviceImages.push(result);
+        });
+      }
+
+      const vendorService = await this.prisma.vendorService.update({
+        where: {
+          vendorServiceId: vendorServiceId,
+        },
+        data: {
           serviceId: dto.serviceId,
           description: dto.description,
         },
@@ -1042,17 +1109,14 @@ export class VendorRepository {
           vendorServiceId: true,
         },
       });
-      debugger;
       await this.prisma.allocatePrice.createMany({
         data: dto.allocatePrice.map((item) => ({
           ...item,
           vendorServiceId: vendorService.vendorServiceId,
         })),
       });
-      debugger;
       return true;
     } catch (error) {
-      debugger;
       throw error;
     }
   }

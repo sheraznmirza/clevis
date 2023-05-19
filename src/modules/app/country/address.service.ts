@@ -147,7 +147,6 @@ export class AddressService {
       }
       return address;
     } catch (error) {
-      debugger;
       throw new InternalServerErrorException(error.message);
     }
   }

@@ -86,7 +86,8 @@
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
-    "seed": "node dist/src/seeders/seed.js"
+    "seed": "node dist/src/seeders/seed.js",
+    "seed2": "node dist/src/seeder/seed2.js"
   },
   "jest": {
     "moduleFileExtensions": [

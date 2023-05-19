@@ -12,23 +12,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Days, Media } from '@prisma/client';
 import { Type } from 'class-transformer';
-
-class MediaFormat {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  key: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  location: string;
-}
+import { MediaFormat } from 'src/core/globalTypes';
 
 export class UpdateVendorDto {
   @ApiProperty()
