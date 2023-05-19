@@ -300,6 +300,7 @@ model AllocatePrice {
   categoryId      Int
   category        Category      @relation(fields: [categoryId], references: [categoryId])
   price           Float
+  isDeleted       Boolean       @default(false)
   subcategory     SubCategory?  @relation(fields: [subcategoryId], references: [subCategoryId])
   vendorService   VendorService @relation(fields: [vendorServiceId], references: [vendorServiceId])
 }

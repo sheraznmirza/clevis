@@ -29,6 +29,7 @@ import {
   ListingParams,
   VendorListingParams,
   VendorRiderByIdParams,
+  VendorServiceListingParams,
 } from 'src/core/dto';
 
 @UseGuards(JwtGuard, RolesGuard)
@@ -96,8 +97,10 @@ export class VendorController {
 
   @Authorized([UserType.VENDOR, UserType.CUSTOMER])
   @Get('/services')
-  getAllVendorService(@GetUser() user, @Query() listingParams: ListingParams) {
-    console.log('user: ', user);
+  getAllVendorService(
+    @GetUser() user,
+    @Query() listingParams: VendorServiceListingParams,
+  ) {
     return this.vendorService.getVendorAllService(
       user.userTypeId,
       listingParams,

@@ -1,5 +1,5 @@
 import { ServiceType } from '@prisma/client';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ServiceCreateDto {
@@ -8,8 +8,10 @@ export class ServiceCreateDto {
   @IsNotEmpty()
   serviceName: string;
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({
+    enum: ServiceType,
+  })
+  @IsEnum(ServiceType)
   @IsNotEmpty()
   serviceType: ServiceType;
 }

@@ -15,6 +15,7 @@ import {
   RiderVendorTabs,
   VendorListingParams,
   VendorRiderByIdParams,
+  VendorServiceListingParams,
 } from 'src/core/dto';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 import {
@@ -116,7 +117,10 @@ export class VendorService {
     }
   }
 
-  async getVendorAllService(id: number, listingParams: ListingParams) {
+  async getVendorAllService(
+    id: number,
+    listingParams: VendorServiceListingParams,
+  ) {
     try {
       return await this.repository.getAllVendorService(id, listingParams);
     } catch (error) {
