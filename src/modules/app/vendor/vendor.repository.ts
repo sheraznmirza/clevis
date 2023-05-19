@@ -559,8 +559,6 @@ export class VendorRepository {
     }
   }
 
-  async updateVendorService() {}
-
   async getVendorByIdProfile(id: number) {
     try {
       return await this.prisma.userMaster.findUnique({

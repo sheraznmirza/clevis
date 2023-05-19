@@ -9,7 +9,7 @@ import {
   IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '../../../../core/globalTypes';
+import { MediaFormat } from 'src/core/globalTypes';
 
 export class RiderSignUpDto {
   @ApiProperty()
@@ -51,17 +51,17 @@ export class RiderSignUpDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  logo: Media;
+  logo: MediaFormat;
 
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  workspaceImages: Media[];
+  workspaceImages: MediaFormat[];
 
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  businessLicense: Media[];
+  businessLicense: MediaFormat[];
 
   @ApiProperty()
   @IsString()

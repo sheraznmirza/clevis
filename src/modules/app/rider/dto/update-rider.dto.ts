@@ -11,9 +11,9 @@ import {
   IsEnum,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '../../../../core/globalTypes';
 import { Type } from 'class-transformer';
 import { Days } from '@prisma/client';
+import { MediaFormat } from 'src/core/globalTypes';
 
 export class RiderUpdateDto {
   @ApiProperty()
@@ -55,21 +55,21 @@ export class RiderUpdateDto {
 
   @ApiProperty()
   @IsOptional()
-  logo: Media;
+  logo: MediaFormat;
 
   @ApiProperty()
   @IsArray()
   @IsOptional()
-  workspaceImages: Media[];
+  workspaceImages: MediaFormat[];
 
   @ApiProperty()
   @IsArray()
   @IsOptional()
-  businessLicense: Media[];
+  businessLicense: MediaFormat[];
 
   @ApiProperty({})
   @IsOptional()
-  profilePicture: Media;
+  profilePicture: MediaFormat;
 
   @ApiProperty()
   @IsString()
