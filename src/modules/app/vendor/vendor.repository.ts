@@ -11,7 +11,7 @@ import {
   VendorUpdateStatusDto,
 } from './dto';
 import { Media, UserType, Vendor } from '@prisma/client';
-import { ListingParams, VendorListingParams } from 'src/core/dto';
+import { VendorListingParams, VendorServiceListingParams } from 'src/core/dto';
 import { successResponse } from 'src/helpers/response.helper';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
@@ -19,9 +19,8 @@ import { successResponse } from 'src/helpers/response.helper';
 export class VendorRepository {
   constructor(private prisma: PrismaService) {}
 
-  async createVendorService(dto: VendorCreateServiceDto, userMasterId) {
+  async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
     try {
-      debugger;
       const vendor = await this.prisma.vendor.findUnique({
         where: {
           userMasterId,
@@ -30,19 +29,35 @@ export class VendorRepository {
 
       await this.createCarWashVendorService(dto, vendor);
 
-      //   await this.prisma.category.create({
-      //     data: {
-      //       categoryName: dto.categoryName,
-      //       serviceType: dto.serviceType,
-      //     },
-      //   });
+      return true;
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ForbiddenException('VendorService is already created');
+      }
+      throw error;
+    }
+  }
+
+  async updateVendorService(
+    dto: VendorCreateServiceDto,
+    userMasterId: number,
+    vendorServiceId: number,
+  ) {
+    try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          userMasterId,
+        },
+      });
+
+      await this.updateCarWashVendorService(dto, vendor, vendorServiceId);
 
       return true;
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('VendorService is already created');
       }
-      throw new error();
+      throw error;
     }
   }
 
@@ -86,6 +101,17 @@ export class VendorRepository {
           },
         });
       });
+
+      if (dto.alwaysOpen) {
+        await this.prisma.vendor.update({
+          where: {
+            vendorId: vendorId,
+          },
+          data: {
+            alwaysOpen: dto.alwaysOpen,
+          },
+        });
+      }
 
       const scheduleArray = await this.prisma.companySchedule.findMany({
         where: {
@@ -133,6 +159,54 @@ export class VendorRepository {
             name: dto.logo.name,
             key: dto.logo.key,
             location: dto.logo.location,
+          },
+        });
+      }
+
+      const businesess = [];
+      const workspaces = [];
+      if (dto.businessLicense) {
+        dto.businessLicense.forEach(async (business) => {
+          const result = await this.prisma.media.create({
+            data: business,
+            select: {
+              id: true,
+            },
+          });
+          businesess.push(result);
+        });
+      }
+
+      if (dto.workspaceImages) {
+        dto.workspaceImages.forEach(async (business) => {
+          const result = await this.prisma.media.create({
+            data: business,
+            select: {
+              id: true,
+            },
+          });
+          workspaces.push(result);
+        });
+      }
+
+      if (dto.bankingId) {
+        await this.prisma.banking.update({
+          where: {
+            id: dto.bankingId,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
+      if (dto.userAddressId) {
+        await this.prisma.userAddress.update({
+          where: {
+            userAddressId: dto.userAddressId,
+          },
+          data: {
+            isDeleted: true,
           },
         });
       }
@@ -343,6 +417,25 @@ export class VendorRepository {
         },
       });
 
+      if (businesess.length > 0) {
+        await this.prisma.businessLicense.createMany({
+          data: businesess.map((item) => ({
+            vendorVendorId: vendor.vendor.vendorId,
+
+            mediaId: item.id,
+          })),
+        });
+      }
+
+      if (workspaces.length > 0) {
+        await this.prisma.workspaceImages.createMany({
+          data: workspaces.map((item) => ({
+            vendorVendorId: vendor.vendor.vendorId,
+            mediaId: item.id,
+          })),
+        });
+      }
+
       return {
         ...successResponse(200, 'Vendor updated successfully.'),
         ...vendor,
@@ -352,13 +445,20 @@ export class VendorRepository {
     }
   }
 
-  async getAllVendorService(vendorId: number, listingParams: ListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+  async getAllVendorService(
+    vendorId: number,
+    listingParams: VendorServiceListingParams,
+  ) {
+    const { page = 1, take = 10, search, order = 'asc' } = listingParams;
     try {
-      debugger;
       return await this.prisma.vendorService.findMany({
         take: +take,
         skip: +take * (+page - 1),
+        orderBy: {
+          service: {
+            serviceName: order,
+          },
+        },
         where: {
           vendorId: vendorId,
           isDeleted: false,
@@ -416,6 +516,7 @@ export class VendorRepository {
           AllocatePrice: {
             where: {
               vendorServiceId,
+              isDeleted: false,
             },
             select: {
               category: {
@@ -433,13 +534,32 @@ export class VendorRepository {
               price: true,
             },
           },
-          serviceImage: true,
+          serviceImage: {
+            where: {
+              media: {
+                isDeleted: false,
+              },
+            },
+            select: {
+              id: true,
+              media: {
+                select: {
+                  id: true,
+                  key: true,
+                  location: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
     } catch (error) {
       throw error;
     }
   }
+
+  async updateVendorService() {}
 
   async getVendorByIdProfile(id: number) {
     try {
@@ -608,6 +728,7 @@ export class VendorRepository {
           vendor: {
             select: {
               vendorId: true,
+              alwaysOpen: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',
@@ -920,7 +1041,6 @@ export class VendorRepository {
   ) {
     try {
       const serviceImages = [];
-      debugger;
       dto.serviceImages.forEach(async (serviceImage) => {
         const result = await this.prisma.media.create({
           data: serviceImage,
@@ -930,10 +1050,58 @@ export class VendorRepository {
         });
         serviceImages.push(result);
       });
-
       const vendorService = await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,
+          serviceId: dto.serviceId,
+          AllocatePrice: {
+            createMany: {
+              data: dto.allocatePrice,
+            },
+          },
+          description: dto.description,
+        },
+        select: {
+          vendorServiceId: true,
+        },
+      });
+      await this.prisma.allocatePrice.createMany({
+        data: dto.allocatePrice.map((item) => ({
+          ...item,
+          vendorServiceId: vendorService.vendorServiceId,
+        })),
+      });
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateCarWashVendorService(
+    dto: VendorCreateServiceDto,
+    vendor: Vendor,
+    vendorServiceId: number,
+  ) {
+    try {
+      const serviceImages = [];
+
+      if (dto.serviceImages) {
+        dto.serviceImages.forEach(async (serviceImage) => {
+          const result = await this.prisma.media.create({
+            data: serviceImage,
+            select: {
+              id: true,
+            },
+          });
+          serviceImages.push(result);
+        });
+      }
+
+      const vendorService = await this.prisma.vendorService.update({
+        where: {
+          vendorServiceId: vendorServiceId,
+        },
+        data: {
           serviceId: dto.serviceId,
           description: dto.description,
         },
@@ -941,21 +1109,12 @@ export class VendorRepository {
           vendorServiceId: true,
         },
       });
-
-      await this.prisma.workspaceImages.createMany({
-        data: serviceImages.map((item) => ({
-          vendorServiceId: vendorService.vendorServiceId,
-          mediaId: item.id,
-        })),
-      });
-
       await this.prisma.allocatePrice.createMany({
         data: dto.allocatePrice.map((item) => ({
           ...item,
           vendorServiceId: vendorService.vendorServiceId,
         })),
       });
-
       return true;
     } catch (error) {
       throw error;

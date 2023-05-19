@@ -535,7 +535,6 @@ export class CustomerRepository {
         };
       }
     } catch (error) {
-      debugger;
       throw error;
     }
   }

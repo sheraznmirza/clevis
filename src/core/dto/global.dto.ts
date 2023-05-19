@@ -1,6 +1,13 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ServiceType, Status } from '@prisma/client';
+import { ServiceType, Status, UserType } from '@prisma/client';
+
+export type GetUserType = {
+  userMasterId: number;
+  userType: UserType;
+  email: string;
+  userTypeId: number;
+};
 
 enum OrderOf {
   asc = 'asc',
@@ -31,6 +38,7 @@ export enum RiderVendorTabs {
   COMPANY_SCHEDULE = 'COMPANY_SCHEDULE',
   ACCOUNT_DETAILS = 'ACCOUNT_DETAILS',
 }
+
 export class ListingParams {
   @ApiProperty({
     required: false,
@@ -74,6 +82,17 @@ export class CustomerListingParams extends ListingParams {
   @IsOptional()
   @IsEnum(CustomerColumns)
   columnName?: CustomerColumns;
+}
+
+export class VendorServiceListingParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    enum: OrderOf,
+    description: 'Order of the respective column in a table',
+  })
+  @IsOptional()
+  @IsEnum(OrderOf)
+  order?: OrderOf;
 }
 
 export class VendorListingParams extends ListingParams {

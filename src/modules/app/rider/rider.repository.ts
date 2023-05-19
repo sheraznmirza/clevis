@@ -201,6 +201,7 @@ export class RiderRepository {
           rider: {
             select: {
               riderId: true,
+              alwaysOpen: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',
@@ -478,6 +479,17 @@ export class RiderRepository {
         });
       });
 
+      if (dto.alwaysOpen) {
+        await this.prisma.rider.update({
+          where: {
+            riderId: riderId,
+          },
+          data: {
+            alwaysOpen: dto.alwaysOpen,
+          },
+        });
+      }
+
       const scheduleArray = await this.prisma.companySchedule.findMany({
         where: {
           riderId: riderId,
@@ -525,6 +537,32 @@ export class RiderRepository {
             key: dto.logo.key,
             location: dto.logo.location,
           },
+        });
+      }
+
+      const businesess = [];
+      const workspaces = [];
+      if (dto.businessLicense) {
+        dto.businessLicense.forEach(async (business) => {
+          const result = await this.prisma.media.create({
+            data: business,
+            select: {
+              id: true,
+            },
+          });
+          businesess.push(result);
+        });
+      }
+
+      if (dto.workspaceImages) {
+        dto.workspaceImages.forEach(async (business) => {
+          const result = await this.prisma.media.create({
+            data: business,
+            select: {
+              id: true,
+            },
+          });
+          workspaces.push(result);
         });
       }
 
@@ -702,6 +740,23 @@ export class RiderRepository {
           },
         },
       });
+      if (businesess.length > 0) {
+        await this.prisma.businessLicense.createMany({
+          data: businesess.map((item) => ({
+            riderRiderId: rider.rider.riderId,
+            mediaId: item.id,
+          })),
+        });
+      }
+
+      if (workspaces.length > 0) {
+        await this.prisma.workspaceImages.createMany({
+          data: workspaces.map((item) => ({
+            riderRiderId: rider.rider.riderId,
+            mediaId: item.id,
+          })),
+        });
+      }
 
       return {
         ...successResponse(200, 'Rider updated successfully.'),

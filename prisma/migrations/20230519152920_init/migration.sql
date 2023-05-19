@@ -104,6 +104,7 @@ CREATE TABLE "Vendor" (
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
     "isBusy" BOOLEAN NOT NULL DEFAULT false,
+    "alwaysOpen" BOOLEAN NOT NULL DEFAULT false,
     "description" TEXT,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -119,6 +120,7 @@ CREATE TABLE "Rider" (
     "companyName" TEXT NOT NULL,
     "companyEmail" TEXT NOT NULL,
     "isBusy" BOOLEAN NOT NULL DEFAULT false,
+    "alwaysOpen" BOOLEAN NOT NULL DEFAULT false,
     "description" TEXT,
     "status" "Status" NOT NULL DEFAULT 'PENDING',
 
@@ -254,6 +256,7 @@ CREATE TABLE "AllocatePrice" (
     "subcategoryId" INTEGER,
     "categoryId" INTEGER NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "AllocatePrice_pkey" PRIMARY KEY ("id")
 );
@@ -391,6 +394,29 @@ CREATE TABLE "Earnings" (
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Earnings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RatingSetup" (
+    "id" SERIAL NOT NULL,
+    "rating" DOUBLE PRECISION NOT NULL,
+    "serviceType" "ServiceType" NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RatingSetup_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PlatformSetup" (
+    "id" SERIAL NOT NULL,
+    "fee" DOUBLE PRECISION NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PlatformSetup_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex

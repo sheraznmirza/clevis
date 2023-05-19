@@ -4,6 +4,7 @@ import {
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
+  VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
 import { successResponse } from '../../../helpers/response.helper';
@@ -15,6 +16,7 @@ import {
   RiderVendorTabs,
   VendorListingParams,
   VendorRiderByIdParams,
+  VendorServiceListingParams,
 } from 'src/core/dto';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 import {
@@ -36,6 +38,27 @@ export class VendorService {
       const vendorService = await this.repository.createVendorService(
         dto,
         userMasterId,
+      );
+      if (!vendorService) {
+        throw new BadRequestException('Unable to create this vendor service');
+      }
+      return successResponse(201, 'Vendor service successfully created.');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateVendorService(
+    dto: VendorUpdateServiceDto,
+    userMasterId: number,
+    vendorServiceId: number,
+  ) {
+    try {
+      throw new BadRequestException('Invalid data');
+      const vendorService = await this.repository.updateVendorService(
+        dto,
+        userMasterId,
+        vendorServiceId,
       );
       if (!vendorService) {
         throw new BadRequestException('Unable to create this vendor service');
@@ -116,7 +139,10 @@ export class VendorService {
     }
   }
 
-  async getVendorAllService(id: number, listingParams: ListingParams) {
+  async getVendorAllService(
+    id: number,
+    listingParams: VendorServiceListingParams,
+  ) {
     try {
       return await this.repository.getAllVendorService(id, listingParams);
     } catch (error) {

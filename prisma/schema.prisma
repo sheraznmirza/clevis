@@ -148,6 +148,7 @@ model Vendor {
   companyName     String
   companyEmail    String
   isBusy          Boolean           @default(false)
+  alwaysOpen      Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
   description     String?
   userAddress     UserAddress[]
@@ -168,6 +169,7 @@ model Rider {
   companyName     String
   companyEmail    String
   isBusy          Boolean           @default(false)
+  alwaysOpen      Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
   description     String?
   userAddress     UserAddress[]
@@ -298,6 +300,7 @@ model AllocatePrice {
   categoryId      Int
   category        Category      @relation(fields: [categoryId], references: [categoryId])
   price           Float
+  isDeleted       Boolean       @default(false)
   subcategory     SubCategory?  @relation(fields: [subcategoryId], references: [subCategoryId])
   vendorService   VendorService @relation(fields: [vendorServiceId], references: [vendorServiceId])
 }
@@ -440,4 +443,21 @@ model Earnings {
   serviceType  ServiceType
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @default(now()) @updatedAt
+}
+
+model RatingSetup {
+  id          Int         @id @default(autoincrement())
+  rating      Float
+  serviceType ServiceType
+  isDeleted   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now()) @updatedAt
+}
+
+model PlatformSetup {
+  id        Int      @id @default(autoincrement())
+  fee       Float
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
