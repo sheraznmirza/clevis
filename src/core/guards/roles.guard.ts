@@ -26,7 +26,6 @@ export class RolesGuard implements CanActivate {
           userType: true,
         },
       });
-
       return roles.indexOf(getUserRole.userType) > -1;
     }
 

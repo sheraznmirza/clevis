@@ -8,6 +8,7 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { Media } from '@prisma/client';
+import { MediaFormat } from 'src/core/globalTypes';
 
 // type AllocatePrice = {
 //   price: number;
@@ -31,11 +32,6 @@ class AllocatePrice {
   @IsNumber()
   @IsNotEmpty()
   categoryId: number;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  vendorServiceId?: number;
 }
 
 export class VendorCreateServiceDto {
@@ -58,8 +54,40 @@ export class VendorCreateServiceDto {
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: MediaFormat,
+  })
   @IsArray()
   @IsNotEmpty()
-  serviceImages: Media[];
+  @Type(() => MediaFormat)
+  serviceImages: MediaFormat[];
+}
+
+export class VendorUpdateServiceDto {
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  serviceId: number;
+
+  @ApiProperty({
+    isArray: true,
+    type: AllocatePrice,
+  })
+  @IsArray()
+  @Type(() => AllocatePrice)
+  @IsOptional()
+  allocatePrice: AllocatePrice[];
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  description: string;
+
+  @ApiProperty({
+    type: MediaFormat,
+  })
+  @IsArray()
+  @IsOptional()
+  @Type(() => MediaFormat)
+  serviceImages: MediaFormat[];
 }

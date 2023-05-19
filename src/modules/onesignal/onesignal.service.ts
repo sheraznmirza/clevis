@@ -1,6 +1,7 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SendMobileNotificationDto } from './dto/send-notification-mobile.dto';
+import { PostRequest } from 'src/helpers/request.helper';
 
 @Injectable()
 export class OnesignalService {
@@ -266,11 +267,11 @@ export class OnesignalService {
           // redirectTo: redirectTo,
           // include_player_ids: ['004abf6d-b6d4-4c62-a3a8-16513aaa8ad6'],
         };
-        // await PostRequest(
-        //   `${this.ONESIGNALBASEURL}/notifications`,
-        //   data,
-        //   headers,
-        // );
+        await PostRequest(
+          `${this.ONESIGNALBASEURL}/notifications`,
+          data,
+          headers,
+        );
       }
 
       return true;

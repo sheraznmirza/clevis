@@ -22,6 +22,7 @@ import {
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
+  VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
 import { VendorService } from './vendor.service';
@@ -29,6 +30,7 @@ import {
   ListingParams,
   VendorListingParams,
   VendorRiderByIdParams,
+  VendorServiceListingParams,
 } from 'src/core/dto';
 
 @UseGuards(JwtGuard, RolesGuard)
@@ -43,7 +45,7 @@ export class VendorController {
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('byId/:userMasterId')
+  @Get('/:userMasterId')
   getVendorById(@Param('userMasterId') userMasterId: number) {
     return this.vendorService.getVendorById(userMasterId);
   }
@@ -52,6 +54,20 @@ export class VendorController {
   @Post('/service')
   createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
     return this.vendorService.createVendorService(dto, req.user?.userMasterId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Patch('/service/:vendorServiceId')
+  updateVendorService(
+    @Param('vendorServiceId') vendorServiceId: number,
+    @Body() dto: VendorUpdateServiceDto,
+    @GetUser() user,
+  ) {
+    return this.vendorService.updateVendorService(
+      dto,
+      user.userMasterId,
+      vendorServiceId,
+    );
   }
 
   @Authorized(UserType.ADMIN)
@@ -96,10 +112,12 @@ export class VendorController {
 
   @Authorized([UserType.VENDOR, UserType.CUSTOMER])
   @Get('/services')
-  getAllVendorService(@GetUser() user, @Query() listingParams: ListingParams) {
-    console.log('user: ', user);
+  getAllVendorService(
+    @GetUser() user,
+    @Query() listingParams: VendorServiceListingParams,
+  ) {
     return this.vendorService.getVendorAllService(
-      user.userTypeId,
+      user.userMasterId,
       listingParams,
     );
   }
