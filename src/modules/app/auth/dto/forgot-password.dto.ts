@@ -1,6 +1,7 @@
 import { UserType } from '@prisma/client';
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsString,
@@ -18,7 +19,7 @@ export class ForgotPasswordDto {
   email: string;
 
   @ApiProperty()
-  @IsString()
+  @IsEnum(UserType)
   @IsNotEmpty()
   userType: UserType;
 }
