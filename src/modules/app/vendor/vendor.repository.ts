@@ -87,6 +87,17 @@ export class VendorRepository {
         });
       });
 
+      if (dto.alwaysOpen) {
+        await this.prisma.vendor.update({
+          where: {
+            vendorId: vendorId,
+          },
+          data: {
+            alwaysOpen: dto.alwaysOpen,
+          },
+        });
+      }
+
       const scheduleArray = await this.prisma.companySchedule.findMany({
         where: {
           vendorId: vendorId,
@@ -675,6 +686,7 @@ export class VendorRepository {
           vendor: {
             select: {
               vendorId: true,
+              alwaysOpen: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',
@@ -987,7 +999,6 @@ export class VendorRepository {
   ) {
     try {
       const serviceImages = [];
-      debugger;
       dto.serviceImages.forEach(async (serviceImage) => {
         const result = await this.prisma.media.create({
           data: serviceImage,

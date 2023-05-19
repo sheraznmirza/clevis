@@ -148,6 +148,7 @@ model Vendor {
   companyName     String
   companyEmail    String
   isBusy          Boolean           @default(false)
+  alwaysOpen      Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
   description     String?
   userAddress     UserAddress[]
@@ -168,6 +169,7 @@ model Rider {
   companyName     String
   companyEmail    String
   isBusy          Boolean           @default(false)
+  alwaysOpen      Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
   description     String?
   userAddress     UserAddress[]

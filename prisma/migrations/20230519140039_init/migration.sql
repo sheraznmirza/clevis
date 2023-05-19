@@ -1,3 +1,9 @@
+-- AlterTable
+ALTER TABLE "Rider" ADD COLUMN     "alwaysOpen" BOOLEAN NOT NULL DEFAULT false;
+
+-- AlterTable
+ALTER TABLE "Vendor" ADD COLUMN     "alwaysOpen" BOOLEAN NOT NULL DEFAULT false;
+
 -- CreateTable
 CREATE TABLE "RatingSetup" (
     "id" SERIAL NOT NULL,

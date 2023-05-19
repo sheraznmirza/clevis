@@ -201,6 +201,7 @@ export class RiderRepository {
           rider: {
             select: {
               riderId: true,
+              alwaysOpen: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',
@@ -477,6 +478,17 @@ export class RiderRepository {
           },
         });
       });
+
+      if (dto.alwaysOpen) {
+        await this.prisma.rider.update({
+          where: {
+            riderId: riderId,
+          },
+          data: {
+            alwaysOpen: dto.alwaysOpen,
+          },
+        });
+      }
 
       const scheduleArray = await this.prisma.companySchedule.findMany({
         where: {
