@@ -441,3 +441,20 @@ model Earnings {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @default(now()) @updatedAt
 }
+
+model RatingSetup {
+  id          Int         @id @default(autoincrement())
+  rating      Float
+  serviceType ServiceType
+  isDeleted   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now()) @updatedAt
+}
+
+model PlatformSetup {
+  id        Int      @id @default(autoincrement())
+  fee       Float
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
