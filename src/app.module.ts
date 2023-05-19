@@ -15,6 +15,8 @@ import { NotificationModule } from './modules/app/notification/notification.modu
 import { MailModule } from './modules/mail/mail.module';
 import { RiderModule } from './modules/app/rider/rider.module';
 import MediaModule from './modules/app/media/media.module';
+import { RatingModule } from './modules/app/ratingSetup/ratingSetup.module';
+import { PlatformModule } from './modules/app/platformSetup/platform-setup.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import MediaModule from './modules/app/media/media.module';
     RoleModule,
     RoleRouteModule,
     RouteModule,
+    RatingModule,
+    PlatformModule,
     // DatabaseModule,
   ],
 })
