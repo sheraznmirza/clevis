@@ -2,14 +2,10 @@ import {
   Controller,
   Post,
   Get,
-  UseGuards,
-  Query,
   Param,
   Patch,
   Delete,
   Body,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import { Authorized } from 'src/core/decorators';
 import { UserType } from '@prisma/client';
