@@ -4,7 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-import { ListingParams } from 'src/core/dto';
+import { GetUserType, ListingParams } from 'src/core/dto';
+import { addressUpdateDto } from './dto/addressUpdateDto';
+import { BadRequestExceptionResponse } from 'src/response/response.schema';
+import { addressCreateDto } from './dto/addressCreateDto';
+import { successResponse } from 'src/helpers/response.helper';
 
 @Injectable()
 export class AddressService {
@@ -115,5 +119,102 @@ export class AddressService {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async getAddressByCustomer(id: number) {
+    try {
+      const address = await this.prisma.userAddress.findMany({
+        where: { customerId: id },
+      });
+
+      if (!address) {
+        throw new NotFoundException('Address not found');
+      }
+      return address;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getAddressByVendor(id: number) {
+    try {
+      const address = await this.prisma.userAddress.findMany({
+        where: { vendorId: id },
+      });
+
+      if (!address) {
+        throw new NotFoundException('Address not found');
+      }
+      return address;
+    } catch (error) {
+      debugger;
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getAddressByRider(id: number) {
+    try {
+      const address = await this.prisma.userAddress.findMany({
+        where: { riderId: id },
+      });
+
+      if (!address) {
+        throw new NotFoundException('Address not found');
+      }
+      return address;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async updateAddressByCustomer(data: addressUpdateDto, id: number) {
+    try {
+      const address = await this.prisma.userAddress.update({
+        where: { userAddressId: id },
+        data: {
+          ...(data.fullAddress && { fullAddress: data.fullAddress }),
+          ...(data.longitude && { longitude: data.longitude }),
+          ...(data.latitude && { latitude: data.latitude }),
+        },
+      });
+
+      if (!address) {
+        throw new NotFoundException('Address not found');
+      }
+      return address;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async createAddress(data: addressCreateDto, user: GetUserType) {
+    try {
+      const usertap = user.userType.toLowerCase() + 'Id';
+      const userId = {};
+      userId[usertap] = user.userTypeId;
+      const service = await this.prisma.userAddress.create({
+        data: {
+          fullAddress: data.fullAddress,
+          cityId: data.cityId,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          ...userId,
+        },
+      });
+      return {
+        ...successResponse(201, 'Address Successfully Created'),
+        ...service,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteaddress(id: number, user: GetUserType) {
+    await this.prisma.userAddress.update({
+      where: { userAddressId: id },
+      data: { isDeleted: true },
+    });
+    return successResponse(200, 'Address Successfully deleted');
   }
 }
