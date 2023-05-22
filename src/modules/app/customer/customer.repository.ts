@@ -274,7 +274,7 @@ export class CustomerRepository {
   }
 
   async getVendorsByLocation(userMasterId: number, dto: VendorLocationDto) {
-    const { page = 1, take = 10, search, distance = 10000000 } = dto;
+    const { page = 1, take = 10, search, distance = 10000000000 } = dto;
     try {
       if (dto.latitude && dto.longitude) {
         const vendors: Array<{ vendorId: number }> = await this.prisma
