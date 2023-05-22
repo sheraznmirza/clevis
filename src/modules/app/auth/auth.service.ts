@@ -589,7 +589,7 @@ export class AuthService {
 
     console.log('user: ', user);
     if (user.vendor.status !== Status.APPROVED)
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         `Vendor has ${
           user.vendor.status === Status.PENDING
             ? 'not yet been approved'
@@ -688,7 +688,7 @@ export class AuthService {
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
     if (user.rider.status !== Status.APPROVED)
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         `Rider has ${
           user.rider.status === Status.PENDING
             ? 'not yet been approved'
@@ -753,11 +753,11 @@ export class AuthService {
         previousRefreshToken.userMasterId,
         user.email,
         user.userType,
-        user.vendor.vendorId ||
-          user.admin.id ||
-          user.customer.customerId ||
-          user.rider.riderId,
-        user.vendor.serviceType || null,
+        (user && user.vendor && user.vendor.vendorId) ||
+          (user && user.admin && user.admin.id) ||
+          (user && user.customer && user.customer.customerId) ||
+          (user && user.rider && user.rider.riderId),
+        (user && user.vendor && user.vendor.serviceType) || null,
       );
       await this.updateRt(
         previousRefreshToken.userMasterId,
@@ -873,6 +873,8 @@ export class AuthService {
           isEmailVerified: true,
         },
       });
+
+      if (!user) throw new NotFoundException('User does not exist.');
 
       if (user.isEmailVerified) {
         throw new ConflictException('Email is already verified');
