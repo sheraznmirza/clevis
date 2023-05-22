@@ -257,13 +257,14 @@ model City {
 }
 
 model Services {
-  serviceId     Int             @id @default(autoincrement())
-  serviceName   String          @unique
-  serviceType   ServiceType
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @default(now()) @updatedAt
-  isDeleted     Boolean         @default(false)
-  vendorService VendorService[]
+  serviceId       Int            @id @default(autoincrement())
+  vendorServiceId Int?           @unique
+  serviceName     String
+  serviceType     ServiceType
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
+  isDeleted       Boolean        @default(false)
+  vendorService   VendorService? @relation(fields: [vendorServiceId], references: [vendorServiceId])
 }
 
 model Category {
@@ -293,7 +294,7 @@ model VendorService {
   serviceImageId  Int?                @unique
   description     String
   status          VendorServiceStatus @default(Available)
-  service         Services            @relation(fields: [serviceId], references: [serviceId])
+  service         Services?
   vendor          Vendor              @relation(fields: [vendorId], references: [vendorId])
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @default(now()) @updatedAt
