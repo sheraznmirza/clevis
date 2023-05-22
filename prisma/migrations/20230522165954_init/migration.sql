@@ -204,6 +204,7 @@ CREATE TABLE "City" (
 -- CreateTable
 CREATE TABLE "Services" (
     "serviceId" SERIAL NOT NULL,
+    "vendorServiceId" INTEGER,
     "serviceName" TEXT NOT NULL,
     "serviceType" "ServiceType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -453,7 +454,7 @@ CREATE UNIQUE INDEX "Rider_userMasterId_key" ON "Rider"("userMasterId");
 CREATE UNIQUE INDEX "Rider_logoId_key" ON "Rider"("logoId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Services_serviceName_key" ON "Services"("serviceName");
+CREATE UNIQUE INDEX "Services_vendorServiceId_key" ON "Services"("vendorServiceId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VendorService_serviceImageId_key" ON "VendorService"("serviceImageId");
@@ -519,7 +520,7 @@ ALTER TABLE "State" ADD CONSTRAINT "State_countryId_fkey" FOREIGN KEY ("countryI
 ALTER TABLE "City" ADD CONSTRAINT "City_stateId_fkey" FOREIGN KEY ("stateId") REFERENCES "State"("stateId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "VendorService" ADD CONSTRAINT "VendorService_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Services"("serviceId") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Services" ADD CONSTRAINT "Services_vendorServiceId_fkey" FOREIGN KEY ("vendorServiceId") REFERENCES "VendorService"("vendorServiceId") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "VendorService" ADD CONSTRAINT "VendorService_vendorId_fkey" FOREIGN KEY ("vendorId") REFERENCES "Vendor"("vendorId") ON DELETE RESTRICT ON UPDATE CASCADE;

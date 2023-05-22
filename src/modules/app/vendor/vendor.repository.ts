@@ -484,12 +484,14 @@ export class VendorRepository {
         where: {
           vendorId: vendorId,
           isDeleted: false,
-          service: {
-            serviceName: {
-              contains: search !== null ? search : undefined,
-              mode: 'insensitive',
+          ...(search && {
+            service: {
+              serviceName: {
+                contains: search !== null ? search : undefined,
+                mode: 'insensitive',
+              },
             },
-          },
+          }),
         },
         select: {
           description: true,
@@ -519,16 +521,19 @@ export class VendorRepository {
           // },
         },
       });
+
       const totalCount = await this.prisma.vendorService.count({
         where: {
           vendorId: vendorId,
           isDeleted: false,
-          service: {
-            serviceName: {
-              contains: search !== null ? search : undefined,
-              mode: 'insensitive',
+          ...(search && {
+            service: {
+              serviceName: {
+                contains: search !== null ? search : undefined,
+                mode: 'insensitive',
+              },
             },
-          },
+          }),
         },
       });
 
@@ -1106,7 +1111,7 @@ export class VendorRepository {
         });
         serviceImages.push(result);
       });
-      return await this.prisma.vendorService.create({
+      await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,
           serviceId: dto.serviceId,
@@ -1122,6 +1127,14 @@ export class VendorRepository {
           vendorServiceId: true,
         },
       });
+
+      await this.prisma.serviceImage.createMany({
+        data: serviceImages.map((item) => ({
+          vendorVendorId: vendor.vendorId,
+          mediaId: item.id,
+        })),
+      });
+
       // await this.prisma.allocatePrice.createMany({
       //   data: dto.allocatePrice.map((item) => ({
       //     ...item,
