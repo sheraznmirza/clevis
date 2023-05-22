@@ -27,7 +27,6 @@ import {
 } from './dto';
 import { VendorService } from './vendor.service';
 import {
-  ListingParams,
   VendorListingParams,
   VendorRiderByIdParams,
   VendorServiceListingParams,
@@ -45,7 +44,7 @@ export class VendorController {
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('/:userMasterId')
+  @Get('/byId/:userMasterId')
   getVendorById(@Param('userMasterId') userMasterId: number) {
     return this.vendorService.getVendorById(userMasterId);
   }
