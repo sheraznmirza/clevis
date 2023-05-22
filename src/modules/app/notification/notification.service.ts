@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-// import { RouteCreateDto } from './dto';
 import { successResponse } from '../../../helpers/response.helper';
 import { CreateNotificationDto } from './dto';
 

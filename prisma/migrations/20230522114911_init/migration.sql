@@ -32,6 +32,9 @@ CREATE TYPE "Days" AS ENUM ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 CREATE TYPE "VendorServiceStatus" AS ENUM ('Available', 'Unavailable');
 
 -- CreateEnum
+CREATE TYPE "BookingStatus" AS ENUM ('Completed', 'Pending', 'Confirmed', 'In_Progress');
+
+-- CreateEnum
 CREATE TYPE "DefaultActions" AS ENUM ('ALL', 'READ', 'CREATE', 'UPDATE', 'DELETE');
 
 -- CreateTable

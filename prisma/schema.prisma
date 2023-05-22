@@ -77,6 +77,13 @@ enum VendorServiceStatus {
   Unavailable
 }
 
+enum BookingStatus {
+  Completed
+  Pending
+  Confirmed
+  In_Progress
+}
+
 model UserMaster {
   userMasterId     Int            @id @default(autoincrement())
   email            String
@@ -199,6 +206,8 @@ model UserAddress {
   // User          Admin?    @relation(fields: [adminId], references: [id])
   adminId       Int?
   isActive      Boolean   @default(true)
+  // pickupLocation              BookingMaster   @relation("PickupLocation")
+  //   dropoffLocation              BookingMaster   @relation("DropoffLocation")
 }
 
 model Banking {
@@ -291,6 +300,7 @@ model VendorService {
   isDeleted       Boolean             @default(false)
   AllocatePrice   AllocatePrice[]
   serviceImage    ServiceImage[]
+  // booking         BookingMaster[]
 }
 
 model AllocatePrice {
@@ -461,3 +471,30 @@ model PlatformSetup {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
+
+// model BookingMaster {
+//   bookingMasterId  Int            @id @default(autoincrement())
+//   vendorId         Int
+//   vendorServiceId  Int?
+//   customerId       Int
+//   pickupLocationId Int
+//   dropffLocationId  Int
+//   instructions     String?
+//   total            Float
+//   pickupLocation   UserAddress    @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
+//   dropoffLocation  UserAddress    @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
+//   bookingDate      DateTime       @default(now())
+//   isDeleted        Boolean        @default(false)
+//   createdAt        DateTime       @default(now())
+//   updatedAt        DateTime       @default(now()) @updatedAt
+//   status           BookingStatus  @default(Pending)
+//   vendorService    VendorService? @relation(fields: [vendorServiceId], references: [vendorServiceId])
+//   Job              Job
+// }
+
+// model Job {
+//   id                           Int           @id @default(autoincrement())
+//   bookingMasterId Int
+//   jobType                      JobType
+//   bookingMaster                BookingMaster @relation(fields: [bookingMasterId], references: [bookingMasterId])
+// }
