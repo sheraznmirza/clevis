@@ -1111,7 +1111,7 @@ export class VendorRepository {
         });
         serviceImages.push(result);
       });
-      await this.prisma.vendorService.create({
+      const vendorService = await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,
           serviceId: dto.serviceId,
@@ -1130,10 +1130,12 @@ export class VendorRepository {
 
       await this.prisma.serviceImage.createMany({
         data: serviceImages.map((item) => ({
-          vendorVendorId: vendor.vendorId,
+          vendorServiceId: vendorService.vendorServiceId,
           mediaId: item.id,
         })),
       });
+
+      return successResponse(201, 'Vendor service successfully created');
 
       // await this.prisma.allocatePrice.createMany({
       //   data: dto.allocatePrice.map((item) => ({
