@@ -4,6 +4,7 @@ import {
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
+  VendorUpdateBusyStatusDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
@@ -103,6 +104,17 @@ export class VendorService {
     }
   }
 
+  async updateBusyStatusVendor(
+    vendorId: number,
+    dto: VendorUpdateBusyStatusDto,
+  ) {
+    try {
+      return await this.repository.updateBusyStatusVendor(vendorId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
     try {
       return await this.repository.updateVendor(userMasterId, dto);
@@ -128,8 +140,6 @@ export class VendorService {
               'Please provide valid start and end times for the companySchedule.',
             );
           }
-
-          console.log('isValid: ', isValid);
         }
       }
       dto.companySchedule = convertDateTimeToTimeString(dto.companySchedule);
