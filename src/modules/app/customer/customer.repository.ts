@@ -650,6 +650,18 @@ export class CustomerRepository {
     }
   }
 
+  async getVendorServicesByVendorId(vendorId: number) {
+    try {
+      await this.prisma.vendorService.findMany({
+        where: {
+          vendorId,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async deleteCustomer(id: number) {
     try {
       await this.prisma.userMaster.update({

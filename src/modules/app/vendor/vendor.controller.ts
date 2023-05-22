@@ -22,6 +22,7 @@ import {
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
+  VendorUpdateBusyStatusDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
@@ -79,6 +80,13 @@ export class VendorController {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
+  @Authorized(UserType.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/busy/:vendorId')
+  busyStatusVendor(@GetUser() user, @Body() dto: VendorUpdateBusyStatusDto) {
+    return this.vendorService.updateBusyStatusVendor(user.userTypeId, dto);
+  }
+
   @Authorized(UserType.VENDOR)
   @HttpCode(HttpStatus.OK)
   @Patch('/me')
@@ -116,14 +124,20 @@ export class VendorController {
     @Query() listingParams: VendorServiceListingParams,
   ) {
     return this.vendorService.getVendorAllService(
-      user.userMasterId,
+      user.userTypeId,
       listingParams,
     );
   }
 
   @Authorized(UserType.ADMIN)
   @Delete('/:userMasterId')
-  deleteRider(@Param('userMasterId') riderId: number) {
-    return this.vendorService.deleteVendor(riderId);
+  deleteRider(@Param('userMasterId') userMasterId: number) {
+    return this.vendorService.deleteVendor(userMasterId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Delete('/vendor-service/:vendorServiceId')
+  deleteVendorService(@Param('vendorServiceId') vendorServiceId: number) {
+    return this.vendorService.deleteVendorService(vendorServiceId);
   }
 }
