@@ -20,5 +20,9 @@ export async function createCountryState(prisma: PrismaClient) {
     await prisma.state.createMany({
       data: states,
     });
+
+    // await prisma.city.createMany({
+    //   data: cities,
+    // });
   }
 }

@@ -50,7 +50,7 @@ export class NotificationController {
     UserType.VENDOR,
   ])
   @Get()
-  getAllRoute(@Req() req) {
+  getAllNotifications(@Req() req) {
     return this.notificationService.getAllNotifications(req.user.userMasterId);
   }
 
