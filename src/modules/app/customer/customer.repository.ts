@@ -670,17 +670,33 @@ export class CustomerRepository {
 
   async deleteCustomer(id: number) {
     try {
-      await this.prisma.userMaster.update({
+      const user = await this.prisma.userMaster.findUnique({
         where: {
           userMasterId: id,
         },
-        data: {
+        select: {
           isDeleted: true,
         },
       });
-      return successResponse(200, 'Customer deleted successfully.');
+      if (!user.isDeleted) {
+        await this.prisma.userMaster.update({
+          where: {
+            userMasterId: id,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+        return successResponse(200, 'Customer deleted successfully.');
+      } else {
+        return successResponse(200, 'Customer is already deleted .');
+      }
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 }
