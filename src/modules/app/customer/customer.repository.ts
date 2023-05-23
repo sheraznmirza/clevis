@@ -269,7 +269,11 @@ export class CustomerRepository {
         ...customer,
       };
     } catch (error) {
-      return unknowError(404, error, 'Not Found');
+      return unknowError(
+        422,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
