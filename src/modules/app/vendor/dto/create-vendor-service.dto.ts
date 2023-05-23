@@ -4,10 +4,11 @@ import {
   IsNumber,
   IsArray,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '@prisma/client';
+import { Media, VendorServiceStatus } from '@prisma/client';
 import { MediaFormat } from 'src/core/globalTypes';
 
 // type AllocatePrice = {
@@ -18,6 +19,28 @@ import { MediaFormat } from 'src/core/globalTypes';
 // };
 
 class AllocatePrice {
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  price: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  subcategoryId?: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  categoryId: number;
+}
+
+class UpdateAllocatePrice {
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  allocateId: number;
+
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
@@ -71,12 +94,12 @@ export class VendorUpdateServiceDto {
 
   @ApiProperty({
     isArray: true,
-    type: AllocatePrice,
+    type: UpdateAllocatePrice,
   })
   @IsArray()
-  @Type(() => AllocatePrice)
+  @Type(() => UpdateAllocatePrice)
   @IsOptional()
-  allocatePrice: AllocatePrice[];
+  allocatePrice: UpdateAllocatePrice[];
 
   @ApiProperty()
   @IsString()
@@ -90,4 +113,13 @@ export class VendorUpdateServiceDto {
   @IsOptional()
   @Type(() => MediaFormat)
   serviceImages: MediaFormat[];
+
+  @ApiProperty({
+    required: false,
+    description: 'vendor status',
+    enum: VendorServiceStatus,
+  })
+  @IsOptional()
+  @IsEnum(VendorServiceStatus)
+  day: VendorServiceStatus;
 }

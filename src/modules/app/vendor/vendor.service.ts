@@ -55,7 +55,7 @@ export class VendorService {
     vendorServiceId: number,
   ) {
     try {
-      throw new BadRequestException('Invalid data');
+      // throw new BadRequestException('Invalid data');
       const vendorService = await this.repository.updateVendorService(
         dto,
         userMasterId,
