@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import {
@@ -49,7 +49,7 @@ export class CustomerRepository {
 
   async getCustomerById(id: number) {
     try {
-      return await this.prisma.userMaster.findFirst({
+      const customer = await this.prisma.userMaster.findFirst({
         where: {
           userMasterId: id,
           userType: UserType.CUSTOMER,
@@ -92,8 +92,11 @@ export class CustomerRepository {
           },
         },
       });
+      if (!customer) throw new BadRequestException('User does not exist');
+
+      return customer;
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 
