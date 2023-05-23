@@ -6,6 +6,7 @@ import {
   ServiceCategorySubCategoryListingParams,
 } from '../../../core/dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { count } from 'console';
 
 @Injectable()
 export class ServiceRepository {
@@ -13,26 +14,23 @@ export class ServiceRepository {
 
   async createService(data: ServiceCreateDto) {
     try {
-      await this.prisma.services.create({
-        data: {
+      const service = await this.prisma.services.count({
+        where: {
           serviceName: data.serviceName,
           serviceType: data.serviceType,
         },
       });
-
-      // data.category.forEach(async (ctx) => {
-      //   await this.prisma.category.create({
-      //     data: {
-      //       categoryName: ctx.categoryName,
-      //       serviceId: service.serviceId,
-      //       ...(ctx.subCategories.length && {
-      //         subCategory: { createMany: { data: ctx.subCategories } },
-      //       }),
-      //     },
-      //   });
-      // });
-
-      return true;
+      if (service === 0) {
+        await this.prisma.services.create({
+          data: {
+            serviceName: data.serviceName,
+            serviceType: data.serviceType,
+          },
+        });
+        return { statusCode: 201, message: 'Service Successfully Created' };
+      } else {
+        return unknowError(417, service, 'Service Already Exists');
+      }
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('Service is already created');
