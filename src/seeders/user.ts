@@ -205,11 +205,13 @@ export async function createRiders(prisma: PrismaClient) {
           phone: rider.phone,
           userType: UserType.RIDER,
           roleId: roleId,
+          isEmailVerified: true,
           rider: {
             create: {
               fullName: rider.fullName,
               companyEmail: rider.companyEmail,
               companyName: rider.companyName,
+              status: 'APPROVED',
               logo: {
                 create: {
                   location: rider.logo.location,

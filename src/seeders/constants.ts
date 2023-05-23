@@ -221,6 +221,49 @@ export const categories = [
   { categoryName: 'Carpet', serviceType: ServiceType.LAUNDRY },
 ];
 
+export const services = [
+  {
+    serviceName: 'Car tuning',
+    serviceType: ServiceType.CAR_WASH,
+  },
+  {
+    serviceName: 'Denting & Painting',
+    serviceType: ServiceType.CAR_WASH,
+  },
+  {
+    serviceName: 'Car Polishing',
+    serviceType: ServiceType.CAR_WASH,
+  },
+  {
+    serviceName: 'Car Waxing',
+    serviceType: ServiceType.CAR_WASH,
+  },
+  {
+    serviceName: 'Polishing',
+    serviceType: ServiceType.CAR_WASH,
+  },
+
+  {
+    serviceName: 'Dry Clean',
+    serviceType: ServiceType.LAUNDRY,
+  },
+
+  {
+    serviceName: 'Ironing',
+    serviceType: ServiceType.LAUNDRY,
+  },
+
+  {
+    serviceName: 'Washing',
+    serviceType: ServiceType.LAUNDRY,
+  },
+
+  {
+    serviceName: 'Heavy Laundry',
+    serviceType: ServiceType.LAUNDRY,
+  },
+];
+
 export const vendors: VendorSignUpDto[] = [
   {
     fullName: 'Donovan Justice',
