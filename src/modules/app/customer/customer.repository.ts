@@ -7,7 +7,7 @@ import {
 } from '../../../core/dto';
 import { Media, Status, UserType } from '@prisma/client';
 import { UpdateCustomerDto, VendorLocationDto } from './dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CustomerRepository {
@@ -269,7 +269,7 @@ export class CustomerRepository {
         ...customer,
       };
     } catch (error) {
-      throw error;
+      return unknowError(404, error, 'Not Found');
     }
   }
 
