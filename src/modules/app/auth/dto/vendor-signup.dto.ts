@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { MediaFormat } from 'src/core/globalTypes';
+import { Type } from 'class-transformer';
 
 export class VendorSignUpDto {
   @ApiProperty()
@@ -55,16 +56,30 @@ export class VendorSignUpDto {
   @IsNotEmpty()
   companyEmail: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: true,
+    type: MediaFormat,
+  })
   @IsNotEmpty()
+  @Type(() => MediaFormat)
   logo: MediaFormat;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: true,
+    isArray: true,
+    type: MediaFormat,
+  })
   @IsArray()
   @IsNotEmpty()
+  @Type(() => MediaFormat)
   workspaceImages: MediaFormat[];
 
-  @ApiProperty()
+  @ApiProperty({
+    required: true,
+    isArray: true,
+    type: MediaFormat,
+  })
+  @Type(() => MediaFormat)
   @IsArray()
   @IsNotEmpty()
   businessLicense: MediaFormat[];

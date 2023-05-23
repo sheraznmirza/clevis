@@ -494,15 +494,38 @@ export class VendorRepository {
           }),
         },
         select: {
+          vendorServiceId: true,
           description: true,
           status: true,
           vendorId: true,
-          serviceImage: true,
+          serviceImage: {
+            select: {
+              id: true,
+              media: {
+                select: {
+                  id: true,
+                  location: true,
+                  key: true,
+                  name: true,
+                },
+              },
+            },
+          },
           service: {
             select: {
               serviceName: true,
             },
           },
+          // service: {
+          //   select: {
+          //     serviceName:true
+          //   }
+          // }
+          // service: {
+          //   select: {
+          //     serviceName: true,
+          //   },
+          // },
           // service: {
           //   select: {
           //     serviceName: true,
@@ -1111,6 +1134,7 @@ export class VendorRepository {
         });
         serviceImages.push(result);
       });
+      debugger;
       const vendorService = await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,

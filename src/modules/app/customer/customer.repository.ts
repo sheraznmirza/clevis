@@ -295,7 +295,6 @@ export class CustomerRepository {
           where: {
             isDeleted: false,
             isActive: true,
-
             vendor: {
               AND: [
                 {
