@@ -117,6 +117,11 @@ export class ServiceRepository {
         orderBy: {
           createdAt: 'desc',
         },
+        select: {
+          serviceId: true,
+          serviceName: true,
+          serviceType: true,
+        },
       });
 
       const totalCount = await this.prisma.services.count({

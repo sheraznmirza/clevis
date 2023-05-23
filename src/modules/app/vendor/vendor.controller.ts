@@ -129,6 +129,12 @@ export class VendorController {
     );
   }
 
+  @Authorized(UserType.VENDOR)
+  @Get('/services/:vendorServiceId')
+  getVendorServiceById(@Param('vendorServiceId') vendorServiceId: number) {
+    return this.vendorService.getVendorServiceById(vendorServiceId);
+  }
+
   @Authorized(UserType.ADMIN)
   @Delete('/:userMasterId')
   deleteRider(@Param('userMasterId') userMasterId: number) {

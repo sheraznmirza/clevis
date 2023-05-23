@@ -149,6 +149,14 @@ export class VendorService {
     }
   }
 
+  async getVendorServiceById(vendorServiceId: number) {
+    try {
+      return await this.repository.getVendorServiceById(vendorServiceId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getVendorAllService(
     id: number,
     listingParams: VendorServiceListingParams,
