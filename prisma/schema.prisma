@@ -257,14 +257,13 @@ model City {
 }
 
 model Services {
-  serviceId       Int            @id @default(autoincrement())
-  vendorServiceId Int?           @unique
-  serviceName     String
-  serviceType     ServiceType
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @default(now()) @updatedAt
-  isDeleted       Boolean        @default(false)
-  vendorService   VendorService? @relation(fields: [vendorServiceId], references: [vendorServiceId])
+  serviceId     Int             @id @default(autoincrement())
+  serviceName   String
+  serviceType   ServiceType
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  isDeleted     Boolean         @default(false)
+  VendorService VendorService[]
 }
 
 model Category {
@@ -290,18 +289,17 @@ model SubCategory {
 model VendorService {
   vendorServiceId Int                 @id @default(autoincrement())
   vendorId        Int
-  serviceId       Int
+  serviceId       Int?
   serviceImageId  Int?                @unique
   description     String
   status          VendorServiceStatus @default(Available)
-  service         Services?
+  service         Services?           @relation(fields: [serviceId], references: [serviceId])
   vendor          Vendor              @relation(fields: [vendorId], references: [vendorId])
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @default(now()) @updatedAt
   isDeleted       Boolean             @default(false)
   AllocatePrice   AllocatePrice[]
   serviceImage    ServiceImage[]
-  // booking         BookingMaster[]
 }
 
 model AllocatePrice {
