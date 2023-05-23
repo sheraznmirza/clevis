@@ -22,12 +22,12 @@ import {
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
+  VendorUpdateBusyStatusDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
 import { VendorService } from './vendor.service';
 import {
-  ListingParams,
   VendorListingParams,
   VendorRiderByIdParams,
   VendorServiceListingParams,
@@ -45,7 +45,7 @@ export class VendorController {
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('/:userMasterId')
+  @Get('/byId/:userMasterId')
   getVendorById(@Param('userMasterId') userMasterId: number) {
     return this.vendorService.getVendorById(userMasterId);
   }
@@ -78,6 +78,13 @@ export class VendorController {
     @Query() dto: VendorUpdateStatusDto,
   ) {
     return this.vendorService.approveVendor(vendorId, dto);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/busy/:vendorId')
+  busyStatusVendor(@GetUser() user, @Body() dto: VendorUpdateBusyStatusDto) {
+    return this.vendorService.updateBusyStatusVendor(user.userTypeId, dto);
   }
 
   @Authorized(UserType.VENDOR)
@@ -117,14 +124,26 @@ export class VendorController {
     @Query() listingParams: VendorServiceListingParams,
   ) {
     return this.vendorService.getVendorAllService(
-      user.userMasterId,
+      user.userTypeId,
       listingParams,
     );
   }
 
+  @Authorized(UserType.VENDOR)
+  @Get('/services/:vendorServiceId')
+  getVendorServiceById(@Param('vendorServiceId') vendorServiceId: number) {
+    return this.vendorService.getVendorServiceById(vendorServiceId);
+  }
+
   @Authorized(UserType.ADMIN)
   @Delete('/:userMasterId')
-  deleteRider(@Param('userMasterId') riderId: number) {
-    return this.vendorService.deleteVendor(riderId);
+  deleteRider(@Param('userMasterId') userMasterId: number) {
+    return this.vendorService.deleteVendor(userMasterId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Delete('/vendor-service/:vendorServiceId')
+  deleteVendorService(@Param('vendorServiceId') vendorServiceId: number) {
+    return this.vendorService.deleteVendorService(vendorServiceId);
   }
 }
