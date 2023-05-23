@@ -121,5 +121,5 @@ export class VendorUpdateServiceDto {
   })
   @IsOptional()
   @IsEnum(VendorServiceStatus)
-  day: VendorServiceStatus;
+  status: VendorServiceStatus;
 }

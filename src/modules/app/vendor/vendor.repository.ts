@@ -47,13 +47,7 @@ export class VendorRepository {
     vendorServiceId: number,
   ) {
     try {
-      const vendor = await this.prisma.vendor.findUnique({
-        where: {
-          userMasterId,
-        },
-      });
-
-      await this.updateCarWashVendorService(dto, vendor, vendorServiceId);
+      await this.updateCarWashVendorService(dto, vendorServiceId);
 
       return true;
     } catch (error) {
@@ -1178,7 +1172,6 @@ export class VendorRepository {
 
   async updateCarWashVendorService(
     dto: VendorUpdateServiceDto,
-    vendor: Vendor,
     vendorServiceId: number,
   ) {
     try {
@@ -1201,8 +1194,9 @@ export class VendorRepository {
           vendorServiceId: vendorServiceId,
         },
         data: {
-          serviceId: dto.serviceId,
-          description: dto.description,
+          serviceId: dto.serviceId !== null ? dto.serviceId : undefined,
+          description: dto.description !== null ? dto.description : undefined,
+          status: dto.status !== null ? dto.status : undefined,
         },
         select: {
           vendorServiceId: true,
