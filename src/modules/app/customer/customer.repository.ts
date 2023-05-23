@@ -135,6 +135,7 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
                 select: {
+                  userAddressId: true,
                   city: {
                     select: {
                       cityName: true,
@@ -170,7 +171,7 @@ export class CustomerRepository {
   async updateCustomer(userMasterId: number, dto: UpdateCustomerDto) {
     try {
       let media: Media;
-      if (dto.profilePicture) {
+      if (dto.profilePicture.hasOwnProperty('location')) {
         media = await this.prisma.media.create({
           data: {
             name: dto.profilePicture.name,
@@ -240,6 +241,8 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
                 select: {
+                  isDeleted: true,
+                  userAddressId: true,
                   city: {
                     select: {
                       cityName: true,
