@@ -12,11 +12,7 @@ export class ServiceService {
 
   async createService(data: ServiceCreateDto) {
     try {
-      const service = await this.repository.createService(data);
-      if (!service) {
-        throw new BadRequestException('Unable to create this service');
-      }
-      return { statusCode: 201, message: 'Service Successfully Created' };
+      return await this.repository.createService(data);
     } catch (error) {
       throw error;
     }
