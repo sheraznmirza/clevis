@@ -12,9 +12,9 @@ export const unknowError = (
   error: any,
   message: string,
 ) => {
-  if (error.code === 'P2025') {
+  if (error?.code === 'P2025') {
     throw new BadRequestException('The following parameter does not exist');
-  } else if (error.code === 'P2002') {
+  } else if (error?.code === 'P2002') {
     throw new ForbiddenException('already exist');
   }
   return {

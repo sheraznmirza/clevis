@@ -67,13 +67,23 @@ export class ServiceRepository {
 
   async getService(id: number) {
     try {
-      return await this.prisma.services.findUnique({
+      const services = await this.prisma.services.findUnique({
         where: {
           serviceId: id,
         },
       });
+      if (services)
+        return {
+          ...successResponse(200, ''),
+          ...services,
+        };
+      else return unknowError(417, services, 'No Services Found');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
