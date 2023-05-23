@@ -3,11 +3,6 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class addressUpdateDto {
   @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  userAddressId?: number;
-
-  @ApiProperty()
   @IsString()
   @IsOptional()
   fullAddress?: string;

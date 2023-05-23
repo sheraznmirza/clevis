@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { GetUserType, ListingParams } from 'src/core/dto';
@@ -166,8 +167,29 @@ export class AddressService {
     }
   }
 
-  async updateAddressByCustomer(data: addressUpdateDto, id: number) {
+  async updateAddressByCustomer(
+    data: addressUpdateDto,
+    id: number,
+    userMasterId: number,
+  ) {
     try {
+      const userAdd = await this.prisma.userAddress.findUnique({
+        where: {
+          userAddressId: id,
+        },
+        select: {
+          customer: {
+            select: {
+              userMasterId: true,
+            },
+          },
+        },
+      });
+      if (userMasterId !== userAdd.customer.userMasterId) {
+        throw new ForbiddenException(
+          'You are not authorized to update this address',
+        );
+      }
       const address = await this.prisma.userAddress.update({
         where: { userAddressId: id },
         data: {

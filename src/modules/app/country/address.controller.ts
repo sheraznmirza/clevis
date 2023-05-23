@@ -74,15 +74,23 @@ export class AddressController {
   }
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Authorized(UserType.CUSTOMER)
+  @Authorized([
+    UserType.ADMIN,
+    UserType.CUSTOMER,
+    UserType.VENDOR,
+    UserType.RIDER,
+  ])
   @Patch('/:addressId')
   updateAddressByCustomer(
     @GetUser() user,
     @Param('addressId') id: number,
     @Body() data: addressUpdateDto,
   ) {
-    console.log('User: 123: ', user);
-    return this.addressService.updateAddressByCustomer(data, id);
+    return this.addressService.updateAddressByCustomer(
+      data,
+      id,
+      user.userMasterId,
+    );
   }
 
   @UseGuards(JwtGuard, RolesGuard)
