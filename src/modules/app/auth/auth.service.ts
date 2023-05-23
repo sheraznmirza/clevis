@@ -51,9 +51,16 @@ export class AuthService {
       const userCount = await this.prisma.userMaster.count({
         where: { email: dto.email, userType: UserType.CUSTOMER },
       });
+      const cityCount = await this.prisma.city.count({
+        where: { cityId: dto.cityId },
+      });
 
       if (userCount > 0) {
         throw new ForbiddenException('Credentials taken');
+      }
+
+      if (cityCount === 0) {
+        throw new ForbiddenException('City not found');
       }
 
       const roleId = await this.getRoleByType(UserType.CUSTOMER);
