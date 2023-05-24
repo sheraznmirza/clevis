@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -120,6 +121,41 @@ export class AddressService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  // async getCityDetails(id: number) {
+  //   try {
+  //     const countryStateCity = await this.prisma.city.findFirst({
+  //       where: { cityId: id },
+  //       select: {
+  //         cityId: true,
+  //         cityName: true,
+  //         State: {
+  //           select: {
+  //             stateId: true,
+  //             stateName: true,
+  //             country: {
+  //               select: {
+  //                 countryId: true,
+  //                 countryName: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     if (!countryStateCity) {
+  //       throw new NotFoundException('City not found');
+  //     }
+  //     return countryStateCity;
+  //   } catch (error) {
+  //     if (error.code === 'P2025') {
+  //       throw new BadRequestException('City does not exist');
+  //     } else {
+  //       throw new InternalServerErrorException(error.message);
+  //     }
+  //   }
+  // }
 
   async getAddressByCustomer(id: number) {
     try {

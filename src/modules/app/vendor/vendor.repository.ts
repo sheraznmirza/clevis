@@ -13,9 +13,13 @@ import {
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
-import { Media, UserType, Vendor } from '@prisma/client';
+import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
 import { VendorListingParams, VendorServiceListingParams } from 'src/core/dto';
 import { successResponse } from 'src/helpers/response.helper';
+import {
+  vendorServiceByIdMappedCarWash,
+  vendorServiceByIdMappedLaundry,
+} from './vendor.mapper';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -53,6 +57,8 @@ export class VendorRepository {
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('VendorService is already created');
+      } else if (error.code === 'P2025') {
+        throw new BadRequestException('VendorService does not exist');
       }
       throw error;
     }
@@ -583,6 +589,7 @@ export class VendorRepository {
               isDeleted: false,
             },
             select: {
+              id: true,
               category: {
                 select: {
                   categoryId: true,
@@ -618,8 +625,16 @@ export class VendorRepository {
           },
         },
       });
-
-      return vendorService;
+      const mappedVendorService =
+        vendorService.service.serviceType === ServiceType.LAUNDRY
+          ? vendorServiceByIdMappedLaundry(vendorService)
+          : vendorService.service.serviceType === ServiceType.CAR_WASH
+          ? vendorServiceByIdMappedCarWash(vendorService)
+          : vendorService.AllocatePrice;
+      return {
+        ...vendorService,
+        AllocatePrice: mappedVendorService,
+      };
     } catch (error) {
       throw error;
     }
@@ -1132,7 +1147,6 @@ export class VendorRepository {
         });
         serviceImages.push(result);
       });
-      debugger;
       const vendorService = await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,
@@ -1214,7 +1228,7 @@ export class VendorRepository {
         dto.allocatePrice.forEach(async (allocate) => {
           await this.prisma.allocatePrice.update({
             where: {
-              id: allocate.allocateId,
+              id: allocate.allocatePriceId,
             },
             data: {
               categoryId: allocate.categoryId,

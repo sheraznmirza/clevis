@@ -1,10 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
-import {
-  ListingParams,
-  ServiceCategorySubCategoryListingParams,
-} from '../../../core/dto';
+import { ServiceCategorySubCategoryListingParams } from '../../../core/dto';
 
 @Injectable()
 export class SubcategoryRepository {
@@ -77,7 +74,9 @@ export class SubcategoryRepository {
               contains: search,
             },
           }),
-          serviceType: serviceType,
+          ...(serviceType && {
+            serviceType: serviceType,
+          }),
         },
       });
       const totalCount = await this.prisma.subCategory.count({
@@ -85,6 +84,12 @@ export class SubcategoryRepository {
           isDeleted: false,
           ...(serviceType && {
             serviceType: serviceType,
+          }),
+
+          ...(search && {
+            subCategoryName: {
+              contains: search,
+            },
           }),
         },
       });

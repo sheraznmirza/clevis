@@ -39,7 +39,7 @@ class UpdateAllocatePrice {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
-  allocateId: number;
+  allocatePriceId: number;
 
   @ApiProperty()
   @IsNumber()
@@ -78,6 +78,8 @@ export class VendorCreateServiceDto {
   description: string;
 
   @ApiProperty({
+    isArray: true,
+    required: true,
     type: MediaFormat,
   })
   @IsArray()
