@@ -121,7 +121,7 @@ export class CategoryRepository {
 
   async deleteCategory(id: number) {
     try {
-      await this.prisma.category.update({
+      const delte = await this.prisma.category.update({
         where: {
           categoryId: id,
         },
@@ -129,9 +129,13 @@ export class CategoryRepository {
           isDeleted: true,
         },
       });
-      return true;
+      return successResponse(202, 'successfully deleted');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors ',
+      );
     }
   }
 }
