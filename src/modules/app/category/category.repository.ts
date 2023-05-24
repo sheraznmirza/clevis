@@ -71,14 +71,17 @@ export class CategoryRepository {
         orderBy: {
           createdAt: 'desc',
         },
-        ...(search && {
-          where: {
-            isDeleted: false,
+        where: {
+          isDeleted: false,
+          ...(search && {
             categoryName: {
               contains: search,
             },
-          },
-        }),
+          }),
+          ...(serviceType && {
+            serviceType: serviceType,
+          }),
+        },
       });
 
       const totalCount = await this.prisma.category.count({
@@ -86,6 +89,12 @@ export class CategoryRepository {
           isDeleted: false,
           ...(serviceType && {
             serviceType: serviceType,
+          }),
+
+          ...(search && {
+            categoryName: {
+              contains: search,
+            },
           }),
         },
       });
