@@ -46,6 +46,11 @@ export class AddressController {
     return this.addressService.getCities(id, listingParams);
   }
 
+  // @Get('/city/byName/:cityName')
+  // getCityDetails(@Param('cityName') cityName: string) {
+  //   return this.addressService.getCityDetails(cityName);
+  // }
+
   @Get('/customer/:customerId')
   getAddressByCustomer(@Param('customerId') id: number) {
     return this.addressService.getAddressByCustomer(id);

@@ -587,7 +587,6 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
-    console.log('user: ', user);
     if (user.vendor.status !== Status.APPROVED)
       throw new ForbiddenException(
         `Vendor has ${
@@ -609,9 +608,6 @@ export class AuthService {
       user.vendor.serviceType,
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
-    // const profileImage = await this.getImages(user.profileImage);
-    // const businessLicense = await this.getImages(user.vendor.businessLicense);
-    // const workspaceImages = await this.getImages(user.vendor.workspaceImages);
 
     delete user.password;
     return {
@@ -775,16 +771,27 @@ export class AuthService {
 
   async forgotPassword(data: ForgotPasswordDto) {
     try {
-      let randomOtp = Math.floor(Math.random() * 10000).toString();
-      for (let i = 0; i < 4 - randomOtp.length; i++) {
-        randomOtp = '0' + randomOtp;
-      }
       const user = await this.prisma.userMaster.findFirst({
         where: {
           email: data.email,
           userType: data.userType,
         },
       });
+
+      if (
+        user.userType === data.userType &&
+        !user.isEmailVerified &&
+        user[data.userType.toLowerCase()].status !== Status.APPROVED
+      ) {
+        throw new BadRequestException(
+          'Your account has either not been verified or the admin has not yet approved your account.',
+        );
+      }
+
+      let randomOtp = Math.floor(Math.random() * 10000).toString();
+      for (let i = 0; i < 4 - randomOtp.length; i++) {
+        randomOtp = '0' + randomOtp;
+      }
 
       if (!user) throw new NotFoundException('Email does not exist.');
 

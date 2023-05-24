@@ -51,7 +51,6 @@ export class VendorLocationDto {
     description: 'The longitude',
   })
   @IsNumber()
-  @IsNumber()
   @IsOptional()
   longitude: number;
 
