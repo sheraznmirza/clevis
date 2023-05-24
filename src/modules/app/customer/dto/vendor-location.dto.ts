@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -86,6 +87,7 @@ export class VendorLocationDto {
     type: ServiceNames,
   })
   @IsArray()
+  @ValidateNested()
   @Type(() => ServiceNames)
   @IsOptional()
   services: ServiceNames[];

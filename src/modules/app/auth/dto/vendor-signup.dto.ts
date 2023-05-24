@@ -7,6 +7,7 @@ import {
   MinLength,
   IsNumber,
   IsArray,
+  ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { MediaFormat } from 'src/core/globalTypes';
@@ -61,6 +62,7 @@ export class VendorSignUpDto {
     type: MediaFormat,
   })
   @IsNotEmpty()
+  @ValidateNested()
   @Type(() => MediaFormat)
   logo: MediaFormat;
 
@@ -71,6 +73,7 @@ export class VendorSignUpDto {
   })
   @IsArray()
   @IsNotEmpty()
+  @ValidateNested()
   @Type(() => MediaFormat)
   workspaceImages: MediaFormat[];
 
@@ -79,6 +82,7 @@ export class VendorSignUpDto {
     isArray: true,
     type: MediaFormat,
   })
+  @ValidateNested()
   @Type(() => MediaFormat)
   @IsArray()
   @IsNotEmpty()

@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsArray,
   IsOptional,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -45,6 +46,7 @@ export class VendorCreateServiceDto {
     type: AllocatePrice,
   })
   @IsArray()
+  @ValidateNested()
   @Type(() => AllocatePrice)
   @IsNotEmpty()
   allocatePrice: AllocatePrice[];
@@ -59,6 +61,7 @@ export class VendorCreateServiceDto {
   })
   @IsArray()
   @IsNotEmpty()
+  @ValidateNested()
   @Type(() => MediaFormat)
   serviceImages: MediaFormat[];
 }
@@ -74,6 +77,7 @@ export class VendorUpdateServiceDto {
     type: AllocatePrice,
   })
   @IsArray()
+  @ValidateNested()
   @Type(() => AllocatePrice)
   @IsOptional()
   allocatePrice: AllocatePrice[];
@@ -88,6 +92,7 @@ export class VendorUpdateServiceDto {
   })
   @IsArray()
   @IsOptional()
+  @ValidateNested()
   @Type(() => MediaFormat)
   serviceImages: MediaFormat[];
 }
