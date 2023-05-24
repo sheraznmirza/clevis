@@ -86,7 +86,7 @@ export class VendorService {
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
       await this.mail.sendEmail(
-        vendor.companyEmail,
+        vendor.email,
         this.config.get('MAIL_FROM'),
         `${this.config.get('APP_NAME')} - ${
           vendor.userType[0] + vendor.userType.slice(1).toLowerCase()

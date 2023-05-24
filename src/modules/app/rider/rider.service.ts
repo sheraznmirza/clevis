@@ -45,7 +45,7 @@ export class RiderService {
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
       await this.mail.sendEmail(
-        rider.companyEmail,
+        rider.email,
         this.config.get('MAIL_FROM'),
         `${this.config.get('APP_NAME')} - ${
           rider.userType[0] + rider.userType.slice(1).toLowerCase()
