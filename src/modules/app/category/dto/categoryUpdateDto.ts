@@ -1,5 +1,5 @@
 import { ServiceType } from '@prisma/client';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CategoryUpdateDto {
@@ -10,6 +10,7 @@ export class CategoryUpdateDto {
 
   @ApiProperty()
   @IsString()
+  @IsEnum(ServiceType)
   @IsNotEmpty()
   serviceType?: ServiceType;
 }

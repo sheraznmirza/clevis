@@ -5,7 +5,7 @@ import {
   ListingParams,
   ServiceCategorySubCategoryListingParams,
 } from '../../../core/dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CategoryRepository {
@@ -35,18 +35,22 @@ export class CategoryRepository {
         where: {
           categoryId: id,
         },
+
         data: {
           ...(data.categoryName && { categoryName: data.categoryName }),
           ...(data.serviceType && { serviceType: data.serviceType }),
         },
       });
-
       return {
         ...successResponse(200, 'Category updated successfully'),
         ...category,
       };
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
