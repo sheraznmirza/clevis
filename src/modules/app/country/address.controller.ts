@@ -19,6 +19,7 @@ import { addressUpdateDto } from './dto/addressUpdateDto';
 import { addressCreateDto } from './dto/addressCreateDto';
 import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
+import { GetCityStateDto } from './dto/cityDetailDto';
 
 @ApiTags('Address')
 @Controller('address')
@@ -36,6 +37,11 @@ export class AddressController {
     @Query() listingParams: ListingParams,
   ) {
     return this.addressService.getStates(id, listingParams);
+  }
+
+  @Get('/city/byName')
+  getCityDetails(@Query() dto: GetCityStateDto) {
+    return this.addressService.getCityDetails(dto);
   }
 
   @Get('/cities/:stateId')

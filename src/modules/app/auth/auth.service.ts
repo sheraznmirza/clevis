@@ -13,7 +13,7 @@ import { ServiceType, Status, UserType } from '@prisma/client';
 import * as argon from 'argon2';
 import { createCipheriv, createDecipheriv } from 'crypto';
 import dayjs from 'dayjs';
-import { successResponse } from '../../../helpers/response.helper';
+import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../../modules/mail/mail.service';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CreateNotificationDto } from '../notification/dto';
@@ -793,6 +793,28 @@ export class AuthService {
         },
       });
 
+      if (data.userType === UserType.RIDER) {
+        const rider = await this.prisma.rider.findFirst({
+          where: {
+            userMasterId: user.userMasterId,
+          },
+        });
+        if (rider.status === Status.PENDING) {
+          unknowError(417, {}, 'Rider is not approved yet');
+        }
+      }
+
+      if (data.userType === UserType.VENDOR) {
+        const vendor = await this.prisma.vendor.findFirst({
+          where: {
+            userMasterId: user.userMasterId,
+          },
+        });
+        if (vendor.status === Status.PENDING) {
+          unknowError(417, {}, 'Vendor is not approved yet');
+        }
+      }
+
       if (!user) throw new NotFoundException('Email does not exist.');
 
       await this.expireOtp(user.userMasterId);
@@ -822,7 +844,7 @@ export class AuthService {
 
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
-      throw error;
+      return unknowError(417, error, 'Invalid');
     }
   }
 
