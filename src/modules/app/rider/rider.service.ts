@@ -56,7 +56,7 @@ export class RiderService {
 
       return successResponse(
         200,
-        `Vendor successfully ${rider.status.toLowerCase()}.`,
+        `Rider successfully ${rider.status.toLowerCase()}.`,
       );
     } catch (error) {
       throw error;
