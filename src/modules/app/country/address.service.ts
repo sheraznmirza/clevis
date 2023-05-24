@@ -9,7 +9,8 @@ import { GetUserType, ListingParams } from 'src/core/dto';
 import { addressUpdateDto } from './dto/addressUpdateDto';
 import { BadRequestExceptionResponse } from 'src/response/response.schema';
 import { addressCreateDto } from './dto/addressCreateDto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { GetCityStateDto } from './dto/cityDetailDto';
 
 @Injectable()
 export class AddressService {
@@ -85,6 +86,50 @@ export class AddressService {
     }
   }
 
+  async getCityDetails(dto: GetCityStateDto) {
+    try {
+      const cities = await this.prisma.country.findFirst({
+        where: {
+          countryName: {
+            contains: dto.countryName,
+          },
+          states: {
+            some: {
+              stateName: {
+                contains: dto.stateName,
+              },
+              cities: {
+                every: {
+                  cityName: {
+                    contains: dto.cityName,
+                  },
+                },
+              },
+            },
+          },
+        },
+        select: {
+          countryId: true,
+          countryName: true,
+          states: {
+            select: {
+              stateId: true,
+              stateName: true,
+              cities: {
+                select: {
+                  cityId: true,
+                  cityName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return cities;
+    } catch (error) {
+      unknowError(417, error, 'Invalid');
+    }
+  }
   async getCities(stateId: string, listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
     try {
