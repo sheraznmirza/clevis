@@ -56,13 +56,19 @@ export class CategoryRepository {
 
   async getCategory(id: number) {
     try {
-      return await this.prisma.category.findUnique({
+      const category = await this.prisma.category.findUnique({
         where: {
           categoryId: id,
         },
       });
+      if (category) return category;
+      else return unknowError(417, category, 'No category Found');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 

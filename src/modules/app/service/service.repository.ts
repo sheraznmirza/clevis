@@ -65,17 +65,13 @@ export class ServiceRepository {
 
   async getService(id: number) {
     try {
-      const services = await this.prisma.services.findUnique({
+      const service = await this.prisma.services.findUnique({
         where: {
           serviceId: id,
         },
       });
-      if (services)
-        return {
-          ...successResponse(200, ''),
-          ...services,
-        };
-      else return unknowError(417, services, 'No Services Found');
+      if (service) return service;
+      else return unknowError(417, service, 'No Services Found');
     } catch (error) {
       return unknowError(
         417,
