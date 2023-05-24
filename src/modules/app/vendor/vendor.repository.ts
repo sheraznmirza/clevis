@@ -10,11 +10,16 @@ import {
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
   VendorUpdateBusyStatusDto,
+  VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
-import { Media, UserType, Vendor } from '@prisma/client';
+import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
 import { VendorListingParams, VendorServiceListingParams } from 'src/core/dto';
 import { successResponse } from 'src/helpers/response.helper';
+import {
+  vendorServiceByIdMappedCarWash,
+  vendorServiceByIdMappedLaundry,
+} from './vendor.mapper';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -41,23 +46,19 @@ export class VendorRepository {
   }
 
   async updateVendorService(
-    dto: VendorCreateServiceDto,
+    dto: VendorUpdateServiceDto,
     userMasterId: number,
     vendorServiceId: number,
   ) {
     try {
-      const vendor = await this.prisma.vendor.findUnique({
-        where: {
-          userMasterId,
-        },
-      });
-
-      await this.updateCarWashVendorService(dto, vendor, vendorServiceId);
+      await this.updateCarWashVendorService(dto, vendorServiceId);
 
       return true;
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('VendorService is already created');
+      } else if (error.code === 'P2025') {
+        throw new BadRequestException('VendorService does not exist');
       }
       throw error;
     }
@@ -542,7 +543,7 @@ export class VendorRepository {
 
   async getVendorServiceById(vendorServiceId: number) {
     try {
-      await this.prisma.vendorService.findUnique({
+      const vendorService = await this.prisma.vendorService.findUnique({
         where: {
           vendorServiceId: vendorServiceId,
         },
@@ -555,12 +556,14 @@ export class VendorRepository {
             },
           },
           description: true,
+          status: true,
           AllocatePrice: {
             where: {
               vendorServiceId,
               isDeleted: false,
             },
             select: {
+              id: true,
               category: {
                 select: {
                   categoryId: true,
@@ -596,6 +599,16 @@ export class VendorRepository {
           },
         },
       });
+      const mappedVendorService =
+        vendorService.service.serviceType === ServiceType.LAUNDRY
+          ? vendorServiceByIdMappedLaundry(vendorService)
+          : vendorService.service.serviceType === ServiceType.CAR_WASH
+          ? vendorServiceByIdMappedCarWash(vendorService)
+          : vendorService.AllocatePrice;
+      return {
+        ...vendorService,
+        AllocatePrice: mappedVendorService,
+      };
     } catch (error) {
       throw error;
     }
@@ -1108,7 +1121,6 @@ export class VendorRepository {
         });
         serviceImages.push(result);
       });
-      debugger;
       const vendorService = await this.prisma.vendorService.create({
         data: {
           vendorId: vendor.vendorId,
@@ -1147,8 +1159,7 @@ export class VendorRepository {
   }
 
   async updateCarWashVendorService(
-    dto: VendorCreateServiceDto,
-    vendor: Vendor,
+    dto: VendorUpdateServiceDto,
     vendorServiceId: number,
   ) {
     try {
@@ -1171,20 +1182,49 @@ export class VendorRepository {
           vendorServiceId: vendorServiceId,
         },
         data: {
-          serviceId: dto.serviceId,
-          description: dto.description,
+          serviceId: dto.serviceId !== null ? dto.serviceId : undefined,
+          description: dto.description !== null ? dto.description : undefined,
+          status: dto.status !== null ? dto.status : undefined,
         },
         select: {
           vendorServiceId: true,
         },
       });
-      await this.prisma.allocatePrice.createMany({
-        data: dto.allocatePrice.map((item) => ({
-          ...item,
-          vendorServiceId: vendorService.vendorServiceId,
-        })),
-      });
-      return true;
+
+      // await this.prisma.allocatePrice.updateMany({
+      //   data: dto.allocatePrice.map((item) => ({
+      //     ...item,
+      //     vendorServiceId: vendorService.vendorServiceId,
+      //   })),
+      // });
+
+      if (dto.allocatePrice) {
+        dto.allocatePrice.forEach(async (allocate) => {
+          await this.prisma.allocatePrice.update({
+            where: {
+              id: allocate.allocatePriceId,
+            },
+            data: {
+              categoryId: allocate.categoryId,
+              price: allocate.price,
+              ...(allocate.subcategoryId && {
+                subcategoryId: allocate.subcategoryId,
+              }),
+            },
+          });
+        });
+      }
+
+      if (dto.serviceImages) {
+        await this.prisma.serviceImage.createMany({
+          data: serviceImages.map((item) => ({
+            vendorServiceId: vendorService.vendorServiceId,
+            mediaId: item.id,
+          })),
+        });
+      }
+
+      return successResponse(200, 'Vendor service successfully updated');
     } catch (error) {
       throw error;
     }

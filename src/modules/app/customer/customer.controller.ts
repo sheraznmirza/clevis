@@ -22,7 +22,11 @@ import { CustomerService } from './customer.service';
 import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { UserType } from '@prisma/client';
-import { UpdateCustomerDto, VendorLocationDto } from './dto';
+import {
+  UpdateCustomerDto,
+  VendorLocationDto,
+  VendorServiceParams,
+} from './dto';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Customers')
@@ -71,8 +75,11 @@ export class CustomerController {
 
   @Authorized(UserType.CUSTOMER)
   @Get('vendor-services/:vendorId')
-  getVendorServices(@Param('vendorId') vendorId: number) {
-    return this.customerService.getVendorServicesByVendorId(vendorId);
+  getVendorServices(
+    @Param('vendorId') vendorId: number,
+    @Query() dto: VendorServiceParams,
+  ) {
+    return this.customerService.getVendorServicesByVendorId(vendorId, dto);
   }
 
   @Authorized(UserType.ADMIN)

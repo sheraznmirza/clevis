@@ -6,7 +6,11 @@ import {
   CustomerVendorListingParams,
 } from '../../../core/dto';
 import { Media, Status, UserType } from '@prisma/client';
-import { UpdateCustomerDto, VendorLocationDto } from './dto';
+import {
+  UpdateCustomerDto,
+  VendorLocationDto,
+  VendorServiceParams,
+} from './dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 
 @Injectable()
@@ -659,7 +663,11 @@ export class CustomerRepository {
     }
   }
 
-  async getVendorServicesByVendorId(vendorId: number) {
+  async getVendorServicesByVendorId(
+    vendorId: number,
+    dto: VendorServiceParams,
+  ) {
+    const { page = 1, take = 10, search } = dto;
     try {
       await this.prisma.vendorService.findMany({
         where: {

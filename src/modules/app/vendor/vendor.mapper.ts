@@ -1,0 +1,50 @@
+export const vendorServiceByIdMappedLaundry = (vendorService) => {
+  const mappedAllocatePrice = [];
+  const hashMap = {};
+
+  for (let i = 0; i < vendorService.AllocatePrice.length; i++) {
+    if (
+      hashMap.hasOwnProperty(vendorService.AllocatePrice[i].category.categoryId)
+    ) {
+      const index = mappedAllocatePrice.findIndex((item) => {
+        return (
+          item.categoryId === vendorService.AllocatePrice[i].category.categoryId
+        );
+      });
+
+      mappedAllocatePrice[index].servicesTypePrice.push({
+        allocatePriceId: vendorService.AllocatePrice[i].id,
+        subcategoryId: vendorService.AllocatePrice[i].subcategory.subCategoryId,
+        price: vendorService.AllocatePrice[i].price,
+      });
+    } else {
+      hashMap[vendorService.AllocatePrice[i].category.categoryId] = true;
+      mappedAllocatePrice.push({
+        servicesTypePrice: [
+          {
+            allocatePriceId: vendorService.AllocatePrice[i].id,
+            subcategoryId:
+              vendorService.AllocatePrice[i].subcategory.subCategoryId,
+            price: vendorService.AllocatePrice[i].price,
+          },
+        ],
+        categoryId: vendorService.AllocatePrice[i].category.categoryId,
+      });
+    }
+  }
+  return mappedAllocatePrice;
+};
+
+export const vendorServiceByIdMappedCarWash = (vendorService) => {
+  const mappedAllocatePrice = [];
+
+  for (let i = 0; i < vendorService.AllocatePrice.length; i++) {
+    mappedAllocatePrice.push({
+      allocatePriceId: vendorService.AllocatePrice[i].id,
+      categoryId: vendorService.AllocatePrice[i].category.categoryId,
+      price: vendorService.AllocatePrice[i].price,
+    });
+  }
+
+  return mappedAllocatePrice;
+};
