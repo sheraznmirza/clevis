@@ -32,10 +32,11 @@ export class ServiceRepository {
         return unknowError(417, service, 'Service Already Exists');
       }
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ForbiddenException('Service is already created');
-      }
-      return false;
+      unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
