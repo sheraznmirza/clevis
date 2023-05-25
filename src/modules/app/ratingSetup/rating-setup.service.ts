@@ -1,11 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../modules/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { async } from 'rxjs';
-import { RatingSetupDto } from './dto/ratingsetup.dto';
 import { successResponse } from 'src/helpers/response.helper';
+import { RatingSetupDto } from './dto';
 
 @Injectable()
-export class RatingSetup {
+export class RatingSetupService {
   constructor(private prisma: PrismaService) {}
 
   async getRatingById(id: number) {
