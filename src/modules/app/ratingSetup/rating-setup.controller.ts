@@ -11,7 +11,7 @@ import { Authorized } from 'src/core/decorators';
 import { UserType } from '@prisma/client';
 import { RatingSetupDto } from './dto';
 import { ApiTags } from '@nestjs/swagger';
-import { RatingSetupService } from './ratingsetup.service';
+import { RatingSetupService } from './rating-setup.service';
 
 @ApiTags('Rating')
 @Controller('rating')

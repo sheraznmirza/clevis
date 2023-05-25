@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../../modules/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { async } from 'rxjs';
 import { successResponse } from 'src/helpers/response.helper';
 import { RatingSetupDto } from './dto';
