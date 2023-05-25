@@ -12,6 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Authorized } from 'src/core/decorators';
+` `;
 import { UserType } from '@prisma/client';
 import { PlatFormSetupDto } from './dto/platform-setup.dto';
 import { PlatformSetupService } from './platform-setup.service';

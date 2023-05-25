@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Days, Media } from '@prisma/client';
@@ -40,6 +41,7 @@ export class UpdateVendorDto {
     required: false,
   })
   @IsOptional()
+  @ValidateNested()
   @Type(() => MediaFormat)
   profilePicture: MediaFormat;
 
@@ -65,6 +67,7 @@ export class UpdateVendorDto {
   })
   @IsArray()
   @IsOptional()
+  @ValidateNested()
   @Type(() => MediaFormat)
   workspaceImages: MediaFormat[];
 
@@ -75,6 +78,7 @@ export class UpdateVendorDto {
   })
   @IsArray()
   @IsOptional()
+  @ValidateNested()
   @Type(() => MediaFormat)
   businessLicense: MediaFormat[];
 
@@ -162,6 +166,7 @@ export class UpdateVendorScheduleDto {
   })
   @IsArray()
   @IsOptional()
+  @ValidateNested()
   @Type(() => VendorSchedule)
   companySchedule: VendorSchedule[];
 

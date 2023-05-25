@@ -517,32 +517,6 @@ export class VendorRepository {
               serviceName: true,
             },
           },
-          // service: {
-          //   select: {
-          //     serviceName:true
-          //   }
-          // }
-          // service: {
-          //   select: {
-          //     serviceName: true,
-          //   },
-          // },
-          // service: {
-          //   select: {
-          //     serviceName: true,
-          //     vendorService: {
-          //       select: {
-          //         vendorServiceId: true,
-          //         status: true,
-          //         description: true,
-          //         vendorId: true,
-          //         isDeleted: true,
-
-          //         serviceImage: true,
-          //       },
-          //     },
-          //   },
-          // },
         },
       });
 

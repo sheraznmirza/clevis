@@ -13,7 +13,7 @@ import { ServiceType, Status, UserType } from '@prisma/client';
 import * as argon from 'argon2';
 import { createCipheriv, createDecipheriv } from 'crypto';
 import dayjs from 'dayjs';
-import { successResponse } from '../../../helpers/response.helper';
+import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../../modules/mail/mail.service';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CreateNotificationDto } from '../notification/dto';
@@ -51,9 +51,16 @@ export class AuthService {
       const userCount = await this.prisma.userMaster.count({
         where: { email: dto.email, userType: UserType.CUSTOMER },
       });
+      const cityCount = await this.prisma.city.count({
+        where: { cityId: dto.cityId },
+      });
 
       if (userCount > 0) {
         throw new ForbiddenException('Credentials taken');
+      }
+
+      if (cityCount === 0) {
+        throw new ForbiddenException('City not found');
       }
 
       const roleId = await this.getRoleByType(UserType.CUSTOMER);
@@ -822,7 +829,7 @@ export class AuthService {
 
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
-      throw error;
+      return unknowError(417, error, 'Invalid');
     }
   }
 
