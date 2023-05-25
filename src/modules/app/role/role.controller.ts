@@ -16,6 +16,7 @@ import { RolesGuard } from '../../../core/guards';
 import { ApiTags } from '@nestjs/swagger';
 import { RoleCreateDto } from './dto';
 import { RoleService } from './role.service';
+import { blockParams } from 'handlebars';
 //   import { RouteService } from './route.service';
 //   import { RouteCreateDto } from './dto';
 
@@ -49,9 +50,10 @@ export class RoleController {
     return this.roleService.getAllRoles();
   }
 
-  @Delete()
-  deleteAllRoles() {
-    return this.roleService.deleteAllRoles();
+  @Authorized(UserType.ADMIN)
+  @Delete('/:id')
+  deleteAllRoles(@Param('id') id: number) {
+    return this.roleService.deleteAllRoles(id);
   }
 
   //   @Authorized(UserType.ADMIN)

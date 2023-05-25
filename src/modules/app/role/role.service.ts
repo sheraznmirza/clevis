@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { RoleCreateDto } from './dto';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 
 @Injectable()
 export class RoleService {
@@ -52,10 +53,24 @@ export class RoleService {
     } catch (error) {}
   }
 
-  async deleteAllRoles() {
+  async deleteAllRoles(id: number) {
     try {
-      return await this.prisma.role.deleteMany();
-    } catch (error) {}
+      const delte = await this.prisma.role.update({
+        where: {
+          id: id,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+      return successResponse(202, 'successfully deleted');
+    } catch (error) {
+      unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
+    }
   }
 
   // async deleteService(id: number) {
