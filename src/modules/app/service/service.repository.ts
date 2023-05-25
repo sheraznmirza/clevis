@@ -5,7 +5,8 @@ import {
   ListingParams,
   ServiceCategorySubCategoryListingParams,
 } from '../../../core/dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { count } from 'console';
 
 @Injectable()
 export class ServiceRepository {
@@ -13,31 +14,29 @@ export class ServiceRepository {
 
   async createService(data: ServiceCreateDto) {
     try {
-      await this.prisma.services.create({
-        data: {
+      const service = await this.prisma.services.count({
+        where: {
           serviceName: data.serviceName,
           serviceType: data.serviceType,
         },
       });
-
-      // data.category.forEach(async (ctx) => {
-      //   await this.prisma.category.create({
-      //     data: {
-      //       categoryName: ctx.categoryName,
-      //       serviceId: service.serviceId,
-      //       ...(ctx.subCategories.length && {
-      //         subCategory: { createMany: { data: ctx.subCategories } },
-      //       }),
-      //     },
-      //   });
-      // });
-
-      return true;
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ForbiddenException('Service is already created');
+      if (service === 0) {
+        await this.prisma.services.create({
+          data: {
+            serviceName: data.serviceName,
+            serviceType: data.serviceType,
+          },
+        });
+        return { statusCode: 201, message: 'Service Successfully Created' };
+      } else {
+        return unknowError(417, service, 'Service Already Exists');
       }
-      return false;
+    } catch (error) {
+      unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
@@ -57,19 +56,29 @@ export class ServiceRepository {
         ...service,
       };
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
   async getService(id: number) {
     try {
-      return await this.prisma.services.findUnique({
+      const service = await this.prisma.services.findUnique({
         where: {
           serviceId: id,
         },
       });
+      if (service) return service;
+      else return unknowError(417, service, 'No Services Found');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
@@ -154,9 +163,13 @@ export class ServiceRepository {
           isDeleted: true,
         },
       });
-      return true;
+      return successResponse(202, 'successfully deleted');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors ',
+      );
     }
   }
 }

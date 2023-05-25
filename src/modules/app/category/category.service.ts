@@ -5,6 +5,7 @@ import {
   ListingParams,
   ServiceCategorySubCategoryListingParams,
 } from '../../../core/dto';
+import { unknowError } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CategoryService {
@@ -14,7 +15,8 @@ export class CategoryService {
     try {
       const category = await this.repository.createCategory(data);
       if (!category) {
-        throw new BadRequestException('Unable to create this category');
+        // throw new BadRequestException('Unable to create this category');
+        return unknowError(417, category, 'unable to create this category');
       }
       return { statusCode: 201, message: 'Category Successfully Created' };
     } catch (error) {

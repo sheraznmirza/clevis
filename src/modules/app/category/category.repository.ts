@@ -5,7 +5,7 @@ import {
   ListingParams,
   ServiceCategorySubCategoryListingParams,
 } from '../../../core/dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CategoryRepository {
@@ -35,30 +35,40 @@ export class CategoryRepository {
         where: {
           categoryId: id,
         },
+
         data: {
           ...(data.categoryName && { categoryName: data.categoryName }),
           ...(data.serviceType && { serviceType: data.serviceType }),
         },
       });
-
       return {
         ...successResponse(200, 'Category updated successfully'),
         ...category,
       };
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
   async getCategory(id: number) {
     try {
-      return await this.prisma.category.findUnique({
+      const category = await this.prisma.category.findUnique({
         where: {
           categoryId: id,
         },
       });
+      if (category) return category;
+      else return unknowError(417, category, 'No category Found');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
@@ -120,7 +130,7 @@ export class CategoryRepository {
 
   async deleteCategory(id: number) {
     try {
-      await this.prisma.category.update({
+      const delte = await this.prisma.category.update({
         where: {
           categoryId: id,
         },
@@ -128,9 +138,13 @@ export class CategoryRepository {
           isDeleted: true,
         },
       });
-      return true;
+      return successResponse(202, 'successfully deleted');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors ',
+      );
     }
   }
 }

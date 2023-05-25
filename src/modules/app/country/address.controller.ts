@@ -19,6 +19,7 @@ import { addressUpdateDto } from './dto/addressUpdateDto';
 import { addressCreateDto } from './dto/addressCreateDto';
 import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
+import { GetCityStateDto } from './dto/cityDetailDto';
 
 @ApiTags('Address')
 @Controller('address')
@@ -36,6 +37,11 @@ export class AddressController {
     @Query() listingParams: ListingParams,
   ) {
     return this.addressService.getStates(id, listingParams);
+  }
+
+  @Get('/city/byName')
+  getCityDetails(@Query() dto: GetCityStateDto) {
+    return this.addressService.getCityDetails(dto);
   }
 
   @Get('/cities/:stateId')
@@ -79,15 +85,23 @@ export class AddressController {
   }
 
   @UseGuards(JwtGuard, RolesGuard)
-  @Authorized(UserType.CUSTOMER)
+  @Authorized([
+    UserType.ADMIN,
+    UserType.CUSTOMER,
+    UserType.VENDOR,
+    UserType.RIDER,
+  ])
   @Patch('/:addressId')
   updateAddressByCustomer(
     @GetUser() user,
     @Param('addressId') id: number,
     @Body() data: addressUpdateDto,
   ) {
-    console.log('User: 123: ', user);
-    return this.addressService.updateAddressByCustomer(data, id);
+    return this.addressService.updateAddressByCustomer(
+      data,
+      id,
+      user.userMasterId,
+    );
   }
 
   @UseGuards(JwtGuard, RolesGuard)

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import {
@@ -11,7 +11,7 @@ import {
   VendorLocationDto,
   VendorServiceParams,
 } from './dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 
 @Injectable()
 export class CustomerRepository {
@@ -53,7 +53,7 @@ export class CustomerRepository {
 
   async getCustomerById(id: number) {
     try {
-      return await this.prisma.userMaster.findFirst({
+      const customer = await this.prisma.userMaster.findFirst({
         where: {
           userMasterId: id,
           userType: UserType.CUSTOMER,
@@ -96,8 +96,11 @@ export class CustomerRepository {
           },
         },
       });
+      if (!customer) throw new BadRequestException('User does not exist');
+
+      return customer;
     } catch (error) {
-      return false;
+      throw error;
     }
   }
 
@@ -136,6 +139,7 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
                 select: {
+                  userAddressId: true,
                   city: {
                     select: {
                       cityName: true,
@@ -171,7 +175,7 @@ export class CustomerRepository {
   async updateCustomer(userMasterId: number, dto: UpdateCustomerDto) {
     try {
       let media: Media;
-      if (dto.profilePicture) {
+      if (dto.profilePicture.hasOwnProperty('location')) {
         media = await this.prisma.media.create({
           data: {
             name: dto.profilePicture.name,
@@ -241,6 +245,8 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
                 select: {
+                  isDeleted: true,
+                  userAddressId: true,
                   city: {
                     select: {
                       cityName: true,
@@ -273,7 +279,11 @@ export class CustomerRepository {
         ...customer,
       };
     } catch (error) {
-      throw error;
+      return unknowError(
+        422,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
@@ -671,17 +681,33 @@ export class CustomerRepository {
 
   async deleteCustomer(id: number) {
     try {
-      await this.prisma.userMaster.update({
+      const user = await this.prisma.userMaster.findUnique({
         where: {
           userMasterId: id,
         },
-        data: {
+        select: {
           isDeleted: true,
         },
       });
-      return successResponse(200, 'Customer deleted successfully.');
+      if (!user.isDeleted) {
+        await this.prisma.userMaster.update({
+          where: {
+            userMasterId: id,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+        return successResponse(200, 'Customer deleted successfully.');
+      } else {
+        return successResponse(200, 'Customer is already deleted .');
+      }
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 }

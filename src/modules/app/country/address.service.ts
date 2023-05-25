@@ -3,13 +3,15 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { GetUserType, ListingParams } from 'src/core/dto';
 import { addressUpdateDto } from './dto/addressUpdateDto';
 import { BadRequestExceptionResponse } from 'src/response/response.schema';
 import { addressCreateDto } from './dto/addressCreateDto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { GetCityStateDto } from './dto/cityDetailDto';
 
 @Injectable()
 export class AddressService {
@@ -85,6 +87,74 @@ export class AddressService {
     }
   }
 
+  async getCityDetails(dto: GetCityStateDto) {
+    try {
+      const cities = await this.prisma.city.findMany({
+        where: {
+          cityName: {
+            contains: dto.cityName,
+            mode: 'insensitive',
+          },
+          State: {
+            stateName: {
+              contains: dto.stateName,
+              mode: 'insensitive',
+            },
+            country: {
+              countryName: {
+                contains: dto.countryName,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        select: {
+          cityId: true,
+          cityName: true,
+          State: {
+            select: {
+              stateId: true,
+              stateName: true,
+              country: {
+                select: {
+                  countryId: true,
+                  countryName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const allStates = await this.prisma.state.findMany({
+        where: {
+          countryId: cities && cities[0].State.country.countryId,
+        },
+        select: {
+          stateId: true,
+          stateName: true,
+        },
+      });
+
+      const filteredCities = cities.map((c) => {
+        return {
+          cityId: c.cityId,
+          cityName: c.cityName,
+        };
+      });
+      return {
+        countryId: (cities && cities[0].State.country.countryId) || null,
+        allStates,
+        filteredCities,
+        filteredState: {
+          stateId: (cities && cities[0].State.stateId) || null,
+          stateName: (cities && cities[0].State.stateName) || null,
+        },
+      };
+    } catch (error) {
+      unknowError(417, error, 'Invalid');
+    }
+  }
   async getCities(stateId: string, listingParams: ListingParams) {
     const { page = 1, take = 10, search } = listingParams;
     try {
@@ -202,8 +272,29 @@ export class AddressService {
     }
   }
 
-  async updateAddressByCustomer(data: addressUpdateDto, id: number) {
+  async updateAddressByCustomer(
+    data: addressUpdateDto,
+    id: number,
+    userMasterId: number,
+  ) {
     try {
+      const userAdd = await this.prisma.userAddress.findUnique({
+        where: {
+          userAddressId: id,
+        },
+        select: {
+          customer: {
+            select: {
+              userMasterId: true,
+            },
+          },
+        },
+      });
+      if (userMasterId !== userAdd.customer.userMasterId) {
+        throw new ForbiddenException(
+          'You are not authorized to update this address',
+        );
+      }
       const address = await this.prisma.userAddress.update({
         where: { userAddressId: id },
         data: {

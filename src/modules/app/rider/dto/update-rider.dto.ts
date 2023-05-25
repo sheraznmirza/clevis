@@ -9,6 +9,7 @@ import {
   IsBoolean,
   IsNotEmpty,
   IsEnum,
+  ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -53,22 +54,44 @@ export class RiderUpdateDto {
   @IsOptional()
   companyEmail: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+    type: MediaFormat,
+  })
   @IsOptional()
+  @ValidateNested()
+  @Type(() => MediaFormat)
   logo: MediaFormat;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+    isArray: true,
+    type: MediaFormat,
+  })
   @IsArray()
   @IsOptional()
+  @ValidateNested()
+  @Type(() => MediaFormat)
   workspaceImages: MediaFormat[];
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+    isArray: true,
+    type: MediaFormat,
+  })
   @IsArray()
   @IsOptional()
+  @ValidateNested()
+  @Type(() => MediaFormat)
   businessLicense: MediaFormat[];
 
-  @ApiProperty({})
+  @ApiProperty({
+    required: false,
+    type: MediaFormat,
+  })
   @IsOptional()
+  @ValidateNested()
+  @Type(() => MediaFormat)
   profilePicture: MediaFormat;
 
   @ApiProperty()
@@ -160,6 +183,7 @@ export class UpdateRiderScheduleDto {
   })
   @IsArray()
   @IsOptional()
+  @ValidateNested()
   @Type(() => RiderSchedule)
   companySchedule: RiderSchedule[];
 

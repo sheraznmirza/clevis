@@ -11,7 +11,7 @@ import {
 } from './dto';
 import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
 import { RiderListingParams, VendorListingParams } from 'src/core/dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -763,7 +763,11 @@ export class RiderRepository {
         ...rider,
       };
     } catch (error) {
-      return error.message;
+      unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 
