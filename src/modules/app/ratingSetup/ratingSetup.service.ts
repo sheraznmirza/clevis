@@ -5,7 +5,7 @@ import { RatingSetupDto } from './dto/ratingsetup.dto';
 import { successResponse } from 'src/helpers/response.helper';
 
 @Injectable()
-export class RatingSetup {
+export class RatingSetupService {
   constructor(private prisma: PrismaService) {}
 
   async getRatingById(id: number) {

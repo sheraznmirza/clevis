@@ -9,14 +9,14 @@ import {
 } from '@nestjs/common';
 import { Authorized } from 'src/core/decorators';
 import { UserType } from '@prisma/client';
-import { RatingSetup } from './ratingsetup.service';
-import { RatingSetupDto } from './dto/ratingsetup.dto';
+import { RatingSetupDto } from './dto';
 import { ApiTags } from '@nestjs/swagger';
+import { RatingSetupService } from './ratingsetup.service';
 
 @ApiTags('Rating')
 @Controller('rating')
 export class RatingSetupController {
-  constructor(private ratingSetup: RatingSetup) {}
+  constructor(private ratingSetup: RatingSetupService) {}
 
   @Authorized([UserType.ADMIN])
   @Get('/:ratingId')
