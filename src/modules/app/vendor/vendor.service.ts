@@ -64,7 +64,7 @@ export class VendorService {
       if (!vendorService) {
         throw new BadRequestException('Unable to create this vendor service');
       }
-      return successResponse(201, 'Vendor service successfully created.');
+      return successResponse(201, 'Vendor service successfully updated.');
     } catch (error) {
       throw error;
     }

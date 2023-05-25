@@ -15,6 +15,8 @@ export const vendorServiceByIdMappedLaundry = (vendorService) => {
       mappedAllocatePrice[index].servicesTypePrice.push({
         allocatePriceId: vendorService.AllocatePrice[i].id,
         subcategoryId: vendorService.AllocatePrice[i].subcategory.subCategoryId,
+        subcategoryName:
+          vendorService.AllocatePrice[i].subcategory.subCategoryName,
         price: vendorService.AllocatePrice[i].price,
       });
     } else {
@@ -25,10 +27,13 @@ export const vendorServiceByIdMappedLaundry = (vendorService) => {
             allocatePriceId: vendorService.AllocatePrice[i].id,
             subcategoryId:
               vendorService.AllocatePrice[i].subcategory.subCategoryId,
+            subcategoryName:
+              vendorService.AllocatePrice[i].subcategory.subCategoryName,
             price: vendorService.AllocatePrice[i].price,
           },
         ],
         categoryId: vendorService.AllocatePrice[i].category.categoryId,
+        categoryName: vendorService.AllocatePrice[i].category.categoryName,
       });
     }
   }
@@ -42,6 +47,7 @@ export const vendorServiceByIdMappedCarWash = (vendorService) => {
     mappedAllocatePrice.push({
       allocatePriceId: vendorService.AllocatePrice[i].id,
       categoryId: vendorService.AllocatePrice[i].category.categoryId,
+      categoryName: vendorService.AllocatePrice[i].category.categoryName,
       price: vendorService.AllocatePrice[i].price,
     });
   }

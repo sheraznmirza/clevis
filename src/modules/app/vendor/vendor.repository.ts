@@ -625,6 +625,24 @@ export class VendorRepository {
           },
         },
       });
+      let vendorServiceSubcategories: any;
+      if (vendorService.service.serviceType === ServiceType.LAUNDRY) {
+        vendorServiceSubcategories = await this.prisma.allocatePrice.findMany({
+          where: {
+            vendorServiceId,
+          },
+          distinct: ['subcategoryId'],
+          select: {
+            subcategory: {
+              select: {
+                subCategoryId: true,
+                subCategoryName: true,
+              },
+            },
+          },
+        });
+      }
+
       const mappedVendorService =
         vendorService.service.serviceType === ServiceType.LAUNDRY
           ? vendorServiceByIdMappedLaundry(vendorService)
@@ -634,6 +652,7 @@ export class VendorRepository {
       return {
         ...vendorService,
         AllocatePrice: mappedVendorService,
+        vendorServiceSubcategories,
       };
     } catch (error) {
       throw error;
@@ -1225,17 +1244,63 @@ export class VendorRepository {
       // });
 
       if (dto.allocatePrice) {
-        dto.allocatePrice.forEach(async (allocate) => {
-          await this.prisma.allocatePrice.update({
-            where: {
-              id: allocate.allocatePriceId,
+        // let createAllocatePrice = dto.allocatePrice.filter(
+        //   (item) => !item.allocatePriceId,
+        // );
+
+        // const update
+
+        // createAllocatePrice = createAllocatePrice.map((item) => {
+        //   return {
+        //     vendorServiceId,
+        //     ...item,
+        //   };
+        // });
+
+        // await this.prisma.allocatePrice.createMany({
+        //   data: createAllocatePrice.map((item) => ({
+        //     vendorServiceId,
+        //     ...item,
+        //     subcategoryId: item?.subcategoryId || null,
+        //   })),
+        // });
+
+        const unRemovedAllocatePrice = dto.allocatePrice.filter(
+          (item) => item.allocatePriceId,
+        );
+
+        const unRemovedAllocatePriceIds = unRemovedAllocatePrice.map(
+          (item) => item.allocatePriceId,
+        );
+
+        await this.prisma.allocatePrice.updateMany({
+          where: {
+            id: {
+              notIn: unRemovedAllocatePriceIds,
             },
-            data: {
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+
+        dto.allocatePrice.forEach(async (allocate) => {
+          await this.prisma.allocatePrice.upsert({
+            where: {
+              id: allocate?.allocatePriceId || 0,
+            },
+            update: {
               categoryId: allocate.categoryId,
               price: allocate.price,
               ...(allocate.subcategoryId && {
                 subcategoryId: allocate.subcategoryId,
               }),
+            },
+            create: {
+              categoryId: allocate.categoryId,
+              price: allocate.price,
+              subcategoryId: allocate.subcategoryId,
+              vendorServiceId,
             },
           });
         });
