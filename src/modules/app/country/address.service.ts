@@ -89,44 +89,68 @@ export class AddressService {
 
   async getCityDetails(dto: GetCityStateDto) {
     try {
-      const cities = await this.prisma.country.findFirst({
+      const cities = await this.prisma.city.findMany({
         where: {
-          countryName: {
-            contains: dto.countryName,
+          cityName: {
+            contains: dto.cityName,
+            mode: 'insensitive',
           },
-          states: {
-            some: {
-              stateName: {
-                contains: dto.stateName,
-              },
-              cities: {
-                every: {
-                  cityName: {
-                    contains: dto.cityName,
-                  },
-                },
+          State: {
+            stateName: {
+              contains: dto.stateName,
+              mode: 'insensitive',
+            },
+            country: {
+              countryName: {
+                contains: dto.countryName,
+                mode: 'insensitive',
               },
             },
           },
         },
         select: {
-          countryId: true,
-          countryName: true,
-          states: {
+          cityId: true,
+          cityName: true,
+          State: {
             select: {
               stateId: true,
               stateName: true,
-              cities: {
+              country: {
                 select: {
-                  cityId: true,
-                  cityName: true,
+                  countryId: true,
+                  countryName: true,
                 },
               },
             },
           },
         },
       });
-      return cities;
+
+      const allStates = await this.prisma.state.findMany({
+        where: {
+          countryId: cities && cities[0].State.country.countryId,
+        },
+        select: {
+          stateId: true,
+          stateName: true,
+        },
+      });
+
+      const filteredCities = cities.map((c) => {
+        return {
+          cityId: c.cityId,
+          cityName: c.cityName,
+        };
+      });
+      return {
+        countryId: (cities && cities[0].State.country.countryId) || null,
+        allStates,
+        filteredCities,
+        filteredState: {
+          stateId: (cities && cities[0].State.stateId) || null,
+          stateName: (cities && cities[0].State.stateName) || null,
+        },
+      };
     } catch (error) {
       unknowError(417, error, 'Invalid');
     }

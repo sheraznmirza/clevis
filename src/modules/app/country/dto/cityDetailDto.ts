@@ -5,15 +5,15 @@ export class GetCityStateDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  cityName: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
   countryName: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   stateName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  cityName: string;
 }
