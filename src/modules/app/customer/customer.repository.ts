@@ -665,15 +665,91 @@ export class CustomerRepository {
 
   async getVendorServicesByVendorId(
     vendorId: number,
-    dto: VendorServiceParams,
+    // dto: VendorServiceParams,
   ) {
-    const { page = 1, take = 10, search } = dto;
+    // const { page = 1, take = 10, search } = dto;
     try {
-      await this.prisma.vendorService.findMany({
+      const vendorService = await this.prisma.vendorService.findMany({
+        // take: +take,
+        // skip: +take * (+page - 1),
         where: {
           vendorId,
         },
+        select: {
+          vendorServiceId: true,
+          vendorId: true,
+          service: {
+            select: {
+              serviceId: true,
+              serviceName: true,
+            },
+          },
+          // AllocatePrice: {
+          //   select: {
+          //     id: true,
+          //     vendorServiceId: true,
+          //     category: {
+          //       select: {
+          //         categoryId: true,
+          //         categoryName: true,
+          //       },
+          //     },
+          //     subcategory: {
+          //       select: {
+          //         subCategoryName: true,
+          //         subCategoryId: true,
+          //       },
+          //     },
+          //     price: true,
+          //   },
+          // },
+        },
       });
+      const vendorServiceIds = vendorService.map(
+        (item) => item.vendorServiceId,
+      );
+
+      const categories = await this.prisma.allocatePrice.findMany({
+        where: {
+          vendorServiceId: {
+            in: vendorServiceIds,
+          },
+        },
+        distinct: ['vendorServiceId'],
+        select: {
+          id: true,
+          vendorServiceId: true,
+          category: {
+            select: {
+              categoryId: true,
+              categoryName: true,
+            },
+          },
+          price: true,
+        },
+      });
+
+      const subcategories = await this.prisma.allocatePrice.findMany({
+        where: {
+          vendorServiceId: {
+            in: vendorServiceIds,
+          },
+        },
+        distinct: ['vendorServiceId'],
+        select: {
+          id: true,
+          vendorServiceId: true,
+          subcategory: {
+            select: {
+              subCategoryId: true,
+              subCategoryName: true,
+            },
+          },
+          price: true,
+        },
+      });
+
+      return { vendorService, categories, subcategories };
     } catch (error) {
       throw error;
     }

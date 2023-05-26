@@ -67,10 +67,10 @@ export class CustomerService {
 
   async getVendorServicesByVendorId(
     vendorId: number,
-    dto: VendorServiceParams,
+    // dto: VendorServiceParams,
   ) {
     try {
-      return await this.repository.getVendorServicesByVendorId(vendorId, dto);
+      return await this.repository.getVendorServicesByVendorId(vendorId);
     } catch (error) {
       throw error;
     }
