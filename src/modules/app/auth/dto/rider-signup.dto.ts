@@ -89,13 +89,16 @@ export class RiderSignUpDto {
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   cityId: number;
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   latitude: number;
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   longitude: number;
 }

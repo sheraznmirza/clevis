@@ -12,44 +12,11 @@ import {
   VendorServiceParams,
 } from './dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { subcategories } from './entities/subcategoriesType';
 
 @Injectable()
 export class CustomerRepository {
   constructor(private prisma: PrismaService) {}
-
-  //   async createCategory(data: CategoryCreateDto) {
-  //     try {
-  //       await this.prisma.category.create({
-  //         data: {
-  //           categoryName: data.categoryName,
-  //           serviceType: data.serviceType,
-  //         },
-  //       });
-
-  //       return true;
-  //     } catch (error) {
-  //       if (error.code === 'P2002') {
-  //         throw new ForbiddenException('Category is already created');
-  //       }
-  //       return false;
-  //     }
-  //   }
-
-  //   async updateCustomer(id: number, data: CategoryUpdateDto) {
-  //     try {
-  //       await this.prisma.category.update({
-  //         where: {
-  //           categoryId: id,
-  //         },
-  //         data: {
-  //           ...(data.categoryName && { categoryName: data.categoryName }),
-  //           ...(data.serviceType && { serviceType: data.serviceType }),
-  //         },
-  //       });
-  //     } catch (error) {
-  //       return false;
-  //     }
-  //   }
 
   async getCustomerById(id: number) {
     try {
@@ -682,27 +649,9 @@ export class CustomerRepository {
             select: {
               serviceId: true,
               serviceName: true,
+              serviceType: true,
             },
           },
-          // AllocatePrice: {
-          //   select: {
-          //     id: true,
-          //     vendorServiceId: true,
-          //     category: {
-          //       select: {
-          //         categoryId: true,
-          //         categoryName: true,
-          //       },
-          //     },
-          //     subcategory: {
-          //       select: {
-          //         subCategoryName: true,
-          //         subCategoryId: true,
-          //       },
-          //     },
-          //     price: true,
-          //   },
-          // },
         },
       });
       const vendorServiceIds = vendorService.map(
@@ -729,27 +678,35 @@ export class CustomerRepository {
         },
       });
 
-      const subcategories = await this.prisma.allocatePrice.findMany({
-        where: {
-          vendorServiceId: {
-            in: vendorServiceIds,
-          },
-        },
-        distinct: ['vendorServiceId'],
-        select: {
-          id: true,
-          vendorServiceId: true,
-          subcategory: {
-            select: {
-              subCategoryId: true,
-              subCategoryName: true,
+      let subcategories: subcategories[];
+
+      if (vendorService && vendorService[0].service.serviceType) {
+        subcategories = await this.prisma.allocatePrice.findMany({
+          where: {
+            vendorServiceId: {
+              in: vendorServiceIds,
             },
           },
-          price: true,
-        },
-      });
+          distinct: ['vendorServiceId'],
+          select: {
+            id: true,
+            vendorServiceId: true,
+            subcategory: {
+              select: {
+                subCategoryId: true,
+                subCategoryName: true,
+              },
+            },
+            price: true,
+          },
+        });
+      }
 
-      return { vendorService, categories, subcategories };
+      return {
+        vendorService,
+        categories,
+        ...(subcategories && { subcategories }),
+      };
     } catch (error) {
       throw error;
     }
