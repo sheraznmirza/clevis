@@ -626,7 +626,9 @@ export class VendorRepository {
       return {
         ...vendorService,
         AllocatePrice: mappedVendorService,
-        vendorServiceSubcategories,
+        ...(vendorServiceSubcategories && {
+          vendorServiceSubcategories,
+        }),
       };
     } catch (error) {
       throw error;
