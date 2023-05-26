@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty, IsNumber, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-type allocatePrice = {
+type AllocatePrice = {
   price: number;
   subcategoryId?: number;
   categoryId: number;
@@ -17,7 +17,7 @@ export class RiderCreateServiceDto {
   @ApiProperty()
   @IsArray()
   @IsNotEmpty()
-  allocatePrice: allocatePrice[];
+  allocatePrice: AllocatePrice[];
 
   @ApiProperty()
   @IsString()
