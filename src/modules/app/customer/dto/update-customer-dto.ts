@@ -19,10 +19,10 @@ export class UpdateCustomerDto {
   @IsOptional()
   fullName: string;
 
-  // @ApiProperty()
-  // @IsString()
-  // @IsOptional()
-  // fullAddress: string;
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  fullAddress: string;
 
   @ApiProperty()
   @IsNumber()

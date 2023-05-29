@@ -31,7 +31,14 @@ export class CustomerRepository {
           userMasterId: true,
           phone: true,
           isActive: true,
-
+          profilePicture: {
+            select: {
+              id: true,
+              name: true,
+              key: true,
+              location: true,
+            },
+          },
           customer: {
             select: {
               fullName: true,
@@ -142,7 +149,7 @@ export class CustomerRepository {
   async updateCustomer(userMasterId: number, dto: UpdateCustomerDto) {
     try {
       let media: Media;
-      if (dto.profilePicture.hasOwnProperty('location')) {
+      if (dto.profilePicture && dto.profilePicture.hasOwnProperty('location')) {
         media = await this.prisma.media.create({
           data: {
             name: dto.profilePicture.name,
@@ -205,6 +212,9 @@ export class CustomerRepository {
                       },
                       data: {
                         cityId: dto.cityId,
+                        fullAddress: dto.fullAddress
+                          ? dto.fullAddress
+                          : undefined,
                       },
                     },
                   },
