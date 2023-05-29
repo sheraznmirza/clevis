@@ -17,6 +17,7 @@ import { RiderModule } from './modules/app/rider/rider.module';
 import MediaModule from './modules/app/media/media.module';
 import { RatingModule } from './modules/app/ratingSetup/ratingSetup.module';
 import { PlatformModule } from './modules/app/platformSetup/platform-setup.module';
+import { StatisticsModule } from './modules/app/statistics/statistics.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { PlatformModule } from './modules/app/platformSetup/platform-setup.modul
     RouteModule,
     RatingModule,
     PlatformModule,
+    StatisticsModule,
     // DatabaseModule,
   ],
 })

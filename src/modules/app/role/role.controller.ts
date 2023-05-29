@@ -55,10 +55,4 @@ export class RoleController {
   deleteAllRoles(@Param('id') id: number) {
     return this.roleService.deleteAllRoles(id);
   }
-
-  //   @Authorized(UserType.ADMIN)
-  //   @Delete('/:id')
-  //   deleteService(@Param('id') id: number) {
-  //     return this.routeService.deleteService(id);
-  //   }
 }

@@ -15,7 +15,7 @@ import {
 } from './dto';
 import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
 import { VendorListingParams, VendorServiceListingParams } from 'src/core/dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 import {
   vendorServiceByIdMappedCarWash,
   vendorServiceByIdMappedLaundry,
@@ -1305,9 +1305,13 @@ export class VendorRepository {
           isDeleted: true,
         },
       });
-      return true;
+      return successResponse(202, 'successfully deleted');
     } catch (error) {
-      return false;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors ',
+      );
     }
   }
 

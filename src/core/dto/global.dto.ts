@@ -39,6 +39,13 @@ export enum RiderVendorTabs {
   ACCOUNT_DETAILS = 'ACCOUNT_DETAILS',
 }
 
+export enum YearlyFilterDropdownType {
+  WEEKLY = 'WEEKLY',
+  MONTH = 'MONTH',
+  HALF_YEAR = 'HALF_YEAR',
+  YEAR = 'YEAR',
+}
+
 export class ListingParams {
   @ApiProperty({
     required: false,

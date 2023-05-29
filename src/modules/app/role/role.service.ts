@@ -72,12 +72,4 @@ export class RoleService {
       );
     }
   }
-
-  // async deleteService(id: number) {
-  //   try {
-  //     return await this.prisma.deleteService(id);
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
 }
