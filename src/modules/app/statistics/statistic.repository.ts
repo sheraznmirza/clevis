@@ -1,36 +1,30 @@
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { UserType } from '@prisma/client';
+import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 
 @Injectable()
 export class StatisticRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getStatistic(query) {
+  async getStatistic(query: StatisticVendorAdminQueryDto) {
     try {
-      const date: any = Date.now();
-      if (query === 'week') {
-      }
-
-      const monthlyEntryCounts = await this.prisma.userMaster.findMany({
-        where: {
-          userType: UserType.VENDOR,
-          createdAt: { gte: date },
-          vendor: {
-            serviceType: query.Usertype,
-          },
-        },
+      const monthlyEntryCounts2 = await this.prisma.userMaster.findMany({
+        where: { userType: UserType.VENDOR },
+        // createdAt:{gte: }},
         select: {
           createdAt: true,
+          vendor: { select: { serviceType: true } },
         },
       });
 
       const countByMonth = {};
 
-      monthlyEntryCounts.forEach((entry) => {
+      monthlyEntryCounts2.forEach((entry) => {
         const month = entry.createdAt.getMonth();
         const year = entry.createdAt.getFullYear();
-        const monthYear = `${month}-${year}`;
+        const service = entry.vendor?.serviceType;
+        const monthYear = `${month}-${year}-${service}`;
 
         if (countByMonth[monthYear]) {
           countByMonth[monthYear]++;
@@ -39,22 +33,21 @@ export class StatisticRepository {
         }
       });
 
-      const formattedEntryCounts = Object.keys(countByMonth).map(
+      const formattedEntryCounts2 = Object.keys(countByMonth).map(
         (monthYear) => {
-          const [month, year] = monthYear.split('-');
+          const [month, year, service] = monthYear.split('-');
           const count = countByMonth[monthYear];
-          const date = new Date(parseInt(year), parseInt(month));
-          const monthName = date.toLocaleString('default', { month: 'long' });
+
           return {
             month,
             year,
             count,
-            monthName,
+            service,
           };
         },
       );
 
-      return formattedEntryCounts;
+      return formattedEntryCounts2;
     } catch (error) {
       throw error;
     }

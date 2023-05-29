@@ -4,7 +4,7 @@ import { Authorized } from 'src/core/decorators';
 import { UserType } from '@prisma/client';
 import { RolesGuard } from 'src/core/guards';
 import { JwtGuard } from '../auth/guard';
-import { StatisticVendorAdminQueryDto } from './statistic.dto/statistic.dto';
+import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 @Controller('statistics')
 export class StatisticsController {
   constructor(private StatisticsService: StatisticsService) {}
@@ -12,7 +12,7 @@ export class StatisticsController {
   @UseGuards(JwtGuard, RolesGuard)
   @Authorized(UserType.ADMIN)
   @Get('admin/vendorCount')
-  getMe(@Query() query: StatisticVendorAdminQueryDto) {
+  getMe(@Query() @Query() query: StatisticVendorAdminQueryDto) {
     return this.StatisticsService.statisticService(query);
   }
 }

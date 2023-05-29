@@ -42,7 +42,7 @@ export enum RiderVendorTabs {
 export enum YearlyFilterDropdownType {
   WEEKLY = 'WEEKLY',
   MONTH = 'MONTH',
-  HALF_YEAR = 'HALF_YEAR',
+  // HALF_YEAR = 'HALF_YEAR',
   YEAR = 'YEAR',
 }
 

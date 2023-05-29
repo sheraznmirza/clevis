@@ -912,8 +912,8 @@ export class AuthService {
             copyright_year: this.config.get('COPYRIGHT_YEAR'),
           };
           await this.mail.sendEmail(
-            user.email,
             this.config.get('MAIL_FROM'),
+            user.email,
             this.config.get('APP_NAME'),
             'vendorApprovedRejected',
             context,
