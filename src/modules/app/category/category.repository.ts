@@ -111,8 +111,8 @@ export class CategoryRepository {
 
       return {
         data: category,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {

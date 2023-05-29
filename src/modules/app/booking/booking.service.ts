@@ -6,7 +6,7 @@ import {
   ListingParams,
 } from '../../../core/dto';
 import { BookingRepository } from './booking.repository';
-import { CreateBookingDto } from './dto';
+import { CreateBookingDto, CustomerGetBookingsDto } from './dto';
 
 @Injectable()
 export class BookingService {
@@ -23,6 +23,14 @@ export class BookingService {
   async createBooking(customerId: number, dto: CreateBookingDto) {
     try {
       return await this.repository.createBooking(customerId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getBookings(customerId: number, dto: CustomerGetBookingsDto) {
+    try {
+      return await this.repository.getBookings(customerId, dto);
     } catch (error) {
       throw error;
     }

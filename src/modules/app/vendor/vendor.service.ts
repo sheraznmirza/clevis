@@ -72,7 +72,7 @@ export class VendorService {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
-      const vendor: any = await this.repository.approveVendor(id, dto);
+      const vendor = await this.repository.approveVendor(id, dto);
       // await this.mail.sendVendorRiderApprovalEmail(vendor);   umair
 
       const context = {
