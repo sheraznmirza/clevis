@@ -24,7 +24,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           },
         },
         defaults: {
-          from: `"No Reply" <${config.get('MAIL_FROM')}>`,
+          from: `"No Reply" <${config.get('MAIL_ADMIN')}>`,
         },
         template: {
           dir: join(__dirname, 'templates'),

@@ -46,7 +46,7 @@ export class RiderService {
       };
       await this.mail.sendEmail(
         rider.email,
-        this.config.get('MAIL_FROM'),
+        this.config.get('MAIL_ADMIN'),
         `${this.config.get('APP_NAME')} - ${
           rider.userType[0] + rider.userType.slice(1).toLowerCase()
         } ${rider.status.toLowerCase()}`,
