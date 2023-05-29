@@ -1130,6 +1130,7 @@ export class VendorRepository {
       const serviceCount = await this.prisma.vendorService.count({
         where: {
           serviceId: dto.serviceId,
+          vendorId: vendor.vendorId,
         },
       });
 

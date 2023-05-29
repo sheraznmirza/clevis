@@ -2,6 +2,7 @@ import {
   IsArray,
   IsEnum,
   IsNumber,
+  IsBoolean,
   IsOptional,
   IsString,
   ValidateNested,
@@ -71,6 +72,14 @@ export class VendorLocationDto {
   @IsNumber()
   @IsOptional()
   distance: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Boolean for vendor busy status.',
+  })
+  @IsBoolean()
+  @IsOptional()
+  isBusy: boolean;
 
   @ApiProperty({
     required: false,

@@ -256,6 +256,7 @@ export class CustomerRepository {
 
   async getVendorsByLocation(userMasterId: number, dto: VendorLocationDto) {
     const { page = 1, take = 10, search, distance = 10000000000 } = dto;
+    console.log('distance: ', distance);
     try {
       if (dto.latitude && dto.longitude) {
         const vendors: Array<{ vendorId: number }> = await this.prisma
@@ -284,15 +285,16 @@ export class CustomerRepository {
                   },
                 },
                 { serviceType: dto.serviceType },
+                { isBusy: dto.isBusy ? dto.isBusy : false },
               ],
 
-              companySchedule: {
-                // every: {
-                //   startTime: {
-                //     gte:Wit
-                //   }
-                // }
-              },
+              // companySchedule: {
+              // every: {
+              //   startTime: {
+              //     gte:Wit
+              //   }
+              // }
+              // },
               ...(search && {
                 companyName: {
                   contains: search,
