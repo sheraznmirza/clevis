@@ -81,6 +81,9 @@ export class RiderRepository {
             select: {
               riderId: true,
               banking: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   id: true,
                   accountNumber: true,
@@ -762,6 +765,17 @@ export class RiderRepository {
                 },
               },
               status: true,
+              banking: {
+                where: {
+                  isDeleted: false,
+                },
+                select: {
+                  id: true,
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
             },
           },
         },

@@ -901,6 +901,9 @@ export class VendorRepository {
                 },
               },
               banking: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   id: true,
                   accountNumber: true,
