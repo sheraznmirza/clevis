@@ -185,29 +185,29 @@ model Rider {
   workspaceImages WorkspaceImages[]
   banking         Banking[]
   companySchedule CompanySchedule[]
+  Job             Job[]
 }
 
 model UserAddress {
-  userAddressId Int       @id @default(autoincrement())
-  fullAddress   String?
-  city          City?     @relation(fields: [cityId], references: [cityId])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  isDeleted     Boolean   @default(false)
-  vendor        Vendor?   @relation(fields: vendorId, references: vendorId)
-  vendorId      Int?
-  customerId    Int?
-  customer      Customer? @relation(fields: customerId, references: customerId)
-  cityId        Int?
-  longitude     Float?
-  latitude      Float?
-  Rider         Rider?    @relation(fields: [riderId], references: [riderId])
-  riderId       Int?
-  // User          Admin?    @relation(fields: [adminId], references: [id])
-  adminId       Int?
-  isActive      Boolean   @default(true)
-  // pickupLocation              BookingMaster   @relation("PickupLocation")
-  //   dropoffLocation              BookingMaster   @relation("DropoffLocation")
+  userAddressId   Int             @id @default(autoincrement())
+  fullAddress     String?
+  city            City?           @relation(fields: [cityId], references: [cityId])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
+  isDeleted       Boolean         @default(false)
+  vendor          Vendor?         @relation(fields: vendorId, references: vendorId)
+  vendorId        Int?
+  customerId      Int?
+  customer        Customer?       @relation(fields: customerId, references: customerId)
+  cityId          Int?
+  longitude       Float?
+  latitude        Float?
+  Rider           Rider?          @relation(fields: [riderId], references: [riderId])
+  riderId         Int?
+  adminId         Int?
+  isActive        Boolean         @default(true)
+  pickupLocation  BookingMaster[] @relation("PickupLocation")
+  dropoffLocation BookingMaster[] @relation("DropoffLocation")
 }
 
 model Banking {
@@ -471,29 +471,33 @@ model PlatformSetup {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
-// model BookingMaster {
-//   bookingMasterId  Int            @id @default(autoincrement())
-//   vendorId         Int
-//   vendorServiceId  Int?
-//   customerId       Int
-//   pickupLocationId Int
-//   dropffLocationId  Int
-//   instructions     String?
-//   total            Float
-//   pickupLocation   UserAddress    @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
-//   dropoffLocation  UserAddress    @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
-//   bookingDate      DateTime       @default(now())
-//   isDeleted        Boolean        @default(false)
-//   createdAt        DateTime       @default(now())
-//   updatedAt        DateTime       @default(now()) @updatedAt
-//   status           BookingStatus  @default(Pending)
-//   vendorService    VendorService? @relation(fields: [vendorServiceId], references: [vendorServiceId])
-//   Job              Job
-// }
+model BookingMaster {
+  bookingMasterId  Int           @id @default(autoincrement())
+  vendorId         Int
+  customerId       Int
+  pickupLocationId Int?
+  dropffLocationId Int?
+  pickupTimeFrom   DateTime?
+  pickupTimeTo     DateTime?
+  dropoffTimeFrom  DateTime?
+  dropoffTimeTo    DateTime?
+  instructions     String?
+  total            Float
+  pickupLocation   UserAddress?  @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
+  dropoffLocation  UserAddress?  @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
+  bookingDate      DateTime      @default(now())
+  isDeleted        Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now()) @updatedAt
+  status           BookingStatus @default(Pending)
+  job              Job?
+}
 
-// model Job {
-//   id                           Int           @id @default(autoincrement())
-//   bookingMasterId Int
-//   jobType                      JobType
-//   bookingMaster                BookingMaster @relation(fields: [bookingMasterId], references: [bookingMasterId])
-// }
+model Job {
+  id              Int            @id @default(autoincrement())
+  bookingMasterId Int            @unique
+  riderId         Int?
+  jobType         JobType
+  rider           Rider?         @relation(fields: [riderId], references: [riderId])
+  bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+}

@@ -135,11 +135,6 @@ export class RiderUpdateDto {
   userAddressId: number;
 
   @ApiProperty()
-  @IsNumber()
-  @IsOptional()
-  bankingId: number;
-
-  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   isActive: boolean;
