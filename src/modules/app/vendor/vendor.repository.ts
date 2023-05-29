@@ -163,6 +163,21 @@ export class VendorRepository {
 
   async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
     try {
+      const user = await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId,
+        },
+        select: {
+          vendor: {
+            select: {
+              vendorId: true,
+            },
+          },
+        },
+      });
+
+      if (!user) throw new ForbiddenException('User does not exist');
+
       let profilePicture: Media;
       let logo: Media;
 
@@ -212,17 +227,6 @@ export class VendorRepository {
         });
       }
 
-      if (dto.bankingId) {
-        await this.prisma.banking.update({
-          where: {
-            id: dto.bankingId,
-          },
-          data: {
-            isDeleted: true,
-          },
-        });
-      }
-
       if (dto.userAddressId) {
         await this.prisma.userAddress.update({
           where: {
@@ -234,10 +238,10 @@ export class VendorRepository {
         });
       }
 
-      if (dto.bankingId) {
-        await this.prisma.banking.update({
+      if (dto.accountNumber && dto.accountTitle && dto.bankName) {
+        await this.prisma.banking.updateMany({
           where: {
-            id: dto.bankingId,
+            vendorId: user.vendor.vendorId,
           },
           data: {
             isDeleted: true,
@@ -897,6 +901,9 @@ export class VendorRepository {
                 },
               },
               banking: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   id: true,
                   accountNumber: true,
