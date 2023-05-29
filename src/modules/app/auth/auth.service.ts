@@ -475,6 +475,7 @@ export class AuthService {
       where: {
         email: dto.email,
         userType: UserType.CUSTOMER,
+        isDeleted: false,
       },
       select: {
         userMasterId: true,
@@ -546,6 +547,7 @@ export class AuthService {
       where: {
         email: dto.email,
         userType: UserType.VENDOR,
+        isDeleted: false,
       },
       select: {
         userMasterId: true,
@@ -643,6 +645,7 @@ export class AuthService {
       where: {
         email: dto.email,
         userType: UserType.RIDER,
+        isDeleted: false,
       },
       select: {
         userMasterId: true,
