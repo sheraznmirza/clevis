@@ -13,7 +13,7 @@ export class MailService {
     try {
       await this.mailerService.sendMail({
         to: user.email,
-        from: this.config.get('MAIL_FROM'),
+        from: this.config.get('MAIL_ADMIN'),
         subject: `${this.config.get('APP_NAME')} - Complete Your Registration`,
         template: 'user-invitation', // `.hbs` extension is appended automatically
         context: {
@@ -43,7 +43,7 @@ export class MailService {
   // };
   // await this.mailerService.sendMail({
   //   to: resetPasswordDataDto.email,
-  //   from: this.config.get('MAIL_FROM'),
+  //   from: this.config.get('MAIL_ADMIN'),
   //   subject: `${this.config.get('APP_NAME')} - Reset Your Password`,
   //   template: 'resetPassword', // `.hbs` extension is appended automatically
   //   context,
@@ -51,7 +51,7 @@ export class MailService {
 
   // await this.mailerService.sendMail({
   //   to: resetPasswordDataDto.email,
-  //   from: this.config.get('MAIL_FROM'),
+  //   from: this.config.get('MAIL_ADMIN'),
   //   subject: `${this.config.get('APP_NAME')} - Reset Your Password`,
   //   template: 'resetPassword', // `.hbs` extension is appended automatically
   //   context: {
@@ -75,7 +75,7 @@ export class MailService {
     try {
       await this.mailerService.sendMail({
         to: email,
-        from: this.config.get('MAIL_FROM'),
+        from: this.config.get('MAIL_ADMIN'),
         subject: `${
           this.config.get('APP_NAME') || process.env.APP_NAME
         } - Password Reset Confirmation`,
@@ -106,7 +106,7 @@ export class MailService {
   // };
   // await this.sendEmail(
   //   user.companyEmail,
-  //   this.config.get('MAIL_FROM'),
+  //   this.config.get('MAIL_ADMIN'),
   //      `${this.config.get('APP_NAME')} - ${
   //       user.userType[0] + user.userType.slice(1).toLowerCase()
   //     } ${user.status.toLowerCase()}`,
@@ -126,7 +126,7 @@ export class MailService {
   //     };
   //     await this.sendEmail(
   //     user.companyEmail,
-  //     this.config.get('MAIL_FROM'),
+  //     this.config.get('MAIL_ADMIN'),
   //        `${this.config.get('APP_NAME')} - ${
   //         user.userType[0] + user.userType.slice(1).toLowerCase()
   //       } ${user.status.toLowerCase()}`,
@@ -138,7 +138,7 @@ export class MailService {
 
   // await this.mailerService.sendMail({
   //   to: user.companyEmail,
-  //   from: this.config.get('MAIL_FROM'),
+  //   from: this.config.get('MAIL_ADMIN'),
   //   subject: `${this.config.get('APP_NAME')} - ${
   //     user.userType[0] + user.userType.slice(1).toLowerCase()
   //   } ${user.status.toLowerCase()}`,
@@ -165,7 +165,7 @@ export class MailService {
   //     await this.mailerService.sendMail({
   //       // to: 'sheraznabimirza@gmail.com',
   //       to: user.email,
-  //       from: this.config.get('MAIL_FROM'),
+  //       from: this.config.get('MAIL_ADMIN'),
   //       subject: `${this.config.get('APP_NAME')} - Account has been created`,
   //       template: 'vendorApprovedRejected', // `.hbs` extension is appended automatically
   //       context: {

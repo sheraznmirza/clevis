@@ -295,9 +295,13 @@ export class CustomerRepository {
 
         const vendorIds = vendors.map((vendor) => vendor.vendorId);
 
-        const serviceIds = dto.services.map((service) => {
-          return service.serviceId;
-        });
+        let serviceIds: number[];
+
+        if (dto.services) {
+          serviceIds = dto.services.map((service) => {
+            return service.serviceId;
+          });
+        }
 
         const result = await this.prisma.userMaster.findMany({
           where: {
@@ -450,9 +454,13 @@ export class CustomerRepository {
           },
         });
 
-        const serviceIds = dto.services.map((service) => {
-          return service.serviceId;
-        });
+        let serviceIds: number[];
+
+        if (dto.services) {
+          serviceIds = dto.services.map((service) => {
+            return service.serviceId;
+          });
+        }
 
         const vendors = await this.prisma.userMaster.findMany({
           where: {
