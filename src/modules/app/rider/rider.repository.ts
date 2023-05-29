@@ -316,6 +316,17 @@ export class RiderRepository {
                 },
               },
               status: true,
+              banking: {
+                where: {
+                  isDeleted: false,
+                },
+                select: {
+                  id: true,
+                  accountNumber: true,
+                  accountTitle: true,
+                  bankName: true,
+                },
+              },
             },
           },
         },
@@ -517,6 +528,21 @@ export class RiderRepository {
 
   async updateRider(userMasterId: number, dto: RiderUpdateDto) {
     try {
+      const user = await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId,
+        },
+        select: {
+          rider: {
+            select: {
+              riderId: true,
+            },
+          },
+        },
+      });
+
+      if (!user) throw new ForbiddenException('User does not exist');
+
       let profilePicture: Media;
       let logo: Media;
 
@@ -566,10 +592,10 @@ export class RiderRepository {
         });
       }
 
-      if (dto.bankingId) {
-        await this.prisma.banking.update({
+      if (dto.accountNumber && dto.accountTitle && dto.bankName) {
+        await this.prisma.banking.updateMany({
           where: {
-            id: dto.bankingId,
+            riderId: user.rider.riderId,
           },
           data: {
             isDeleted: true,
