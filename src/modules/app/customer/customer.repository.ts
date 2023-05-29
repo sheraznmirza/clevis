@@ -311,7 +311,6 @@ export class CustomerRepository {
             return service.serviceId;
           });
         }
-        console.log('serviceIds: ', serviceIds);
         const result = await this.prisma.userMaster.findMany({
           where: {
             isDeleted: false,
