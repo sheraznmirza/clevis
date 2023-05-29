@@ -278,7 +278,6 @@ export class CustomerRepository {
 
   async getVendorsByLocation(userMasterId: number, dto: VendorLocationDto) {
     const { page = 1, take = 10, search, distance = 10000000000 } = dto;
-    console.log('distance: ', distance);
     try {
       if (dto.latitude && dto.longitude) {
         const vendors: Array<{ vendorId: number }> = await this.prisma
@@ -339,6 +338,7 @@ export class CustomerRepository {
               ...(search && {
                 companyName: {
                   contains: search,
+                  mode: 'insensitive',
                 },
               }),
               // ...(dto.services && {
@@ -483,6 +483,13 @@ export class CustomerRepository {
                       in: serviceIds,
                     },
                   },
+                },
+              }),
+
+              ...(search && {
+                companyName: {
+                  contains: search,
+                  mode: 'insensitive',
                 },
               }),
             },
