@@ -99,6 +99,18 @@ export class AuthService {
                     select: {
                       cityName: true,
                       cityId: true,
+                      State: {
+                        select: {
+                          stateId: true,
+                          stateName: true,
+                          country: {
+                            select: {
+                              countryId: true,
+                              countryName: true,
+                            },
+                          },
+                        },
+                      },
                     },
                   },
                 },
@@ -487,16 +499,16 @@ export class AuthService {
                 isActive: true,
                 city: {
                   select: {
-                    cityName: true,
                     cityId: true,
+                    cityName: true,
                     State: {
                       select: {
-                        stateName: true,
                         stateId: true,
+                        stateName: true,
                         country: {
                           select: {
-                            countryName: true,
                             countryId: true,
+                            countryName: true,
                           },
                         },
                       },
@@ -821,7 +833,7 @@ export class AuthService {
       };
       await this.mail.sendEmail(
         data.email,
-        this.config.get('MAIL_FROM'),
+        this.config.get('MAIL_ADMIN'),
         `${this.config.get('APP_NAME')} - Reset Your Password`,
         'resetPassword', // `.hbs` extension is appended automatically
         context,
@@ -912,8 +924,8 @@ export class AuthService {
             copyright_year: this.config.get('COPYRIGHT_YEAR'),
           };
           await this.mail.sendEmail(
-            this.config.get('MAIL_FROM'),
-            user.email,
+            this.config.get('MAIL_ADMIN'),
+            this.config.get('MAIL_NO_REPLY'),
             this.config.get('APP_NAME'),
             'vendorApprovedRejected',
             context,
@@ -1188,7 +1200,7 @@ export class AuthService {
 
     this.mail.sendEmail(
       user.email,
-      this.config.get('MAIL_FROM'),
+      this.config.get('MAIL_ADMIN'),
       this.config.get('APP_NAME'),
       'userRegistration',
       context,

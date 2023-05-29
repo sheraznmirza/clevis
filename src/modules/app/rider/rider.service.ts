@@ -32,7 +32,7 @@ export class RiderService {
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
-      const rider: any = await this.repository.approveRider(id, dto);
+      const rider = await this.repository.approveRider(id, dto);
 
       const context = {
         app_name: this.config.get('APP_NAME'),
@@ -46,7 +46,7 @@ export class RiderService {
       };
       await this.mail.sendEmail(
         rider.email,
-        this.config.get('MAIL_FROM'),
+        this.config.get('MAIL_ADMIN'),
         `${this.config.get('APP_NAME')} - ${
           rider.userType[0] + rider.userType.slice(1).toLowerCase()
         } ${rider.status.toLowerCase()}`,

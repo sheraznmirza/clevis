@@ -72,7 +72,7 @@ export class VendorService {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
-      const vendor: any = await this.repository.approveVendor(id, dto);
+      const vendor = await this.repository.approveVendor(id, dto);
       // await this.mail.sendVendorRiderApprovalEmail(vendor);   umair
 
       const context = {
@@ -87,7 +87,7 @@ export class VendorService {
       };
       await this.mail.sendEmail(
         vendor.email,
-        this.config.get('MAIL_FROM'),
+        this.config.get('MAIL_NO_REPLY'),
         `${this.config.get('APP_NAME')} - ${
           vendor.userType[0] + vendor.userType.slice(1).toLowerCase()
         } ${vendor.status.toLowerCase()}`,

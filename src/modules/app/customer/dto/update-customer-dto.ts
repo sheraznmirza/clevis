@@ -1,6 +1,12 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '@prisma/client';
+import { MediaFormat } from 'src/core/globalTypes';
+import { Type } from 'class-transformer';
 
 export class UpdateCustomerDto {
   @ApiProperty()
@@ -13,29 +19,34 @@ export class UpdateCustomerDto {
   @IsOptional()
   fullName: string;
 
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  fullAddress: string;
+  // @ApiProperty()
+  // @IsString()
+  // @IsOptional()
+  // fullAddress: string;
 
   @ApiProperty()
   @IsNumber()
   @IsOptional()
   cityId: number;
 
-  @ApiProperty({})
+  @ApiProperty({
+    required: true,
+    type: MediaFormat,
+  })
   @IsOptional()
-  profilePicture: Media;
+  @ValidateNested()
+  @Type(() => MediaFormat)
+  profilePicture: MediaFormat;
 
-  @ApiProperty()
-  @IsNumber()
-  @IsOptional()
-  latitude: number;
+  // @ApiProperty()
+  // @IsNumber()
+  // @IsOptional()
+  // latitude: number;
 
-  @ApiProperty()
-  @IsNumber()
-  @IsOptional()
-  longitude: number;
+  // @ApiProperty()
+  // @IsNumber()
+  // @IsOptional()
+  // longitude: number;
 
   @ApiProperty()
   @IsNumber()

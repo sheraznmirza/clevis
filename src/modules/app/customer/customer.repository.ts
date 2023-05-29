@@ -130,8 +130,8 @@ export class CustomerRepository {
 
       return {
         customers,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {
@@ -152,6 +152,15 @@ export class CustomerRepository {
         });
       }
 
+      if (
+        (dto.cityId || dto.userAddressId) &&
+        !(dto.cityId && dto.userAddressId)
+      ) {
+        throw new BadRequestException(
+          "Please provide every parameter in the address (userAddressId, cityId) to update the user's city",
+        );
+      }
+
       const customer = await this.prisma.userMaster.update({
         where: {
           userMasterId: userMasterId,
@@ -162,28 +171,41 @@ export class CustomerRepository {
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
-              ...(dto.userAddressId && {
-                userAddress: {
-                  update: {
-                    where: {
-                      userAddressId: dto.userAddressId,
-                    },
-                    data: {
-                      isDeleted: true,
-                    },
-                  },
-                },
-              }),
-              ...(dto.fullAddress &&
-                dto.cityId &&
-                dto.longitude &&
-                dto.latitude && {
+              // ...(dto.userAddressId && {
+              //   userAddress: {
+              //     update: {
+              //       where: {
+              //         userAddressId: dto.userAddressId,
+              //       },
+              //       data: {
+              //         isDeleted: true,
+              //       },
+              //     },
+              //   },
+              // }),
+              // ...(dto.fullAddress &&
+              //   dto.cityId &&
+              //   dto.longitude &&
+              //   dto.latitude && {
+              //     userAddress: {
+              //       create: {
+              //         fullAddress: dto.fullAddress,
+              //         cityId: dto.cityId,
+              //         latitude: dto.latitude,
+              //         longitude: dto.longitude,
+              //       },
+              //     },
+              //   }),
+              ...(dto.userAddressId &&
+                dto.cityId && {
                   userAddress: {
-                    create: {
-                      fullAddress: dto.fullAddress,
-                      cityId: dto.cityId,
-                      latitude: dto.latitude,
-                      longitude: dto.longitude,
+                    update: {
+                      where: {
+                        userAddressId: dto.userAddressId,
+                      },
+                      data: {
+                        cityId: dto.cityId,
+                      },
                     },
                   },
                 }),
@@ -256,6 +278,7 @@ export class CustomerRepository {
 
   async getVendorsByLocation(userMasterId: number, dto: VendorLocationDto) {
     const { page = 1, take = 10, search, distance = 10000000000 } = dto;
+    console.log('distance: ', distance);
     try {
       if (dto.latitude && dto.longitude) {
         const vendors: Array<{ vendorId: number }> = await this.prisma
@@ -272,6 +295,14 @@ export class CustomerRepository {
 
         const vendorIds = vendors.map((vendor) => vendor.vendorId);
 
+        let serviceIds: number[];
+
+        if (dto.services) {
+          serviceIds = dto.services.map((service) => {
+            return service.serviceId;
+          });
+        }
+
         const result = await this.prisma.userMaster.findMany({
           where: {
             isDeleted: false,
@@ -284,15 +315,27 @@ export class CustomerRepository {
                   },
                 },
                 { serviceType: dto.serviceType },
+                { isBusy: dto.isBusy ? dto.isBusy : false },
+                {
+                  ...(serviceIds && {
+                    vendorService: {
+                      some: {
+                        serviceId: {
+                          in: serviceIds,
+                        },
+                      },
+                    },
+                  }),
+                },
               ],
 
-              companySchedule: {
-                // every: {
-                //   startTime: {
-                //     gte:Wit
-                //   }
-                // }
-              },
+              // companySchedule: {
+              // every: {
+              //   startTime: {
+              //     gte:Wit
+              //   }
+              // }
+              // },
               ...(search && {
                 companyName: {
                   contains: search,
@@ -411,6 +454,14 @@ export class CustomerRepository {
           },
         });
 
+        let serviceIds: number[];
+
+        if (dto.services) {
+          serviceIds = dto.services.map((service) => {
+            return service.serviceId;
+          });
+        }
+
         const vendors = await this.prisma.userMaster.findMany({
           where: {
             isDeleted: false,
@@ -425,6 +476,15 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
               },
+              ...(serviceIds && {
+                vendorService: {
+                  some: {
+                    serviceId: {
+                      in: serviceIds,
+                    },
+                  },
+                },
+              }),
             },
           },
           orderBy: {

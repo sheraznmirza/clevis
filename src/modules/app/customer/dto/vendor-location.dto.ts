@@ -2,6 +2,7 @@ import {
   IsArray,
   IsEnum,
   IsNumber,
+  IsBoolean,
   IsOptional,
   IsString,
   ValidateNested,
@@ -11,7 +12,7 @@ import { Type } from 'class-transformer';
 import { Days, ServiceType } from '@prisma/client';
 import { ListingParams } from 'src/core/dto';
 
-class ServiceNames {
+export class ServiceNames {
   @ApiProperty()
   @IsNumber()
   @IsOptional()
@@ -71,6 +72,14 @@ export class VendorLocationDto {
   @IsNumber()
   @IsOptional()
   distance: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Boolean for vendor busy status.',
+  })
+  @IsBoolean()
+  @IsOptional()
+  isBusy: boolean;
 
   @ApiProperty({
     required: false,

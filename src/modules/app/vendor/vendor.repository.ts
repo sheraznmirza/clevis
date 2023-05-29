@@ -76,7 +76,7 @@ export class VendorRepository {
       });
       const user = await this.prisma.userMaster.findFirst({
         where: { vendor: { vendorId: vendor.vendorId } },
-        select: { userType: true },
+        select: { userType: true, email: true },
       });
       return { ...user, ...vendor };
     } catch (error) {
@@ -247,6 +247,15 @@ export class VendorRepository {
             isDeleted: true,
           },
         });
+      }
+
+      if (
+        (dto.fullAddress || dto.cityId || dto.longitude || dto.latitude) &&
+        !(dto.fullAddress && dto.cityId && dto.longitude && dto.latitude)
+      ) {
+        throw new BadRequestException(
+          "Please provide every parameter in the address (fullAddress, cityId, lat, long) to update the user's address",
+        );
       }
 
       if (dto.userAddressId) {
@@ -1099,8 +1108,8 @@ export class VendorRepository {
 
       return {
         data: vendors,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {
@@ -1139,6 +1148,7 @@ export class VendorRepository {
       const serviceCount = await this.prisma.vendorService.count({
         where: {
           serviceId: dto.serviceId,
+          vendorId: vendor.vendorId,
         },
       });
 
