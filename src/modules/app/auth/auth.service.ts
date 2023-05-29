@@ -833,7 +833,7 @@ export class AuthService {
       };
       await this.mail.sendEmail(
         data.email,
-        this.config.get('MAIL_FROM'),
+        this.config.get('MAIL_ADMIN'),
         `${this.config.get('APP_NAME')} - Reset Your Password`,
         'resetPassword', // `.hbs` extension is appended automatically
         context,
@@ -924,8 +924,8 @@ export class AuthService {
             copyright_year: this.config.get('COPYRIGHT_YEAR'),
           };
           await this.mail.sendEmail(
-            user.email,
-            this.config.get('MAIL_FROM'),
+            this.config.get('MAIL_ADMIN'),
+            this.config.get('MAIL_NO_REPLY'),
             this.config.get('APP_NAME'),
             'vendorApprovedRejected',
             context,
@@ -1200,7 +1200,7 @@ export class AuthService {
 
     this.mail.sendEmail(
       user.email,
-      this.config.get('MAIL_FROM'),
+      this.config.get('MAIL_ADMIN'),
       this.config.get('APP_NAME'),
       'userRegistration',
       context,
