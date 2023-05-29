@@ -12,7 +12,7 @@ import { Type } from 'class-transformer';
 import { Days, ServiceType } from '@prisma/client';
 import { ListingParams } from 'src/core/dto';
 
-class ServiceNames {
+export class ServiceNames {
   @ApiProperty()
   @IsNumber()
   @IsOptional()

@@ -99,6 +99,18 @@ export class AuthService {
                     select: {
                       cityName: true,
                       cityId: true,
+                      State: {
+                        select: {
+                          stateId: true,
+                          stateName: true,
+                          country: {
+                            select: {
+                              countryId: true,
+                              countryName: true,
+                            },
+                          },
+                        },
+                      },
                     },
                   },
                 },
@@ -487,16 +499,16 @@ export class AuthService {
                 isActive: true,
                 city: {
                   select: {
-                    cityName: true,
                     cityId: true,
+                    cityName: true,
                     State: {
                       select: {
-                        stateName: true,
                         stateId: true,
+                        stateName: true,
                         country: {
                           select: {
-                            countryName: true,
                             countryId: true,
+                            countryName: true,
                           },
                         },
                       },

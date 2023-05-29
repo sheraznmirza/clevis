@@ -30,7 +30,7 @@ export class RiderRepository {
       });
       const user = await this.prisma.userMaster.findFirst({
         where: { rider: { riderId: rider.riderId } },
-        select: { userType: true },
+        select: { userType: true, email: true },
       });
       return { ...user, ...rider };
     } catch (error) {
@@ -468,8 +468,8 @@ export class RiderRepository {
 
       return {
         data: riders,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {
@@ -604,6 +604,15 @@ export class RiderRepository {
             isDeleted: true,
           },
         });
+      }
+
+      if (
+        (dto.fullAddress || dto.cityId || dto.longitude || dto.latitude) &&
+        !(dto.fullAddress && dto.cityId && dto.longitude && dto.latitude)
+      ) {
+        throw new BadRequestException(
+          "Please provide every parameter in the address (fullAddress, cityId, lat, long) to update the user's address",
+        );
       }
 
       if (dto.userAddressId) {

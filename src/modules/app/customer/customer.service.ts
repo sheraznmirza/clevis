@@ -1,16 +1,8 @@
 import { Injectable } from '@nestjs/common';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import {
-  CustomerListingParams,
-  CustomerVendorListingParams,
-  ListingParams,
-} from '../../../core/dto';
+import { CustomerListingParams } from '../../../core/dto';
 import { CustomerRepository } from './customer.repository';
-import {
-  UpdateCustomerDto,
-  VendorLocationDto,
-  VendorServiceParams,
-} from './dto';
+import { UpdateCustomerDto, VendorLocationDto } from './dto';
 import dayjs from 'dayjs';
 
 @Injectable()

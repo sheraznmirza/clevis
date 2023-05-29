@@ -144,8 +144,8 @@ export class ServiceRepository {
 
       return {
         data: services,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {

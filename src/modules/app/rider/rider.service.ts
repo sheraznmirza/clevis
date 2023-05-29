@@ -32,7 +32,7 @@ export class RiderService {
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
-      const rider: any = await this.repository.approveRider(id, dto);
+      const rider = await this.repository.approveRider(id, dto);
 
       const context = {
         app_name: this.config.get('APP_NAME'),
