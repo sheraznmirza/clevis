@@ -311,7 +311,6 @@ export class CustomerRepository {
             return service.serviceId;
           });
         }
-
         const result = await this.prisma.userMaster.findMany({
           where: {
             isDeleted: false,
@@ -326,7 +325,7 @@ export class CustomerRepository {
                 { serviceType: dto.serviceType },
                 { isBusy: dto.isBusy ? dto.isBusy : false },
                 {
-                  ...(serviceIds && {
+                  ...(serviceIds.length > 0 && {
                     vendorService: {
                       some: {
                         serviceId: {
@@ -486,7 +485,7 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
               },
-              ...(serviceIds && {
+              ...(serviceIds.length > 0 && {
                 vendorService: {
                   some: {
                     serviceId: {
