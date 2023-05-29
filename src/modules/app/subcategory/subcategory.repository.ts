@@ -96,8 +96,8 @@ export class SubcategoryRepository {
 
       return {
         data: subCategories,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {

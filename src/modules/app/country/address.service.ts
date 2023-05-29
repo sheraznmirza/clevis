@@ -42,8 +42,8 @@ export class AddressService {
 
       return {
         data: countries,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {
@@ -78,8 +78,7 @@ export class AddressService {
       });
       return {
         data: states,
-        page,
-        take,
+        page: +page,
         totalCount,
       };
     } catch (error) {
@@ -183,8 +182,7 @@ export class AddressService {
 
       return {
         data: cities,
-        page,
-        take,
+        take: +take,
         totalCount,
       };
     } catch (error) {

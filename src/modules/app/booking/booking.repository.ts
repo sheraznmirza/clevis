@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
-import { CreateBookingDto } from './dto';
+import { CreateBookingDto, CustomerGetBookingsDto } from './dto';
 import { UserAddress } from '@prisma/client';
 
 @Injectable()
@@ -53,6 +53,32 @@ export class BookingRepository {
       });
     } catch (error) {
       throw error;
+    }
+  }
+
+  async getBookings(customerId: number, dto: CustomerGetBookingsDto) {
+    const { page = 1, take = 10, search } = dto;
+    try {
+      const bookings = await this.prisma.bookingMaster.findMany({
+        where: {
+          customerId: customerId,
+
+          // ...(search && {
+
+          // })
+        },
+        take: +take,
+        skip: +take * (+page - 1),
+        select: {
+          isDeleted: true,
+        },
+      });
+    } catch (error) {
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
     }
   }
 

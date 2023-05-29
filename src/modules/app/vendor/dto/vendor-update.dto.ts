@@ -102,9 +102,14 @@ export class UpdateVendorDto {
   @IsOptional()
   accountNumber: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: true,
+    type: MediaFormat,
+  })
   @IsOptional()
-  logo: Media;
+  @ValidateNested()
+  @Type(() => MediaFormat)
+  logo: MediaFormat;
 
   @ApiProperty()
   @IsString()

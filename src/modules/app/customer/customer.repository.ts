@@ -130,8 +130,8 @@ export class CustomerRepository {
 
       return {
         customers,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {
@@ -152,6 +152,15 @@ export class CustomerRepository {
         });
       }
 
+      if (
+        (dto.cityId || dto.userAddressId) &&
+        !(dto.cityId && dto.userAddressId)
+      ) {
+        throw new BadRequestException(
+          "Please provide every parameter in the address (userAddressId, cityId) to update the user's city",
+        );
+      }
+
       const customer = await this.prisma.userMaster.update({
         where: {
           userMasterId: userMasterId,
@@ -162,28 +171,41 @@ export class CustomerRepository {
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
-              ...(dto.userAddressId && {
-                userAddress: {
-                  update: {
-                    where: {
-                      userAddressId: dto.userAddressId,
-                    },
-                    data: {
-                      isDeleted: true,
-                    },
-                  },
-                },
-              }),
-              ...(dto.fullAddress &&
-                dto.cityId &&
-                dto.longitude &&
-                dto.latitude && {
+              // ...(dto.userAddressId && {
+              //   userAddress: {
+              //     update: {
+              //       where: {
+              //         userAddressId: dto.userAddressId,
+              //       },
+              //       data: {
+              //         isDeleted: true,
+              //       },
+              //     },
+              //   },
+              // }),
+              // ...(dto.fullAddress &&
+              //   dto.cityId &&
+              //   dto.longitude &&
+              //   dto.latitude && {
+              //     userAddress: {
+              //       create: {
+              //         fullAddress: dto.fullAddress,
+              //         cityId: dto.cityId,
+              //         latitude: dto.latitude,
+              //         longitude: dto.longitude,
+              //       },
+              //     },
+              //   }),
+              ...(dto.userAddressId &&
+                dto.cityId && {
                   userAddress: {
-                    create: {
-                      fullAddress: dto.fullAddress,
-                      cityId: dto.cityId,
-                      latitude: dto.latitude,
-                      longitude: dto.longitude,
+                    update: {
+                      where: {
+                        userAddressId: dto.userAddressId,
+                      },
+                      data: {
+                        cityId: dto.cityId,
+                      },
                     },
                   },
                 }),
@@ -273,6 +295,10 @@ export class CustomerRepository {
 
         const vendorIds = vendors.map((vendor) => vendor.vendorId);
 
+        const serviceIds = dto.services.map((service) => {
+          return service.serviceId;
+        });
+
         const result = await this.prisma.userMaster.findMany({
           where: {
             isDeleted: false,
@@ -286,6 +312,17 @@ export class CustomerRepository {
                 },
                 { serviceType: dto.serviceType },
                 { isBusy: dto.isBusy ? dto.isBusy : false },
+                {
+                  ...(serviceIds && {
+                    vendorService: {
+                      some: {
+                        serviceId: {
+                          in: serviceIds,
+                        },
+                      },
+                    },
+                  }),
+                },
               ],
 
               // companySchedule: {
@@ -413,6 +450,10 @@ export class CustomerRepository {
           },
         });
 
+        const serviceIds = dto.services.map((service) => {
+          return service.serviceId;
+        });
+
         const vendors = await this.prisma.userMaster.findMany({
           where: {
             isDeleted: false,
@@ -427,6 +468,15 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
               },
+              ...(serviceIds && {
+                vendorService: {
+                  some: {
+                    serviceId: {
+                      in: serviceIds,
+                    },
+                  },
+                },
+              }),
             },
           },
           orderBy: {
