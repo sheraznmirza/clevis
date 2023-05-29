@@ -824,7 +824,7 @@ export class VendorRepository {
 
   async getVendorById(id: number) {
     try {
-      return await this.prisma.userMaster.findUnique({
+      const vendorGet = await this.prisma.userMaster.findUnique({
         where: {
           userMasterId: id,
         },
@@ -943,8 +943,17 @@ export class VendorRepository {
           },
         },
       });
+      if (vendorGet == null) {
+        throw unknowError(417, { status: 404 }, 'Vendor does not exist');
+      } else {
+        return vendorGet;
+      }
     } catch (error) {
-      throw error;
+      throw unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors ',
+      );
     }
   }
 
