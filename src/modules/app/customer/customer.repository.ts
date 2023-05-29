@@ -325,15 +325,16 @@ export class CustomerRepository {
                 { serviceType: dto.serviceType },
                 { isBusy: dto.isBusy ? dto.isBusy : false },
                 {
-                  ...(serviceIds.length > 0 && {
-                    vendorService: {
-                      some: {
-                        serviceId: {
-                          in: serviceIds,
+                  ...(serviceIds &&
+                    serviceIds.length > 0 && {
+                      vendorService: {
+                        some: {
+                          serviceId: {
+                            in: serviceIds,
+                          },
                         },
                       },
-                    },
-                  }),
+                    }),
                 },
               ],
 
@@ -485,15 +486,16 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
               },
-              ...(serviceIds.length > 0 && {
-                vendorService: {
-                  some: {
-                    serviceId: {
-                      in: serviceIds,
+              ...(serviceIds &&
+                serviceIds.length > 0 && {
+                  vendorService: {
+                    some: {
+                      serviceId: {
+                        in: serviceIds,
+                      },
                     },
                   },
-                },
-              }),
+                }),
 
               ...(search && {
                 companyName: {
