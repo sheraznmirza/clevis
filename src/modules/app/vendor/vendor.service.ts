@@ -127,6 +127,7 @@ export class VendorService {
     try {
       if (dto.alwaysOpen) {
         dto.companySchedule = setAlwaysOpen(dto.companySchedule);
+        return await this.repository.updateVendorSchedule(vendorId, dto);
       } else {
         if (dto.companySchedule) {
           const isValid = dto.companySchedule.every((day) => {

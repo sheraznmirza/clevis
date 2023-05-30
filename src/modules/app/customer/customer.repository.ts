@@ -634,6 +634,19 @@ export class CustomerRepository {
                       serviceName: true,
                     },
                   },
+                  serviceImage: {
+                    select: {
+                      id: true,
+                      media: {
+                        select: {
+                          id: true,
+                          key: true,
+                          name: true,
+                          location: true,
+                        },
+                      },
+                    },
+                  },
                 },
               },
               businessLicense: {
