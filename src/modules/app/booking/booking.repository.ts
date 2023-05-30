@@ -13,6 +13,20 @@ export class BookingRepository {
       let pickupLocationId: UserAddress;
       let dropoffLocationId: UserAddress;
 
+      const attachments = [];
+
+      if (dto.attachments && dto.attachments.length > 0) {
+        dto.attachments.forEach(async (item) => {
+          const result = await this.prisma.media.create({
+            data: item,
+            select: {
+              id: true,
+            },
+          });
+          attachments.push(result);
+        });
+      }
+
       if (!dto.pickupLocation.userAddressId) {
         pickupLocationId = await this.prisma.userAddress.create({
           data: {
@@ -23,6 +37,7 @@ export class BookingRepository {
             fullAddress: dto.pickupLocation.fullAddress,
           },
         });
+        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
       }
 
       if (!dto.dropoffLocation.userAddressId) {
@@ -35,22 +50,48 @@ export class BookingRepository {
             fullAddress: dto.dropoffLocation.fullAddress,
           },
         });
+        dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
       }
 
-      return await this.prisma.bookingMaster.create({
+      const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
           vendorId: dto.vendorId,
-          pickupLocationId:
-            pickupLocationId.userAddressId || dto.pickupLocation.userAddressId,
-          bookingDate: dto.date,
+          bookingDate: dto.bookingDate,
           ...(dto.instructions && { instructions: dto.instructions }),
-          totalPrice: 2,
-          dropffLocationId:
-            dropoffLocationId.userAddressId ||
-            dto.dropoffLocation.userAddressId,
+          totalPrice: dto.totalPrice,
+          ...(dto.pickupLocation.timeFrom &&
+            dto.pickupLocation.timeTill && {
+              dropffLocationId: dto.dropoffLocation.userAddressId,
+              pickupLocationId: dto.pickupLocation.userAddressId,
+              pickupTimeFrom: dto.pickupLocation.timeFrom,
+              pickupTimeTo: dto.pickupLocation.timeTill,
+              dropoffTimeFrom: dto.dropoffLocation.timeFrom,
+              dropoffTimeTo: dto.dropoffLocation.timeTill,
+            }),
         },
+        // select: {
+
+        // }
       });
+
+      await this.prisma.bookingDetail.createMany({
+        data: dto.articles.map((bookingDetail) => ({
+          bookingMasterId: bookingMaster.bookingMasterId,
+          allocatePriceId: bookingDetail.allocatePriceId,
+          price: bookingDetail.price,
+          quantity: bookingDetail.quantity,
+        })),
+      });
+
+      if (attachments && attachments.length > 0) {
+        await this.prisma.bookingAttachments.createMany({
+          data: attachments.map((item) => ({
+            bookingMasterId: bookingMaster.bookingMasterId,
+            mediaId: item.id,
+          })),
+        });
+      }
     } catch (error) {
       throw error;
     }

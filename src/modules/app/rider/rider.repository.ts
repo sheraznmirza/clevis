@@ -493,7 +493,7 @@ export class RiderRepository {
         });
       });
 
-      if (dto.alwaysOpen) {
+      if (typeof dto.alwaysOpen === 'boolean') {
         await this.prisma.rider.update({
           where: {
             riderId: riderId,

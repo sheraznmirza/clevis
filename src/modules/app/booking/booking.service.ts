@@ -1,10 +1,4 @@
 import { Injectable } from '@nestjs/common';
-// import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import {
-  CustomerListingParams,
-  CustomerVendorListingParams,
-  ListingParams,
-} from '../../../core/dto';
 import { BookingRepository } from './booking.repository';
 import { CreateBookingDto, CustomerGetBookingsDto } from './dto';
 
