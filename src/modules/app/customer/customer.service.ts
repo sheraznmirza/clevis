@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import { CustomerListingParams } from '../../../core/dto';
 import { CustomerRepository } from './customer.repository';
-import { UpdateCustomerDto, VendorLocationDto } from './dto';
+import {
+  UpdateCustomerDto,
+  VendorLocationDto,
+  VendorServiceParams,
+} from './dto';
 import dayjs from 'dayjs';
 
 @Injectable()
@@ -59,10 +63,10 @@ export class CustomerService {
 
   async getVendorServicesByVendorId(
     vendorId: number,
-    // dto: VendorServiceParams,
+    dto: VendorServiceParams,
   ) {
     try {
-      return await this.repository.getVendorServicesByVendorId(vendorId);
+      return await this.repository.getVendorServicesByVendorId(vendorId, dto);
     } catch (error) {
       throw error;
     }

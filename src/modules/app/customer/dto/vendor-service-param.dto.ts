@@ -6,27 +6,18 @@ export class VendorServiceParams extends ListingParams {
   @ApiProperty({
     required: false,
     description:
-      'Set service as true to get the respective categories in the vendor service',
+      'Send vendorServiceId to get the respective categories in the vendor service',
   })
   @IsString()
   @IsOptional()
-  service?: string;
+  vendorServiceId?: string;
 
   @ApiProperty({
     required: false,
     description:
-      'Set category as true to get the respective subcategories in the vendor service',
+      'Send category ID to get the respective subcategories in the vendor service',
   })
   @IsString()
   @IsOptional()
-  category?: string;
-
-  @ApiProperty({
-    required: false,
-    description:
-      'Set category as true to get the respective subcategories in the vendor service',
-  })
-  @IsString()
-  @IsOptional()
-  subcategory?: string;
+  categoryId?: string;
 }
