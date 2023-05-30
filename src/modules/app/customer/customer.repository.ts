@@ -790,6 +790,7 @@ export class CustomerRepository {
           where: {
             vendorServiceId: +dto.vendorServiceId,
           },
+          distinct: ['categoryId'],
           select: {
             id: true,
             category: {
@@ -821,6 +822,7 @@ export class CustomerRepository {
             vendorServiceId: +dto.vendorServiceId,
             categoryId: +dto.categoryId,
           },
+          distinct: ['subcategoryId'],
           select: {
             id: true,
             subcategory: {
