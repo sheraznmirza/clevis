@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
+  CreateAndUpdateDeliverySchedule,
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
@@ -20,6 +21,7 @@ import {
   vendorServiceByIdMappedCarWash,
   vendorServiceByIdMappedLaundry,
 } from './vendor.mapper';
+import { ERROR_MESSAGE } from 'src/core/constants';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -40,6 +42,40 @@ export class VendorRepository {
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('VendorService is already created');
+      }
+      throw error;
+    }
+  }
+
+  async createDeliverySchedule(
+    dto: CreateAndUpdateDeliverySchedule,
+    vendorId: number,
+  ) {
+    try {
+      const deliverySchedule = await this.prisma.deliverySchedule.create({
+        data: {
+          vendorId,
+          ...(dto.deliveryDurationMax && {
+            deliveryDurationMax: dto.deliveryDurationMax,
+          }),
+          ...(dto.deliveryDurationMin && {
+            deliveryDurationMin: dto.deliveryDurationMin,
+          }),
+          ...(dto.serviceDurationMax && {
+            serviceDurationMax: dto.serviceDurationMax,
+          }),
+          ...(dto.serviceDurationMin && {
+            serviceDurationMin: dto.serviceDurationMin,
+          }),
+          ...(dto.deliveryItemMax && { deliveryItemMax: dto.deliveryItemMax }),
+          ...(dto.deliveryItemMin && { deliveryItemMin: dto.deliveryItemMin }),
+          ...(dto.kilometerFare && { kilometerFare: dto.kilometerFare }),
+        },
+      });
+      return true;
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ForbiddenException('Delivery Schedule is already created');
       }
       throw error;
     }
@@ -1343,6 +1379,57 @@ export class VendorRepository {
     }
   }
 
+  async deliveryScheduleUpdate(
+    vendorId: number,
+    dto: CreateAndUpdateDeliverySchedule,
+  ) {
+    try {
+      await this.prisma.deliverySchedule.update({
+        where: { vendorId },
+        data: {
+          ...(dto.deliveryDurationMax && {
+            deliveryDurationMax: dto.deliveryDurationMax,
+          }),
+          ...(dto.deliveryDurationMin && {
+            deliveryDurationMin: dto.deliveryDurationMin,
+          }),
+          ...(dto.serviceDurationMax && {
+            serviceDurationMax: dto.serviceDurationMax,
+          }),
+          ...(dto.serviceDurationMin && {
+            serviceDurationMin: dto.serviceDurationMin,
+          }),
+          ...(dto.deliveryItemMax && { deliveryItemMax: dto.deliveryItemMax }),
+          ...(dto.deliveryItemMin && { deliveryItemMin: dto.deliveryItemMin }),
+          ...(dto.kilometerFare && { kilometerFare: dto.kilometerFare }),
+        },
+      });
+
+      return successResponse(200, 'DeliverySchedule updated successfully.');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getDeliverySchedule(vendorId: number) {
+    try {
+      const delivery = await this.prisma.deliverySchedule.findUnique({
+        where: { vendorId: vendorId },
+        select: {
+          deliveryDurationMax: true,
+          deliveryDurationMin: true,
+          serviceDurationMax: true,
+          serviceDurationMin: true,
+          deliveryItemMax: true,
+          deliveryItemMin: true,
+          kilometerFare: true,
+        },
+      });
+      return delivery;
+    } catch (error) {
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
+    }
+  }
   //   async createLaundryVendorService(
   //     dto: VendorCreateServiceDto,
   //     vendor: Vendor,
