@@ -19,6 +19,7 @@ import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import {
+  CreateAndUpdateDeliverySchedule,
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
@@ -145,5 +146,30 @@ export class VendorController {
   @Delete('/vendor-service/:vendorServiceId')
   deleteVendorService(@Param('vendorServiceId') vendorServiceId: number) {
     return this.vendorService.deleteVendorService(vendorServiceId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Post('/delivery-schedule')
+  createDeliverySchedule(
+    @Body() dto: CreateAndUpdateDeliverySchedule,
+    @GetUser() user,
+  ) {
+    return this.vendorService.createDeliverySchedule(dto, user.userTypeId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/delivery/vendorId')
+  deliveryScheduleUpdate(
+    @GetUser() user,
+    @Body() dto: CreateAndUpdateDeliverySchedule,
+  ) {
+    return this.vendorService.deliveryScheduleUpdate(user.userTypeId, dto);
+  }
+
+  @Authorized([UserType.ADMIN, UserType.VENDOR])
+  @Get('/deliverySchedule/:vendorId')
+  getDeliverySchedule(@Param('vendorId') vendorId: number) {
+    return this.vendorService.getDeliverySchedule(vendorId);
   }
 }
