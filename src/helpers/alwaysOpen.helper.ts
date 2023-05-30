@@ -1,5 +1,8 @@
 import { Days } from '@prisma/client';
 import dayjs from 'dayjs';
+// var utc = require('dayjs/plugin/utc')
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 import { VendorSchedule } from 'src/modules/app/vendor/dto';
 
 type Schedule = {
@@ -44,11 +47,10 @@ export const convertDateTimeToTimeString = (
     return {
       id: today.id,
       day: Days.Monday,
-      startTime: dayjs(today.startTime).format('HH:mm'),
-      endTime: dayjs(today.endTime).format('HH:mm'),
+      startTime: dayjs(today.startTime).utc().format('HH:mm'),
+      endTime: dayjs(today.endTime).utc().format('HH:mm'),
       isActive: today.isActive,
     };
   });
-  console.log('datefor: ', datefor);
   return datefor;
 };
