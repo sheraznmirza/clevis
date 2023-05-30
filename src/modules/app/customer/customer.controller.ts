@@ -77,9 +77,9 @@ export class CustomerController {
   @Get('vendor-services/:vendorId')
   getVendorServices(
     @Param('vendorId') vendorId: number,
-    // @Query() dto: VendorServiceParams,
+    @Query() dto: VendorServiceParams,
   ) {
-    return this.customerService.getVendorServicesByVendorId(vendorId);
+    return this.customerService.getVendorServicesByVendorId(vendorId, dto);
   }
 
   @Authorized(UserType.ADMIN)

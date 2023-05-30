@@ -146,25 +146,26 @@ model Customer {
 }
 
 model Vendor {
-  vendorId        Int               @id @default(autoincrement())
-  userMasterId    Int               @unique
-  logoId          Int               @unique
-  userMaster      UserMaster        @relation(fields: userMasterId, references: userMasterId)
-  fullName        String
-  serviceType     ServiceType
-  companyName     String
-  companyEmail    String
-  isBusy          Boolean           @default(false)
-  alwaysOpen      Boolean           @default(false)
-  logo            Media             @relation(fields: [logoId], references: [id])
-  description     String?
-  userAddress     UserAddress[]
-  status          Status            @default(PENDING)
-  vendorService   VendorService[]
-  businessLicense BusinessLicense[]
-  workspaceImages WorkspaceImages[]
-  banking         Banking[]
-  companySchedule CompanySchedule[]
+  vendorId         Int                @id @default(autoincrement())
+  userMasterId     Int                @unique
+  logoId           Int                @unique
+  userMaster       UserMaster         @relation(fields: userMasterId, references: userMasterId)
+  fullName         String
+  serviceType      ServiceType
+  companyName      String
+  companyEmail     String
+  isBusy           Boolean            @default(false)
+  alwaysOpen       Boolean            @default(false)
+  logo             Media              @relation(fields: [logoId], references: [id])
+  description      String?
+  userAddress      UserAddress[]
+  status           Status             @default(PENDING)
+  vendorService    VendorService[]
+  businessLicense  BusinessLicense[]
+  workspaceImages  WorkspaceImages[]
+  banking          Banking[]
+  companySchedule  CompanySchedule[]
+  deliverySchedule DeliverySchedule[]
 }
 
 model Rider {
@@ -303,15 +304,16 @@ model VendorService {
 }
 
 model AllocatePrice {
-  id              Int           @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   vendorServiceId Int
   subcategoryId   Int?
   categoryId      Int
-  category        Category      @relation(fields: [categoryId], references: [categoryId])
+  category        Category        @relation(fields: [categoryId], references: [categoryId])
   price           Float
-  isDeleted       Boolean       @default(false)
-  subcategory     SubCategory?  @relation(fields: [subcategoryId], references: [subCategoryId])
-  vendorService   VendorService @relation(fields: [vendorServiceId], references: [vendorServiceId])
+  isDeleted       Boolean         @default(false)
+  subcategory     SubCategory?    @relation(fields: [subcategoryId], references: [subCategoryId])
+  vendorService   VendorService   @relation(fields: [vendorServiceId], references: [vendorServiceId])
+  bookingDetail   BookingDetail[]
 }
 
 model Role {
@@ -381,35 +383,35 @@ model RolePermissionMapping {
 
 model Notification {
   id             Int              @id @default(autoincrement())
-  toUser         Int
-  fromUser       Int
-  toUserMaster   UserMaster       @relation("ToNotification", fields: [toUser], references: [userMasterId])
-  fromUserMaster UserMaster       @relation("FromNotification", fields: [fromUser], references: [userMasterId])
+  toUser         Int?
+  fromUser       Int?
+  toUserMaster   UserMaster?      @relation("ToNotification", fields: [toUser], references: [userMasterId])
+  fromUserMaster UserMaster?      @relation("FromNotification", fields: [fromUser], references: [userMasterId])
   type           NotificationType
   message        String
   seen           Boolean          @default(false)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @default(now()) @updatedAt
 }
 
 model Media {
-  id              Int               @id @default(autoincrement())
-  name            String
-  extension       String?
-  size            Float?
-  location        String
-  key             String
-  meta            Json?             @db.JsonB
-  createdAt       DateTime          @default(now()) @db.Timestamptz()
-  updatedAt       DateTime          @default(now()) @updatedAt @db.Timestamptz()
-  deletedAt       DateTime?         @db.Timestamptz()
-  isDeleted       Boolean           @default(false)
-  BusinessLicense BusinessLicense[]
-  WorkspaceImages WorkspaceImages[]
-  Vendor          Vendor?
-  Rider           Rider?
-  UserMaster      UserMaster?
-  ServiceImage    ServiceImage[]
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  extension          String?
+  size               Float?
+  location           String
+  key                String
+  meta               Json?                @db.JsonB
+  createdAt          DateTime             @default(now()) @db.Timestamptz()
+  updatedAt          DateTime             @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt          DateTime?            @db.Timestamptz()
+  isDeleted          Boolean              @default(false)
+  BusinessLicense    BusinessLicense[]
+  WorkspaceImages    WorkspaceImages[]
+  Vendor             Vendor?
+  Rider              Rider?
+  UserMaster         UserMaster?
+  ServiceImage       ServiceImage[]
+  bookingAttachments BookingAttachments[]
 }
 
 model BusinessLicense {
@@ -471,26 +473,60 @@ model PlatformSetup {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
+model DeliverySchedule {
+  deliveryScheduleId  Int    @id @default(autoincrement())
+  deliveryDurationMin Int    @default(24)
+  deliveryDurationMax Int?   @default(48)
+  serviceDurationMin  Int?   @default(24)
+  serviceDurationMax  Int?   @default(48)
+  deliveryItemMin     Int?   @default(1)
+  deliveryItemMax     Int?   @default(20)
+  kilometerFare       Float? @default(0)
+  vendorId            Int
+  vendor              Vendor @relation(fields: [vendorId], references: [vendorId])
+}
+
 model BookingMaster {
-  bookingMasterId  Int           @id @default(autoincrement())
-  vendorId         Int
-  customerId       Int
-  pickupLocationId Int?
-  dropffLocationId Int?
-  pickupTimeFrom   DateTime?
-  pickupTimeTo     DateTime?
-  dropoffTimeFrom  DateTime?
-  dropoffTimeTo    DateTime?
-  instructions     String?
-  total            Float
-  pickupLocation   UserAddress?  @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
-  dropoffLocation  UserAddress?  @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
-  bookingDate      DateTime      @default(now())
-  isDeleted        Boolean       @default(false)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @default(now()) @updatedAt
-  status           BookingStatus @default(Pending)
-  job              Job?
+  bookingMasterId    Int                  @id @default(autoincrement())
+  vendorId           Int
+  customerId         Int
+  pickupLocationId   Int?
+  dropffLocationId   Int?
+  pickupTimeFrom     DateTime?
+  pickupTimeTo       DateTime?
+  dropoffTimeFrom    DateTime?
+  dropoffTimeTo      DateTime?
+  instructions       String?
+  totalPrice         Float
+  pickupLocation     UserAddress?         @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
+  dropoffLocation    UserAddress?         @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
+  bookingDate        DateTime             @default(now())
+  isDeleted          Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now()) @updatedAt
+  status             BookingStatus        @default(Pending)
+  job                Job?
+  bookingDetail      BookingDetail[]
+  bookingAttachments BookingAttachments[]
+}
+
+model BookingDetail {
+  bookingDetailId Int           @id @default(autoincrement())
+  allocatePriceId Int
+  quantity        Int
+  price           Float
+  bookingMasterId Int
+  allocatePrice   AllocatePrice @relation(fields: [allocatePriceId], references: [id])
+  bookingMaster   BookingMaster @relation(fields: [bookingMasterId], references: [bookingMasterId])
+}
+
+model BookingAttachments {
+  id              Int           @id @default(autoincrement())
+  bookingMasterId Int
+  mediaId         Int
+  media           Media         @relation(fields: [mediaId], references: [id])
+  bookingMaster   BookingMaster @relation(fields: [bookingMasterId], references: [bookingMasterId])
+  isDeleted       Boolean       @default(false)
 }
 
 model Job {

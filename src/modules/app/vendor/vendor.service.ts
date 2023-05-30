@@ -8,7 +8,7 @@ import {
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
-import { successResponse } from '../../../helpers/response.helper';
+import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import { Status, Vendor } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
