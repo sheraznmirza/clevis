@@ -482,7 +482,7 @@ model DeliverySchedule {
   deliveryItemMin     Int?   @default(1)
   deliveryItemMax     Int?   @default(20)
   kilometerFare       Float? @default(0)
-  vendorId            Int
+  vendorId            Int    @unique
   vendor              Vendor @relation(fields: [vendorId], references: [vendorId])
 }
 
