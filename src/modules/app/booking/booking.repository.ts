@@ -45,7 +45,7 @@ export class BookingRepository {
             pickupLocationId.userAddressId || dto.pickupLocation.userAddressId,
           bookingDate: dto.date,
           ...(dto.instructions && { instructions: dto.instructions }),
-          total: 2,
+          totalPrice: 2,
           dropffLocationId:
             dropoffLocationId.userAddressId ||
             dto.dropoffLocation.userAddressId,
