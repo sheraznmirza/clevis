@@ -89,6 +89,15 @@ export class AuthService {
           isEmailVerified: true,
           phone: true,
           userType: true,
+          isActive: true,
+          profilePicture: {
+            select: {
+              id: true,
+              name: true,
+              key: true,
+              location: true,
+            },
+          },
           customer: {
             select: {
               userAddress: {
@@ -479,29 +488,30 @@ export class AuthService {
       },
       select: {
         userMasterId: true,
-        profilePicture: {
-          select: {
-            key: true,
-            name: true,
-            id: true,
-          },
-        },
         email: true,
         isEmailVerified: true,
         phone: true,
         userType: true,
+        isActive: true,
         password: true,
+        profilePicture: {
+          select: {
+            id: true,
+            name: true,
+            key: true,
+            location: true,
+          },
+        },
         customer: {
           select: {
             userAddress: {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                isActive: true,
                 city: {
                   select: {
-                    cityId: true,
                     cityName: true,
+                    cityId: true,
                     State: {
                       select: {
                         stateId: true,

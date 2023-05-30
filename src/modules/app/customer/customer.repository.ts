@@ -31,6 +31,8 @@ export class CustomerRepository {
           userMasterId: true,
           phone: true,
           isActive: true,
+          isEmailVerified: true,
+          userType: true,
           profilePicture: {
             select: {
               id: true,
@@ -42,6 +44,7 @@ export class CustomerRepository {
           customer: {
             select: {
               fullName: true,
+              customerId: true,
               userAddress: {
                 select: {
                   userAddressId: true,
@@ -178,31 +181,6 @@ export class CustomerRepository {
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
-              // ...(dto.userAddressId && {
-              //   userAddress: {
-              //     update: {
-              //       where: {
-              //         userAddressId: dto.userAddressId,
-              //       },
-              //       data: {
-              //         isDeleted: true,
-              //       },
-              //     },
-              //   },
-              // }),
-              // ...(dto.fullAddress &&
-              //   dto.cityId &&
-              //   dto.longitude &&
-              //   dto.latitude && {
-              //     userAddress: {
-              //       create: {
-              //         fullAddress: dto.fullAddress,
-              //         cityId: dto.cityId,
-              //         latitude: dto.latitude,
-              //         longitude: dto.longitude,
-              //       },
-              //     },
-              //   }),
               ...(dto.userAddressId &&
                 dto.cityId && {
                   userAddress: {
@@ -223,50 +201,46 @@ export class CustomerRepository {
           },
         },
         select: {
-          userMasterId: true,
           email: true,
-          isActive: true,
+          userMasterId: true,
           phone: true,
+          isActive: true,
+          isEmailVerified: true,
+          userType: true,
           profilePicture: {
             select: {
               id: true,
               name: true,
-              location: true,
               key: true,
+              location: true,
             },
           },
           customer: {
             select: {
-              customerId: true,
               fullName: true,
+              customerId: true,
               userAddress: {
-                where: {
-                  isDeleted: false,
-                },
                 select: {
-                  isDeleted: true,
                   userAddressId: true,
+                  fullAddress: true,
                   city: {
                     select: {
                       cityName: true,
                       cityId: true,
                       State: {
                         select: {
-                          stateName: true,
                           stateId: true,
+                          stateName: true,
                           country: {
                             select: {
-                              countryName: true,
                               countryId: true,
+                              countryName: true,
                             },
                           },
                         },
                       },
                     },
                   },
-                  fullAddress: true,
-                  latitude: true,
-                  longitude: true,
                 },
               },
             },

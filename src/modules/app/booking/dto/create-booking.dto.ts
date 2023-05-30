@@ -20,6 +20,11 @@ class Articles {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
+  price: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
   quantity: number;
 }
 
@@ -64,7 +69,7 @@ export class CreateBookingDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  date: string;
+  bookingDate: string;
 
   @ApiProperty()
   @IsNumber()
@@ -115,4 +120,9 @@ export class CreateBookingDto {
   @ValidateNested()
   @Type(() => LocationType)
   dropoffLocation: LocationType;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  totalPrice: number;
 }
