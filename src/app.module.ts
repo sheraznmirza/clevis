@@ -18,6 +18,7 @@ import MediaModule from './modules/app/media/media.module';
 import { RatingModule } from './modules/app/ratingSetup/rating-setup.module';
 import { PlatformModule } from './modules/app/platformSetup/platform-setup.module';
 import { StatisticsModule } from './modules/app/statistics/statistics.module';
+import { BookingModule } from './modules/app/booking/booking.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { StatisticsModule } from './modules/app/statistics/statistics.module';
     RatingModule,
     PlatformModule,
     StatisticsModule,
+    BookingModule,
     // DatabaseModule,
   ],
 })

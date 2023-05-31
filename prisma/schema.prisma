@@ -81,6 +81,7 @@ enum BookingStatus {
   Completed
   Pending
   Confirmed
+  Rejected
   In_Progress
 }
 
@@ -166,6 +167,7 @@ model Vendor {
   banking          Banking[]
   companySchedule  CompanySchedule[]
   deliverySchedule DeliverySchedule[]
+  bookingMaster    BookingMaster[]
 }
 
 model Rider {
@@ -498,6 +500,7 @@ model BookingMaster {
   dropoffTimeTo      DateTime?
   instructions       String?
   totalPrice         Float
+  vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])
   pickupLocation     UserAddress?         @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
   dropoffLocation    UserAddress?         @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
   bookingDate        DateTime             @default(now())

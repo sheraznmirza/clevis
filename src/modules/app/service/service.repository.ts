@@ -20,7 +20,7 @@ export class ServiceRepository {
           serviceType: data.serviceType,
         },
       });
-      if (service === 0) {
+      if (service < 1) {
         await this.prisma.services.create({
           data: {
             serviceName: data.serviceName,

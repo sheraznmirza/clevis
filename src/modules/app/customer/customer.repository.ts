@@ -706,6 +706,15 @@ export class CustomerRepository {
           skip: +take * (+page - 1),
           where: {
             vendorId,
+
+            ...(search && {
+              service: {
+                serviceName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
           select: {
             vendorServiceId: true,
@@ -763,10 +772,20 @@ export class CustomerRepository {
           skip: +take * (+page - 1),
           where: {
             vendorServiceId: +dto.vendorServiceId,
+
+            ...(search && {
+              category: {
+                categoryName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
           distinct: ['categoryId'],
           select: {
             id: true,
+            price: true,
             category: {
               select: {
                 categoryId: true,
@@ -795,10 +814,20 @@ export class CustomerRepository {
           where: {
             vendorServiceId: +dto.vendorServiceId,
             categoryId: +dto.categoryId,
+
+            ...(search && {
+              subcategory: {
+                subCategoryName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
           distinct: ['subcategoryId'],
           select: {
             id: true,
+            price: true,
             subcategory: {
               select: {
                 subCategoryId: true,
