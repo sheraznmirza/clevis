@@ -22,9 +22,17 @@ export class BookingService {
     }
   }
 
-  async getBookings(customerId: number, dto: CustomerGetBookingsDto) {
+  async getCustomerBookings(customerId: number, dto: CustomerGetBookingsDto) {
     try {
-      return await this.repository.getBookings(customerId, dto);
+      return await this.repository.getCustomerBookings(customerId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorBookings(vendorId: number, dto: CustomerGetBookingsDto) {
+    try {
+      return await this.repository.getVendorBookings(vendorId, dto);
     } catch (error) {
       throw error;
     }

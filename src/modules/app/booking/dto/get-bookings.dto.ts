@@ -34,3 +34,33 @@ export class CustomerGetBookingsDto extends ListingParams {
   @IsOptional()
   services: ServiceNames[];
 }
+
+export class VendorGetBookingsDto extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective service type.',
+    enum: ServiceType,
+  })
+  @IsOptional()
+  @IsEnum(ServiceType)
+  serviceType: ServiceType;
+
+  @ApiProperty({
+    required: false,
+    description: 'Select the respective status of the booking.',
+    enum: BookingStatus,
+  })
+  @IsOptional()
+  @IsEnum(BookingStatus)
+  status: BookingStatus;
+
+  @ApiProperty({
+    isArray: true,
+    type: ServiceNames,
+  })
+  @IsArray()
+  @ValidateNested()
+  @Type(() => ServiceNames)
+  @IsOptional()
+  services: ServiceNames[];
+}

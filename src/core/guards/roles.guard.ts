@@ -13,10 +13,8 @@ export class RolesGuard implements CanActivate {
     if (!roles) {
       return true;
     }
-    console.log('roles: ', roles);
     const request = context.switchToHttp().getRequest();
-    console.log('request: ', request.user);
-    if (request) {
+    if (request && request.user && request.user.userMasterId) {
       const getUserRole = await this.prisma.userMaster.findUnique({
         where: {
           userMasterId: request.user.userMasterId,

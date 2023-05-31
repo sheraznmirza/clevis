@@ -97,16 +97,20 @@ export class BookingRepository {
     }
   }
 
-  async getBookings(customerId: number, dto: CustomerGetBookingsDto) {
+  async getCustomerBookings(customerId: number, dto: CustomerGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           customerId: customerId,
-
-          // ...(search && {
-
-          // })
+          ...(search && {
+            vendor: {
+              companyName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          }),
         },
         take: +take,
         skip: +take * (+page - 1),
@@ -114,6 +118,68 @@ export class BookingRepository {
           isDeleted: true,
         },
       });
+
+      const totalCount = await this.prisma.bookingMaster.count({
+        where: {
+          customerId: customerId,
+          ...(search && {
+            vendor: {
+              companyName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          }),
+        },
+      });
+
+      return { data: bookings, page: +page, take: +take, totalCount };
+    } catch (error) {
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
+    }
+  }
+
+  async getVendorBookings(vendorId: number, dto: CustomerGetBookingsDto) {
+    const { page = 1, take = 10, search } = dto;
+    try {
+      const bookings = await this.prisma.bookingMaster.findMany({
+        where: {
+          vendorId: vendorId,
+          ...(search && {
+            vendor: {
+              companyName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          }),
+        },
+        take: +take,
+        skip: +take * (+page - 1),
+        select: {
+          isDeleted: true,
+        },
+      });
+
+      const totalCount = await this.prisma.bookingMaster.count({
+        where: {
+          vendorId: vendorId,
+          ...(search && {
+            vendor: {
+              companyName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          }),
+        },
+      });
+
+      return { data: bookings, page: +page, take: +take, totalCount };
     } catch (error) {
       return unknowError(
         417,
