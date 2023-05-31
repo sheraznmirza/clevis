@@ -1411,18 +1411,41 @@ export class VendorRepository {
     }
   }
 
-  async getDeliverySchedule(vendorId: number) {
+  async getDeliverySchedule(userMasterId: number) {
     try {
-      const delivery = await this.prisma.deliverySchedule.findUnique({
-        where: { vendorId: vendorId },
+      // const delivery = await this.prisma.deliverySchedule.findUnique({
+      //   where: { vendorId: vendorId },
+      //   select: {
+      //     deliveryDurationMax: true,
+      //     deliveryDurationMin: true,
+      //     serviceDurationMax: true,
+      //     serviceDurationMin: true,
+      //     deliveryItemMax: true,
+      //     deliveryItemMin: true,
+      //     kilometerFare: true,
+      //   },
+      // });
+
+      const delivery = await this.prisma.userMaster.findUnique({
+        where: {
+          userMasterId,
+        },
         select: {
-          deliveryDurationMax: true,
-          deliveryDurationMin: true,
-          serviceDurationMax: true,
-          serviceDurationMin: true,
-          deliveryItemMax: true,
-          deliveryItemMin: true,
-          kilometerFare: true,
+          vendor: {
+            select: {
+              deliverySchedule: {
+                select: {
+                  deliveryDurationMax: true,
+                  deliveryDurationMin: true,
+                  serviceDurationMax: true,
+                  serviceDurationMin: true,
+                  deliveryItemMax: true,
+                  deliveryItemMin: true,
+                  kilometerFare: true,
+                },
+              },
+            },
+          },
         },
       });
       return delivery;

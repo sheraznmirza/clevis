@@ -182,6 +182,8 @@ export class VendorService {
             return await this.repository.getVendorByIdAccount(id);
           case RiderVendorTabs.COMPANY_SCHEDULE:
             return await this.repository.getVendorByIdSchedule(id);
+          case RiderVendorTabs.DELIVERY_SCHEDULE:
+            return await this.repository.getDeliverySchedule(id);
           default:
             return await this.repository.getVendorById(id);
         }
@@ -253,11 +255,11 @@ export class VendorService {
     }
   }
 
-  async getDeliverySchedule(vendorId: number) {
-    try {
-      return await this.repository.getDeliverySchedule(vendorId);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // async getDeliverySchedule(vendorId: number) {
+  //   try {
+  //     return await this.repository.getDeliverySchedule(vendorId);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 }
