@@ -7,7 +7,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { MediaFormat } from 'src/core/globalTypes';
 
