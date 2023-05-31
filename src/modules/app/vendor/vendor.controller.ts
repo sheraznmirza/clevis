@@ -177,15 +177,15 @@ export class VendorController {
     return this.vendorService.deliveryScheduleUpdate(user.userTypeId, dto);
   }
 
-  @Authorized(UserType.VENDOR)
-  @Get('/deliverySchedule/:vendorId')
-  getVendorDeliverySchedule(@GetUser() user) {
-    return this.vendorService.getDeliverySchedule(user.userTypeId);
-  }
+  // @Authorized(UserType.VENDOR)
+  // @Get('/deliverySchedule/:vendorId')
+  // getVendorDeliverySchedule(@GetUser() user) {
+  //   return this.vendorService.getDeliverySchedule(user.userTypeId);
+  // }
 
-  @Authorized(UserType.ADMIN)
-  @Get('/deliverySchedule/:vendorId')
-  getDeliveryScheduleByVendorId(@Param('vendorId') vendorId: number) {
-    return this.vendorService.getDeliverySchedule(vendorId);
-  }
+  // @Authorized(UserType.ADMIN)
+  // @Get('/deliverySchedule/:vendorId')
+  // getDeliveryScheduleByVendorId(@Param('vendorId') vendorId: number) {
+  //   return this.vendorService.getDeliverySchedule(vendorId);
+  // }
 }
