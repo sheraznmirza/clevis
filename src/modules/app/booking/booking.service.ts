@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { BookingRepository } from './booking.repository';
-import { CreateBookingDto, CustomerGetBookingsDto } from './dto';
+import {
+  AdminGetBookingsDto,
+  CreateBookingDto,
+  CustomerGetBookingsDto,
+  UpdateBookingStatusParam,
+  VendorGetBookingsDto,
+} from './dto';
 
 @Injectable()
 export class BookingService {
@@ -30,9 +36,67 @@ export class BookingService {
     }
   }
 
-  async getVendorBookings(vendorId: number, dto: CustomerGetBookingsDto) {
+  async getVendorBookings(vendorId: number, dto: VendorGetBookingsDto) {
     try {
       return await this.repository.getVendorBookings(vendorId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCustomerBookingById(bookingMasterId: number) {
+    try {
+      return await this.repository.getCustomerBookingById(bookingMasterId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorBookingById(bookingMasterId: number) {
+    try {
+      return await this.repository.getVendorBookingById(bookingMasterId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateVendorBookingStatus(
+    bookingMasterId: number,
+    dto: UpdateBookingStatusParam,
+  ) {
+    try {
+      return await this.repository.updateVendorBookingStatus(
+        bookingMasterId,
+        dto,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAdminBookingById(bookingMasterId: number) {
+    try {
+      return await this.repository.getAdminBookingById(bookingMasterId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAdminBookings(dto: AdminGetBookingsDto) {
+    try {
+      const rawBookings = await this.repository.getAdminBookings(dto);
+
+      const cleanedBooking = rawBookings.data.map((booking) => {
+        const data = {
+          ...booking,
+          pickupDelivery: booking.pickupTimeFrom ? true : false,
+        };
+        delete data.pickupTimeFrom;
+        return data;
+      });
+
+      rawBookings.data = cleanedBooking;
+      return rawBookings;
     } catch (error) {
       throw error;
     }

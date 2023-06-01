@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
-import { CreateBookingDto, CustomerGetBookingsDto } from './dto';
+import {
+  AdminGetBookingsDto,
+  CreateBookingDto,
+  CustomerGetBookingsDto,
+  UpdateBookingStatusParam,
+  VendorGetBookingsDto,
+} from './dto';
 import { UserAddress } from '@prisma/client';
 
 @Injectable()
@@ -143,39 +149,219 @@ export class BookingRepository {
     }
   }
 
-  async getVendorBookings(vendorId: number, dto: CustomerGetBookingsDto) {
+  async getCustomerBookingById(bookingMasterId: number) {
+    try {
+      return await this.prisma.bookingMaster.findUnique({
+        where: {
+          bookingMasterId: bookingMasterId,
+        },
+        select: {
+          bookingMasterId: true,
+          bookingDetail: {
+            select: {
+              quantity: true,
+              allocatePrice: {
+                select: {
+                  id: true,
+                  category: {
+                    select: {
+                      categoryName: true,
+                    },
+                  },
+                  subcategory: {
+                    select: {
+                      subCategoryName: true,
+                    },
+                  },
+                  vendorService: {
+                    select: {
+                      service: {
+                        select: {
+                          serviceName: true,
+                        },
+                      },
+                      serviceImage: {
+                        select: {
+                          media: {
+                            select: {
+                              name: true,
+                              location: true,
+                              key: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          pickupLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          dropoffLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          pickupTimeFrom: true,
+          pickupTimeTo: true,
+          dropoffTimeFrom: true,
+          dropoffTimeTo: true,
+          totalPrice: true,
+          instructions: true,
+
+          isDeleted: true,
+          bookingDate: true,
+          status: true,
+
+          bookingAttachments: {
+            select: {
+              media: {
+                select: {
+                  name: true,
+                  key: true,
+                  location: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('The following booking does not exist');
+      }
+      throw error;
+    }
+  }
+
+  async getVendorBookings(vendorId: number, dto: VendorGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           vendorId: vendorId,
+
           ...(search && {
-            vendor: {
-              companyName: {
-                contains: search,
-                mode: 'insensitive',
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
               },
-            },
+              {
+                bookingDetail: {
+                  every: {
+                    allocatePrice: {
+                      vendorService: {
+                        service: {
+                          serviceName: {
+                            contains: search,
+                            mode: 'insensitive',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           }),
+
+          ...(dto.status && {
+            status: dto.status,
+          }),
+          ...(dto.dateFrom &&
+            dto.dateTill && {
+              bookingDate: {
+                gte: dto.dateFrom,
+                lte: dto.dateTill,
+              },
+            }),
         },
         take: +take,
         skip: +take * (+page - 1),
         select: {
+          bookingMasterId: true,
+          customer: {
+            select: {
+              fullName: true,
+            },
+          },
+          bookingDetail: {
+            select: {
+              allocatePrice: {
+                select: {
+                  vendorService: {
+                    select: {
+                      service: {
+                        select: {
+                          serviceName: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          totalPrice: true,
           isDeleted: true,
+          bookingDate: true,
+          status: true,
         },
       });
 
       const totalCount = await this.prisma.bookingMaster.count({
         where: {
           vendorId: vendorId,
+
           ...(search && {
-            vendor: {
-              companyName: {
-                contains: search,
-                mode: 'insensitive',
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
               },
-            },
+              {
+                bookingDetail: {
+                  every: {
+                    allocatePrice: {
+                      vendorService: {
+                        service: {
+                          serviceName: {
+                            contains: search,
+                            mode: 'insensitive',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           }),
+
+          ...(dto.status && {
+            status: dto.status,
+          }),
+          ...(dto.dateFrom &&
+            dto.dateTill && {
+              bookingDate: {
+                gte: dto.dateFrom,
+                lte: dto.dateTill,
+              },
+            }),
         },
       });
 
@@ -186,6 +372,333 @@ export class BookingRepository {
         error,
         'The request was well-formed but was unable to be followed due to semantic errors',
       );
+    }
+  }
+
+  async getVendorBookingById(bookingMasterId: number) {
+    try {
+      return await this.prisma.bookingMaster.findUnique({
+        where: {
+          bookingMasterId: bookingMasterId,
+        },
+        select: {
+          bookingMasterId: true,
+          customer: {
+            select: {
+              fullName: true,
+              userMaster: {
+                select: {
+                  phone: true,
+                },
+              },
+              userAddress: {
+                select: {
+                  fullAddress: true,
+                },
+              },
+            },
+          },
+          bookingDetail: {
+            select: {
+              quantity: true,
+              allocatePrice: {
+                select: {
+                  id: true,
+                  category: {
+                    select: {
+                      categoryName: true,
+                    },
+                  },
+                  subcategory: {
+                    select: {
+                      subCategoryName: true,
+                    },
+                  },
+                  vendorService: {
+                    select: {
+                      serviceImage: {
+                        select: {
+                          media: {
+                            select: {
+                              name: true,
+                              location: true,
+                              key: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          pickupLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          dropoffLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          pickupTimeFrom: true,
+          pickupTimeTo: true,
+          dropoffTimeFrom: true,
+          dropoffTimeTo: true,
+          totalPrice: true,
+          instructions: true,
+
+          isDeleted: true,
+          bookingDate: true,
+          status: true,
+        },
+      });
+    } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('The following booking does not exist');
+      }
+      throw error;
+    }
+  }
+
+  async updateVendorBookingStatus(
+    bookingMasterId: number,
+    dto: UpdateBookingStatusParam,
+  ) {
+    try {
+      await this.prisma.bookingMaster.update({
+        where: {
+          bookingMasterId,
+        },
+        data: {
+          status: dto.bookingStatus,
+        },
+      });
+      successResponse(200, `Booking status changed to ${dto.bookingStatus}`);
+    } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('The following booking does not exist');
+      }
+      throw error;
+    }
+  }
+
+  async getAdminBookings(dto: AdminGetBookingsDto) {
+    const { page = 1, take = 10, search } = dto;
+    try {
+      const bookings = await this.prisma.bookingMaster.findMany({
+        where: {
+          ...(search && {
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                vendor: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }),
+
+          ...(dto.status && {
+            status: dto.status,
+          }),
+          ...(dto.dateFrom &&
+            dto.dateTill && {
+              bookingDate: {
+                gte: dto.dateFrom,
+                lte: dto.dateTill,
+              },
+            }),
+        },
+        take: +take,
+        skip: +take * (+page - 1),
+        select: {
+          bookingMasterId: true,
+          customer: {
+            select: {
+              fullName: true,
+            },
+          },
+          vendor: {
+            select: {
+              fullName: true,
+              serviceType: true,
+            },
+          },
+          pickupTimeFrom: true,
+          totalPrice: true,
+          status: true,
+          isDeleted: true,
+        },
+      });
+
+      const totalCount = await this.prisma.bookingMaster.count({
+        where: {
+          ...(search && {
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                vendor: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }),
+
+          ...(dto.status && {
+            status: dto.status,
+          }),
+          ...(dto.dateFrom &&
+            dto.dateTill && {
+              bookingDate: {
+                gte: dto.dateFrom,
+                lte: dto.dateTill,
+              },
+            }),
+        },
+      });
+
+      return { data: bookings, page: +page, take: +take, totalCount };
+    } catch (error) {
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors',
+      );
+    }
+  }
+
+  async getAdminBookingById(bookingMasterId: number) {
+    try {
+      return await this.prisma.bookingMaster.findUnique({
+        where: {
+          bookingMasterId: bookingMasterId,
+        },
+        select: {
+          bookingMasterId: true,
+          customer: {
+            select: {
+              fullName: true,
+              userMaster: {
+                select: {
+                  email: true,
+                  phone: true,
+                },
+              },
+              userAddress: {
+                select: {
+                  fullAddress: true,
+                },
+              },
+            },
+          },
+          vendor: {
+            select: {
+              fullName: true,
+              companyName: true,
+              userMaster: {
+                select: {
+                  email: true,
+                  phone: true,
+                },
+              },
+              userAddress: {
+                select: {
+                  fullAddress: true,
+                },
+              },
+            },
+          },
+          bookingDetail: {
+            select: {
+              quantity: true,
+              allocatePrice: {
+                select: {
+                  id: true,
+                  price: true,
+                  category: {
+                    select: {
+                      categoryName: true,
+                    },
+                  },
+                  subcategory: {
+                    select: {
+                      subCategoryName: true,
+                    },
+                  },
+                  vendorService: {
+                    select: {
+                      service: {
+                        select: {
+                          serviceName: true,
+                        },
+                      },
+                      serviceImage: {
+                        select: {
+                          media: {
+                            select: {
+                              name: true,
+                              location: true,
+                              key: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          pickupLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          dropoffLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          pickupTimeFrom: true,
+          pickupTimeTo: true,
+          dropoffTimeFrom: true,
+          dropoffTimeTo: true,
+          totalPrice: true,
+          instructions: true,
+
+          isDeleted: true,
+          bookingDate: true,
+          status: true,
+        },
+      });
+    } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('The following booking does not exist');
+      }
+      throw error;
     }
   }
 
