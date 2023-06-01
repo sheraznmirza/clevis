@@ -589,6 +589,34 @@ export class VendorRepository {
     }
   }
 
+  async getVendorServices(vendorId: number) {
+    try {
+      const vendorServices = await this.prisma.vendorService.findMany({
+        orderBy: {
+          service: {
+            serviceName: 'asc',
+          },
+        },
+        where: {
+          vendorId: vendorId,
+          isDeleted: false,
+        },
+        select: {
+          vendorServiceId: true,
+          service: {
+            select: {
+              serviceName: true,
+            },
+          },
+        },
+      });
+
+      return vendorServices;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getVendorServiceById(vendorServiceId: number) {
     try {
       const vendorService = await this.prisma.vendorService.findUnique({

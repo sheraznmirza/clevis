@@ -132,8 +132,8 @@ export class VendorController {
 
   @Authorized(UserType.VENDOR)
   @Get('/service-names')
-  getVendorServices(@Body() dto: VendorCreateServiceDto, @Req() req) {
-    return this.vendorService.createVendorService(dto, req.user?.userMasterId);
+  getVendorServices(@GetUser() user) {
+    return this.vendorService.getVendorServices(user.userTypeId);
   }
 
   @Authorized(UserType.VENDOR)

@@ -225,6 +225,14 @@ export class AuthService {
                   data: companySchedule(),
                 },
               },
+              ...(dto.serviceType === ServiceType.LAUNDRY && {
+                deliverySchedule: {
+                  create: {
+                    deliveryItemMin: 1,
+                    deliveryItemMax: 5,
+                  },
+                },
+              }),
             },
           },
         },
@@ -769,6 +777,7 @@ export class AuthService {
         },
         select: {
           email: true,
+          isDeleted: true,
           vendor: true,
           admin: true,
           customer: true,
@@ -776,6 +785,8 @@ export class AuthService {
           userType: true,
         },
       });
+
+      if (user.isDeleted) throw new NotFoundException('User does not exist.');
 
       const tokens = await this.signToken(
         previousRefreshToken.userMasterId,
@@ -807,8 +818,11 @@ export class AuthService {
         where: {
           email: data.email,
           userType: data.userType,
+          isDeleted: false,
         },
       });
+
+      if (!user) throw new NotFoundException('Email does not exist.');
 
       if (
         user.userType === data.userType &&
@@ -820,13 +834,11 @@ export class AuthService {
         );
       }
 
-      let randomOtp = Math.floor(Math.random() * 10000).toString();
-      for (let i = 0; i < 4 - randomOtp.length; i++) {
-        randomOtp = '0' + randomOtp;
-      }
-
-      if (!user) throw new NotFoundException('Email does not exist.');
-
+      // let randomOtp = Math.floor(Math.random() * 10000).toString();
+      // for (let i = 0; i < 4 - randomOtp.length; i++) {
+      //   randomOtp = '0' + randomOtp;
+      // }
+      const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
       await this.expireOtp(user.userMasterId);
 
       await this.prisma.otp.create({
@@ -1051,7 +1063,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '365 days',
+        expiresIn: '1m',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {
@@ -1088,7 +1100,7 @@ export class AuthService {
   async updatePassword(userId: number, password: string) {
     const hash = await argon.hash(password);
 
-    await this.prisma.userMaster.update({
+    const user = await this.prisma.userMaster.update({
       where: {
         userMasterId: userId,
       },
@@ -1096,6 +1108,8 @@ export class AuthService {
         password: hash,
       },
     });
+
+    return null;
   }
 
   async expireOtp(userId: number) {
