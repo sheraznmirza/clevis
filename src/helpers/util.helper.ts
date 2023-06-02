@@ -6,6 +6,35 @@
 // import { v4 as uuid } from 'uuid';
 // import * as NodeRSA from 'node-rsa';
 
+import { createCipheriv, createDecipheriv } from 'crypto';
+import AppConfig from 'src/configs/app.config';
+
+export const encryptData = (data: string) => {
+  const cipher = createCipheriv(
+    AppConfig.ENCRYPT.ALGORITHM,
+    Buffer.from(AppConfig.ENCRYPT.KEY),
+    AppConfig.ENCRYPT.IV,
+  );
+  let encrypted = cipher.update(data);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return encrypted.toString('hex');
+};
+
+export const decryptData = (data: string) => {
+  const encryptedText = Buffer.from(data, 'hex');
+
+  const decipher = createDecipheriv(
+    AppConfig.ENCRYPT.ALGORITHM,
+    Buffer.from(AppConfig.ENCRYPT.KEY),
+    AppConfig.ENCRYPT.IV,
+  );
+
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+  return decrypted.toString();
+};
+
 // export async function HashPassword(plainText: string): Promise<any> {
 //   return new Promise(function (resolve, reject) {
 //     genSalt(10, function (error, salt) {

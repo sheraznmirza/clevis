@@ -145,6 +145,7 @@ model Customer {
   fullName      String
   userAddress   UserAddress[]
   bookingMaster BookingMaster[]
+  customerCards CustomerCards[]
 }
 
 model Vendor {
@@ -545,4 +546,23 @@ model Job {
   jobType         JobType
   rider           Rider?         @relation(fields: [riderId], references: [riderId])
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+}
+
+model CustomerCards {
+  customerCardId Int @id @default(autoincrement())
+  customerId Int
+  tapCardId Int @unique
+  cardNumber String?
+  fingerprint3D String?
+  firstSixDigit String?
+  lastFourDigit String?
+  bankName String?
+  bankId String?
+  brand String?
+  funding String?
+  schee String?
+  isDeleted          Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now()) @updatedAt
+  customer Customer @relation(fields: [customerId],references: [customerId])
 }

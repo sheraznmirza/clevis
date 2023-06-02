@@ -19,6 +19,8 @@ import { RatingModule } from './modules/app/ratingSetup/rating-setup.module';
 import { PlatformModule } from './modules/app/platformSetup/platform-setup.module';
 import { StatisticsModule } from './modules/app/statistics/statistics.module';
 import { BookingModule } from './modules/app/booking/booking.module';
+import { S3Module } from './modules/s3/s3.module';
+import { TapModule } from './modules/tap/tap.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { BookingModule } from './modules/app/booking/booking.module';
     PlatformModule,
     StatisticsModule,
     BookingModule,
+    S3Module,
+    TapModule,
     // DatabaseModule,
   ],
 })

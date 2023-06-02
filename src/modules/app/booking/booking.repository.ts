@@ -476,7 +476,10 @@ export class BookingRepository {
           status: dto.bookingStatus,
         },
       });
-      successResponse(200, `Booking status changed to ${dto.bookingStatus}`);
+      return successResponse(
+        200,
+        `Booking status changed to ${dto.bookingStatus}`,
+      );
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
