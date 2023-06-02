@@ -33,7 +33,7 @@ export class BookingRepository {
         });
       }
 
-      if (!dto.pickupLocation.userAddressId) {
+      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
         pickupLocationId = await this.prisma.userAddress.create({
           data: {
             latitude: dto.pickupLocation.latitude,
@@ -46,7 +46,7 @@ export class BookingRepository {
         dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
       }
 
-      if (!dto.dropoffLocation.userAddressId) {
+      if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
         dropoffLocationId = await this.prisma.userAddress.create({
           data: {
             latitude: dto.dropoffLocation.latitude,
@@ -59,14 +59,37 @@ export class BookingRepository {
         dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
       }
 
+      let bookingDetailPrice: number[];
+      for (let i = 0; i < dto.articles.length; i++) {
+        const allocatePricePrice = await this.prisma.allocatePrice.findUnique({
+          where: {
+            id: dto.articles[i].allocatePriceId,
+          },
+          select: {
+            price: true,
+          },
+        });
+
+        bookingDetailPrice.push(
+          dto.articles[i].quantity * allocatePricePrice.price,
+        );
+      }
+
+      let totalPrice = 0;
+      for (let i = 0; i < dto.articles.length; i++) {
+        totalPrice += bookingDetailPrice[i];
+      }
+
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
           vendorId: dto.vendorId,
           bookingDate: dto.bookingDate,
           ...(dto.instructions && { instructions: dto.instructions }),
-          totalPrice: dto.totalPrice,
-          ...(dto.pickupLocation.timeFrom &&
+          totalPrice: totalPrice,
+          ...(dto.pickupLocation &&
+            dto.pickupLocation.timeFrom &&
+            dto.dropoffLocation &&
             dto.pickupLocation.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
@@ -81,11 +104,18 @@ export class BookingRepository {
         // }
       });
 
+      // const bookingDetailPrice = dto.articles.map(async (bookingDetail) => {
+
+      // })
+
       await this.prisma.bookingDetail.createMany({
-        data: dto.articles.map((bookingDetail) => ({
+        data: dto.articles.map((bookingDetail, index) => ({
           bookingMasterId: bookingMaster.bookingMasterId,
           allocatePriceId: bookingDetail.allocatePriceId,
-          price: bookingDetail.price,
+          price:
+            bookingDetailPrice && bookingDetailPrice.length > 0
+              ? bookingDetailPrice[index]
+              : 1,
           quantity: bookingDetail.quantity,
         })),
       });
