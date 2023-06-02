@@ -39,13 +39,16 @@ const AppConfig = {
     FACEBOOK: process.env.APP_FACEBOOK_OAUTH_ENDPOINT,
   },
   NOTIFICATION: {
-    GOOGLE: {
-      FIREBASE_PROJECT_ID: process.env.APP_FIREBASE_PROJECT_ID,
-      FIREBASE_PRIVATE_KEY: process.env.APP_FIREBASE_PRIVATE_KEY.replace(
-        /\\n/gm,
-        '\n',
-      ),
-      FIREBASE_CLIENT_EMAIL: process.env.APP_FIREBASE_CLIENT_EMAIL,
+    FCM: {
+      PROJECT_ID: process.env.APP_FIREBASE_PROJECT_ID || '',
+      CLIENT_EMAIL: process.env.APP_FIREBASE_CLIENT_EMAIL || '',
+      PRIVATE_KEY:
+        process.env.APP_FIREBASE_PRIVATE_KEY?.replace(/\\n/gm, '\n') || '',
+    },
+    ONE_SIGNAL: {
+      APP_KEY: process.env.APP_ONE_SIGNAL_APP_KEY || '',
+      USER_KEY: process.env.APP_ONE_SIGNAL_USER_KEY || '',
+      APP_ID: process.env.APP_ONE_SIGNAL_APP_ID || '',
     },
   },
   E_SIGNATURE: {

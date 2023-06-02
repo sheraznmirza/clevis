@@ -16,8 +16,8 @@ import dayjs from 'dayjs';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../../modules/mail/mail.service';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-import { CreateNotificationDto } from '../notification/dto';
-import { NotificationService } from '../notification/notification.service';
+// import { CreateNotificationDto } from '../notification/dto';
+// import { NotificationService } from '../notification/notification.service';
 import {
   ChangePasswordDto,
   CustomerSignUpDto,
@@ -40,8 +40,8 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
     private mail: MailService,
-    private notification: NotificationService,
-  ) {}
+  ) // private notification: NotificationService,
+  {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
     //  generate the password hash
@@ -281,13 +281,13 @@ export class AuthService {
         })),
       });
       this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      const payload: CreateNotificationDto = {
-        toUser: 1,
-        fromUser: user.userMasterId,
-        message: 'message',
-        type: 'VendorCreated',
-      };
-      await this.notification.createNotification(payload);
+      // const payload: CreateNotificationDto = {
+      //   toUser: 1,
+      //   fromUser: user.userMasterId,
+      //   message: 'message',
+      //   type: 'VendorCreated',
+      // };
+      // await this.notification.createNotification(payload);
       return successResponse(
         201,
         'Vendor successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -1063,7 +1063,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '1m',
+        expiresIn: '2 days',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {

@@ -11,7 +11,7 @@ import { VendorModule } from './modules/app/vendor/vendor.module';
 import { RoleModule } from './modules/app/role/role.module';
 import { RoleRouteModule } from './modules/app/roleRoute/role-route.module';
 import { RouteModule } from './modules/app/route/route.module';
-import { NotificationModule } from './modules/app/notification/notification.module';
+// import { NotificationModule } from './modules/app/notification/notification.module';
 import { MailModule } from './modules/mail/mail.module';
 import { RiderModule } from './modules/app/rider/rider.module';
 import MediaModule from './modules/app/media/media.module';
@@ -24,7 +24,7 @@ import { AdminModule } from './modules/app/admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    NotificationModule,
+    // NotificationModule,
     AuthModule,
     AdminModule,
     CustomerModule,
