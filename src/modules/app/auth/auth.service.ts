@@ -1063,7 +1063,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '1m',
+        expiresIn: '5 days',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {
