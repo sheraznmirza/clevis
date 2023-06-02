@@ -31,6 +31,8 @@ export class CustomerRepository {
           userMasterId: true,
           phone: true,
           isActive: true,
+          isEmailVerified: true,
+          userType: true,
           profilePicture: {
             select: {
               id: true,
@@ -42,6 +44,7 @@ export class CustomerRepository {
           customer: {
             select: {
               fullName: true,
+              customerId: true,
               userAddress: {
                 select: {
                   userAddressId: true,
@@ -178,31 +181,6 @@ export class CustomerRepository {
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
-              // ...(dto.userAddressId && {
-              //   userAddress: {
-              //     update: {
-              //       where: {
-              //         userAddressId: dto.userAddressId,
-              //       },
-              //       data: {
-              //         isDeleted: true,
-              //       },
-              //     },
-              //   },
-              // }),
-              // ...(dto.fullAddress &&
-              //   dto.cityId &&
-              //   dto.longitude &&
-              //   dto.latitude && {
-              //     userAddress: {
-              //       create: {
-              //         fullAddress: dto.fullAddress,
-              //         cityId: dto.cityId,
-              //         latitude: dto.latitude,
-              //         longitude: dto.longitude,
-              //       },
-              //     },
-              //   }),
               ...(dto.userAddressId &&
                 dto.cityId && {
                   userAddress: {
@@ -223,50 +201,46 @@ export class CustomerRepository {
           },
         },
         select: {
-          userMasterId: true,
           email: true,
-          isActive: true,
+          userMasterId: true,
           phone: true,
+          isActive: true,
+          isEmailVerified: true,
+          userType: true,
           profilePicture: {
             select: {
               id: true,
               name: true,
-              location: true,
               key: true,
+              location: true,
             },
           },
           customer: {
             select: {
-              customerId: true,
               fullName: true,
+              customerId: true,
               userAddress: {
-                where: {
-                  isDeleted: false,
-                },
                 select: {
-                  isDeleted: true,
                   userAddressId: true,
+                  fullAddress: true,
                   city: {
                     select: {
                       cityName: true,
                       cityId: true,
                       State: {
                         select: {
-                          stateName: true,
                           stateId: true,
+                          stateName: true,
                           country: {
                             select: {
-                              countryName: true,
                               countryId: true,
+                              countryName: true,
                             },
                           },
                         },
                       },
                     },
                   },
-                  fullAddress: true,
-                  latitude: true,
-                  longitude: true,
                 },
               },
             },
@@ -732,6 +706,15 @@ export class CustomerRepository {
           skip: +take * (+page - 1),
           where: {
             vendorId,
+
+            ...(search && {
+              service: {
+                serviceName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
           select: {
             vendorServiceId: true,
@@ -789,10 +772,20 @@ export class CustomerRepository {
           skip: +take * (+page - 1),
           where: {
             vendorServiceId: +dto.vendorServiceId,
+
+            ...(search && {
+              category: {
+                categoryName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
           distinct: ['categoryId'],
           select: {
             id: true,
+            price: true,
             category: {
               select: {
                 categoryId: true,
@@ -821,10 +814,20 @@ export class CustomerRepository {
           where: {
             vendorServiceId: +dto.vendorServiceId,
             categoryId: +dto.categoryId,
+
+            ...(search && {
+              subcategory: {
+                subCategoryName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
           distinct: ['subcategoryId'],
           select: {
             id: true,
+            price: true,
             subcategory: {
               select: {
                 subCategoryId: true,

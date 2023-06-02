@@ -81,6 +81,7 @@ enum BookingStatus {
   Completed
   Pending
   Confirmed
+  Rejected
   In_Progress
 }
 
@@ -137,35 +138,38 @@ model Admin {
 }
 
 model Customer {
-  customerId   Int           @id @default(autoincrement())
-  email        String        @unique
-  userMasterId Int           @unique
-  userMaster   UserMaster    @relation(fields: userMasterId, references: userMasterId)
-  fullName     String
-  userAddress  UserAddress[]
+  customerId    Int             @id @default(autoincrement())
+  email         String          @unique
+  userMasterId  Int             @unique
+  userMaster    UserMaster      @relation(fields: userMasterId, references: userMasterId)
+  fullName      String
+  userAddress   UserAddress[]
+  bookingMaster BookingMaster[]
+  customerCards CustomerCards[]
 }
 
 model Vendor {
-  vendorId         Int                @id @default(autoincrement())
-  userMasterId     Int                @unique
-  logoId           Int                @unique
-  userMaster       UserMaster         @relation(fields: userMasterId, references: userMasterId)
+  vendorId         Int               @id @default(autoincrement())
+  userMasterId     Int               @unique
+  logoId           Int               @unique
+  userMaster       UserMaster        @relation(fields: userMasterId, references: userMasterId)
   fullName         String
   serviceType      ServiceType
   companyName      String
   companyEmail     String
-  isBusy           Boolean            @default(false)
-  alwaysOpen       Boolean            @default(false)
-  logo             Media              @relation(fields: [logoId], references: [id])
+  isBusy           Boolean           @default(false)
+  alwaysOpen       Boolean           @default(false)
+  logo             Media             @relation(fields: [logoId], references: [id])
   description      String?
   userAddress      UserAddress[]
-  status           Status             @default(PENDING)
+  status           Status            @default(PENDING)
   vendorService    VendorService[]
   businessLicense  BusinessLicense[]
   workspaceImages  WorkspaceImages[]
   banking          Banking[]
   companySchedule  CompanySchedule[]
-  deliverySchedule DeliverySchedule[]
+  deliverySchedule DeliverySchedule?
+  bookingMaster    BookingMaster[]
 }
 
 model Rider {
@@ -236,9 +240,13 @@ model CompanySchedule {
 }
 
 model Country {
-  countryId   String  @id
-  countryName String
-  states      State[]
+  countryId    String  @id
+  countryName  String
+  shortName    String
+  countryCode  String
+  currency     String
+  currencyName String
+  states       State[]
 }
 
 model State {
@@ -475,7 +483,7 @@ model PlatformSetup {
 
 model DeliverySchedule {
   deliveryScheduleId  Int    @id @default(autoincrement())
-  deliveryDurationMin Int    @default(24)
+  deliveryDurationMin Int?   @default(24)
   deliveryDurationMax Int?   @default(48)
   serviceDurationMin  Int?   @default(24)
   serviceDurationMax  Int?   @default(48)
@@ -498,6 +506,8 @@ model BookingMaster {
   dropoffTimeTo      DateTime?
   instructions       String?
   totalPrice         Float
+  customer           Customer             @relation(fields: [customerId], references: [customerId])
+  vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])
   pickupLocation     UserAddress?         @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
   dropoffLocation    UserAddress?         @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
   bookingDate        DateTime             @default(now())
@@ -536,4 +546,23 @@ model Job {
   jobType         JobType
   rider           Rider?         @relation(fields: [riderId], references: [riderId])
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+}
+
+model CustomerCards {
+  customerCardId Int @id @default(autoincrement())
+  customerId Int
+  tapCardId Int @unique
+  cardNumber String?
+  fingerprint3D String?
+  firstSixDigit String?
+  lastFourDigit String?
+  bankName String?
+  bankId String?
+  brand String?
+  funding String?
+  schee String?
+  isDeleted          Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now()) @updatedAt
+  customer Customer @relation(fields: [customerId],references: [customerId])
 }

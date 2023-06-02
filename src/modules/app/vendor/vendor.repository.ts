@@ -141,7 +141,7 @@ export class VendorRepository {
         });
       });
 
-      if (dto.alwaysOpen) {
+      if (typeof dto.alwaysOpen === 'boolean') {
         await this.prisma.vendor.update({
           where: {
             vendorId: vendorId,
@@ -252,9 +252,9 @@ export class VendorRepository {
       }
 
       if (dto.workspaceImages) {
-        dto.workspaceImages.forEach(async (business) => {
+        dto.workspaceImages.forEach(async (workspace) => {
           const result = await this.prisma.media.create({
-            data: business,
+            data: workspace,
             select: {
               id: true,
             },
@@ -501,7 +501,6 @@ export class VendorRepository {
         await this.prisma.businessLicense.createMany({
           data: businesess.map((item) => ({
             vendorVendorId: vendor.vendor.vendorId,
-
             mediaId: item.id,
           })),
         });
@@ -593,6 +592,34 @@ export class VendorRepository {
       });
 
       return { data: vendorServices, page, take, totalCount };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorServices(vendorId: number) {
+    try {
+      const vendorServices = await this.prisma.vendorService.findMany({
+        orderBy: {
+          service: {
+            serviceName: 'asc',
+          },
+        },
+        where: {
+          vendorId: vendorId,
+          isDeleted: false,
+        },
+        select: {
+          vendorServiceId: true,
+          service: {
+            select: {
+              serviceName: true,
+            },
+          },
+        },
+      });
+
+      return vendorServices;
     } catch (error) {
       throw error;
     }

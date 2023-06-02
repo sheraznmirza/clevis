@@ -7,7 +7,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Media } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { MediaFormat } from 'src/core/globalTypes';
 
@@ -16,6 +15,11 @@ class Articles {
   @IsNumber()
   @IsNotEmpty()
   allocatePriceId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  price: number;
 
   @ApiProperty()
   @IsNumber()
@@ -64,7 +68,7 @@ export class CreateBookingDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  date: string;
+  bookingDate: string;
 
   @ApiProperty()
   @IsNumber()
@@ -115,4 +119,9 @@ export class CreateBookingDto {
   @ValidateNested()
   @Type(() => LocationType)
   dropoffLocation: LocationType;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  totalPrice: number;
 }

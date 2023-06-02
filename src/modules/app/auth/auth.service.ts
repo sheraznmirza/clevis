@@ -32,6 +32,7 @@ import {
 } from './dto';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 import { companySchedule } from 'src/core/constants';
+import { decryptData, encryptData } from 'src/helpers/util.helper';
 
 @Injectable()
 export class AuthService {
@@ -89,6 +90,15 @@ export class AuthService {
           isEmailVerified: true,
           phone: true,
           userType: true,
+          isActive: true,
+          profilePicture: {
+            select: {
+              id: true,
+              name: true,
+              key: true,
+              location: true,
+            },
+          },
           customer: {
             select: {
               userAddress: {
@@ -216,6 +226,14 @@ export class AuthService {
                   data: companySchedule(),
                 },
               },
+              ...(dto.serviceType === ServiceType.LAUNDRY && {
+                deliverySchedule: {
+                  create: {
+                    deliveryItemMin: 1,
+                    deliveryItemMax: 5,
+                  },
+                },
+              }),
             },
           },
         },
@@ -479,29 +497,30 @@ export class AuthService {
       },
       select: {
         userMasterId: true,
-        profilePicture: {
-          select: {
-            key: true,
-            name: true,
-            id: true,
-          },
-        },
         email: true,
         isEmailVerified: true,
         phone: true,
         userType: true,
+        isActive: true,
         password: true,
+        profilePicture: {
+          select: {
+            id: true,
+            name: true,
+            key: true,
+            location: true,
+          },
+        },
         customer: {
           select: {
             userAddress: {
               select: {
                 userAddressId: true,
                 fullAddress: true,
-                isActive: true,
                 city: {
                   select: {
-                    cityId: true,
                     cityName: true,
+                    cityId: true,
                     State: {
                       select: {
                         stateId: true,
@@ -759,6 +778,7 @@ export class AuthService {
         },
         select: {
           email: true,
+          isDeleted: true,
           vendor: true,
           admin: true,
           customer: true,
@@ -766,6 +786,8 @@ export class AuthService {
           userType: true,
         },
       });
+
+      if (user.isDeleted) throw new NotFoundException('User does not exist.');
 
       const tokens = await this.signToken(
         previousRefreshToken.userMasterId,
@@ -797,8 +819,11 @@ export class AuthService {
         where: {
           email: data.email,
           userType: data.userType,
+          isDeleted: false,
         },
       });
+
+      if (!user) throw new NotFoundException('Email does not exist.');
 
       if (
         user.userType === data.userType &&
@@ -810,13 +835,11 @@ export class AuthService {
         );
       }
 
-      let randomOtp = Math.floor(Math.random() * 10000).toString();
-      for (let i = 0; i < 4 - randomOtp.length; i++) {
-        randomOtp = '0' + randomOtp;
-      }
-
-      if (!user) throw new NotFoundException('Email does not exist.');
-
+      // let randomOtp = Math.floor(Math.random() * 10000).toString();
+      // for (let i = 0; i < 4 - randomOtp.length; i++) {
+      //   randomOtp = '0' + randomOtp;
+      // }
+      const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
       await this.expireOtp(user.userMasterId);
 
       await this.prisma.otp.create({
@@ -829,10 +852,10 @@ export class AuthService {
       // await this.mail.sendResetPasswordEmail(data, randomOtp); umair
 
       const context = {
-        pp_name: this.config.get('APP_NAME'),
+        app_name: this.config.get('APP_NAME'),
         app_url: this.config.get(dynamicUrl(user.userType)),
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        randomOtp,
+        otp: randomOtp,
       };
       await this.mail.sendEmail(
         data.email,
@@ -880,7 +903,7 @@ export class AuthService {
         throw new RequestTimeoutException('OTP has already expired');
       }
 
-      const id = this.encryptData(otp.userMasterId.toString());
+      const id = encryptData(otp.userMasterId.toString());
 
       return {
         ...successResponse(200, 'OTP verified'),
@@ -892,7 +915,7 @@ export class AuthService {
   }
 
   async verifyEmail(id: string) {
-    const masterId: number = parseInt(this.decryptData(id));
+    const masterId: number = parseInt(decryptData(id));
     try {
       const user = await this.prisma.userMaster.findUnique({
         where: {
@@ -950,7 +973,7 @@ export class AuthService {
 
   async resetPassword(data: ResetPasswordDataDto) {
     try {
-      const id = parseInt(this.decryptData(data.userId));
+      const id = parseInt(decryptData(data.userId));
 
       const otp = await this.prisma.otp.findFirst({
         where: {
@@ -1045,7 +1068,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '365 days',
+        expiresIn: '5 days',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {
@@ -1082,7 +1105,7 @@ export class AuthService {
   async updatePassword(userId: number, password: string) {
     const hash = await argon.hash(password);
 
-    await this.prisma.userMaster.update({
+    const user = await this.prisma.userMaster.update({
       where: {
         userMasterId: userId,
       },
@@ -1090,6 +1113,8 @@ export class AuthService {
         password: hash,
       },
     });
+
+    return null;
   }
 
   async expireOtp(userId: number) {
@@ -1166,35 +1191,35 @@ export class AuthService {
   //   }
   // }
 
-  encryptData(data: string) {
-    const cipher = createCipheriv(
-      this.config.get('ALGORITHM'),
-      Buffer.from(this.config.get('KEY').slice(0, 32)),
-      this.config.get('IV'),
-    );
-    let encrypted = cipher.update(data);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return encrypted.toString('hex');
-  }
+  // encryptData(data: string) {
+  //   const cipher = createCipheriv(
+  //     this.config.get('ALGORITHM'),
+  //     Buffer.from(this.config.get('KEY')),
+  //     this.config.get('IV'),
+  //   );
+  //   let encrypted = cipher.update(data);
+  //   encrypted = Buffer.concat([encrypted, cipher.final()]);
+  //   return encrypted.toString('hex');
+  // }
 
-  decryptData(data: string) {
-    const ivString: string = this.config.get('IV');
-    const encryptedText = Buffer.from(data, 'hex');
+  // decryptData(data: string) {
+  //   const ivString: string = this.config.get('IV');
+  //   const encryptedText = Buffer.from(data, 'hex');
 
-    const decipher = createDecipheriv(
-      this.config.get('ALGORITHM'),
-      Buffer.from(this.config.get('KEY').slice(0, 32)),
-      ivString,
-    );
+  //   const decipher = createDecipheriv(
+  //     this.config.get('ALGORITHM'),
+  //     Buffer.from(this.config.get('KEY')),
+  //     ivString,
+  //   );
 
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
+  //   let decrypted = decipher.update(encryptedText);
+  //   decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-    return decrypted.toString();
-  }
+  //   return decrypted.toString();
+  // }
 
   async sendEncryptedDataToMail(user: any, userType: UserType) {
-    const encrypted = this.encryptData(user.userMasterId.toString());
+    const encrypted = encryptData(user.userMasterId.toString());
 
     const context = {
       app_name: this.config.get('APP_NAME'),

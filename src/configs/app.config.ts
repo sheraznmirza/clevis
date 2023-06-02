@@ -92,6 +92,19 @@ const AppConfig = {
   },
   TAP_PAYMENT: { CARD_TOKEN_CREATE: process.env.APP_TAP_TOKEN_CREATE },
   CHAT_SESSION: Number(process.env.APP_CHAT_SESSION_EXPIRATION),
+  TAP: {
+    BASE_URL: process.env.APP_TAP_BASE_URL,
+    AUTH_TOKEN: {
+      headers: {
+        Authorization: `Bearer ${process.env.APP_TAP_SECRET_KEY}`,
+      },
+    },
+  },
+  ENCRYPT: {
+    KEY: process.env.KEY,
+    IV: process.env.IV,
+    ALGORITHM: process.env.ALGORITHM,
+  },
 };
 
 export default AppConfig;
