@@ -238,7 +238,7 @@ export class VendorService {
       if (!deliverySchedule) {
         throw new BadRequestException('Unable to create this vendor service');
       }
-      return successResponse(201, 'Vendor service successfully created.');
+      return successResponse(201, 'Delivery Schedule successfully created.');
     } catch (error) {
       throw error;
     }

@@ -10,6 +10,7 @@ import {
   IsNotEmpty,
   IsEnum,
   ValidateNested,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -17,18 +18,6 @@ import { Days } from '@prisma/client';
 import { MediaFormat } from 'src/core/globalTypes';
 
 export class RiderUpdateDto {
-  @ApiProperty()
-  @IsEmail()
-  @IsOptional()
-  email: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @MinLength(6)
-  @MaxLength(50)
-  password: string;
-
   @ApiProperty()
   @IsString()
   @IsOptional()
@@ -117,6 +106,7 @@ export class RiderUpdateDto {
   @ApiProperty()
   @IsNumber()
   @IsOptional()
+  @Min(1)
   cityId: number;
 
   @ApiProperty()

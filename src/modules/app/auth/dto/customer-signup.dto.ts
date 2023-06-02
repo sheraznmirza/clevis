@@ -5,6 +5,7 @@ import {
   MaxLength,
   MinLength,
   IsNumber,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -34,5 +35,6 @@ export class CustomerSignUpDto {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
+  @Min(1)
   cityId: number;
 }

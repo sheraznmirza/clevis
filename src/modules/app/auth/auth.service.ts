@@ -844,7 +844,11 @@ export class AuthService {
 
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
-      return unknowError(417, error, 'Invalid');
+      return unknowError(
+        417,
+        error,
+        `The ${data.userType.toLowerCase()} has not been approved by admin yet`,
+      );
     }
   }
 

@@ -39,7 +39,7 @@ import {
 @Controller('vendor')
 export class VendorController {
   constructor(private vendorService: VendorService) {}
-  @Authorized(UserType.VENDOR)
+  @Authorized([UserType.VENDOR])
   @Get('me')
   getMe(@GetUser() user, @Query() query: VendorRiderByIdParams) {
     return this.vendorService.getVendorById(user.userMasterId, query);
@@ -88,7 +88,7 @@ export class VendorController {
     return this.vendorService.updateBusyStatusVendor(user.userTypeId, dto);
   }
 
-  @Authorized(UserType.VENDOR)
+  @Authorized([UserType.VENDOR])
   @HttpCode(HttpStatus.OK)
   @Patch('/me')
   updateMe(@GetUser() user, @Body() dto: UpdateVendorDto) {

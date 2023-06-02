@@ -2,6 +2,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
@@ -27,6 +28,7 @@ export class UpdateCustomerDto {
   @ApiProperty()
   @IsNumber()
   @IsOptional()
+  @Min(1)
   cityId: number;
 
   @ApiProperty({

@@ -17,8 +17,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { RoleCreateDto } from './dto';
 import { RoleService } from './role.service';
 import { blockParams } from 'handlebars';
-//   import { RouteService } from './route.service';
-//   import { RouteCreateDto } from './dto';
 
 @ApiTags('Role')
 @Controller('role')
@@ -32,19 +30,6 @@ export class RoleController {
     return this.roleService.createRole(data);
   }
 
-  //   @Authorized(UserType.ADMIN)
-  //   @Patch('/:id')
-  //   updateService(@Param('id') id: number, @Body() data: route) {
-  //     return this.routeService.updateService(id, data);
-  //   }
-
-  //   @Authorized(UserType.ADMIN)
-  //   @Get('/:id')
-  //   getService(@Param('id') id: number) {
-  //     return this.routeService.getService(id);
-  //   }
-
-  // @Authorized(UserType.ADMIN)
   @Get()
   getAllRoles() {
     return this.roleService.getAllRoles();
