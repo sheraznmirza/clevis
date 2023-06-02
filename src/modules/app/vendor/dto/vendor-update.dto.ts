@@ -1,7 +1,6 @@
 import {
   IsArray,
   IsBoolean,
-  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -11,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Days, Media } from '@prisma/client';
+import { Days } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { MediaFormat } from 'src/core/globalTypes';
 
@@ -71,16 +70,16 @@ export class UpdateVendorDto {
   @Type(() => MediaFormat)
   workspaceImages: MediaFormat[];
 
-  @ApiProperty({
-    isArray: true,
-    type: MediaFormat,
-    required: false,
-  })
-  @IsArray()
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => MediaFormat)
-  businessLicense: MediaFormat[];
+  // @ApiProperty({
+  //   isArray: true,
+  //   type: MediaFormat,
+  //   required: false,
+  // })
+  // @IsArray()
+  // @IsOptional()
+  // @ValidateNested()
+  // @Type(() => MediaFormat)
+  // businessLicense: MediaFormat[];
 
   @ApiProperty()
   @IsString()
@@ -117,10 +116,10 @@ export class UpdateVendorDto {
   @MaxLength(50)
   companyName: string;
 
-  @ApiProperty()
-  @IsEmail()
-  @IsOptional()
-  companyEmail: string;
+  // @ApiProperty()
+  // @IsEmail()
+  // @IsOptional()
+  // companyEmail: string;
 
   @ApiProperty()
   @IsOptional()

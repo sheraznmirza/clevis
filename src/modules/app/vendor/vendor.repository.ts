@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
+  UpdateRequestDto,
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
@@ -141,6 +142,42 @@ export class VendorRepository {
     }
   }
 
+  async requestUpdate(dto: UpdateRequestDto, vendorId: number) {
+    try {
+      const businesess = [];
+
+      if (dto.businessLicense) {
+        dto.businessLicense.forEach(async (business) => {
+          const result = await this.prisma.media.create({
+            data: business,
+            select: {
+              id: true,
+            },
+          });
+          businesess.push(result.id.toString());
+        });
+      }
+
+      const businessLicenseIds = businesess.join(',');
+
+      await this.prisma.updateApproval.create({
+        data: {
+          companyEmail:
+            dto.companyEmail !== null ? dto.companyEmail : undefined,
+          vendorId,
+          ...(businessLicenseIds && {
+            businessLicenseIds: businessLicenseIds,
+          }),
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ForbiddenException('Update request is already created');
+      }
+      throw error;
+    }
+  }
+
   async updateBusyStatusVendor(
     vendorId: number,
     dto: VendorUpdateBusyStatusDto,
@@ -201,19 +238,19 @@ export class VendorRepository {
         });
       }
 
-      const businesess = [];
+      // const businesess = [];
       const workspaces = [];
-      if (dto.businessLicense) {
-        dto.businessLicense.forEach(async (business) => {
-          const result = await this.prisma.media.create({
-            data: business,
-            select: {
-              id: true,
-            },
-          });
-          businesess.push(result);
-        });
-      }
+      // if (dto.businessLicense) {
+      //   dto.businessLicense.forEach(async (business) => {
+      //     const result = await this.prisma.media.create({
+      //       data: business,
+      //       select: {
+      //         id: true,
+      //       },
+      //     });
+      //     businesess.push(result);
+      //   });
+      // }
 
       if (dto.workspaceImages) {
         dto.workspaceImages.forEach(async (workspace) => {
@@ -282,8 +319,8 @@ export class VendorRepository {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
               companyName:
                 dto.companyName !== null ? dto.companyName : undefined,
-              companyEmail:
-                dto.companyEmail !== null ? dto.companyEmail : undefined,
+              // companyEmail:
+              //   dto.companyEmail !== null ? dto.companyEmail : undefined,
               logoId: logo ? logo.id : undefined,
 
               ...(dto.fullAddress &&
@@ -453,14 +490,14 @@ export class VendorRepository {
         },
       });
 
-      if (businesess.length > 0) {
-        await this.prisma.businessLicense.createMany({
-          data: businesess.map((item) => ({
-            vendorVendorId: vendor.vendor.vendorId,
-            mediaId: item.id,
-          })),
-        });
-      }
+      // if (businesess.length > 0) {
+      //   await this.prisma.businessLicense.createMany({
+      //     data: businesess.map((item) => ({
+      //       vendorVendorId: vendor.vendor.vendorId,
+      //       mediaId: item.id,
+      //     })),
+      //   });
+      // }
 
       if (workspaces.length > 0) {
         await this.prisma.workspaceImages.createMany({
@@ -1161,9 +1198,8 @@ export class VendorRepository {
         throw new BadRequestException(
           'The vendor with this vendorId does not exist',
         );
-      } else {
-        throw error;
       }
+      throw error;
     }
   }
 

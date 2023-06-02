@@ -169,6 +169,7 @@ model Vendor {
   companySchedule  CompanySchedule[]
   deliverySchedule DeliverySchedule?
   bookingMaster    BookingMaster[]
+  UpdateApproval   UpdateApproval[]
 }
 
 model Rider {
@@ -190,6 +191,7 @@ model Rider {
   banking         Banking[]
   companySchedule CompanySchedule[]
   Job             Job[]
+  UpdateApproval  UpdateApproval[]
 }
 
 model UserAddress {
@@ -545,4 +547,15 @@ model Job {
   jobType         JobType
   rider           Rider?         @relation(fields: [riderId], references: [riderId])
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+}
+
+model UpdateApproval {
+  id                 Int     @id @default(autoincrement())
+  companyEmail       String?
+  businessLicenseIds String?
+  vendorId           Int?
+  riderId            Int?
+  vendor             Vendor? @relation(fields: [vendorId], references: [vendorId])
+  rider              Rider?  @relation(fields: [riderId], references: [riderId])
+  status             Status  @default(PENDING)
 }

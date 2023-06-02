@@ -19,13 +19,17 @@ import { RatingModule } from './modules/app/ratingSetup/rating-setup.module';
 import { PlatformModule } from './modules/app/platformSetup/platform-setup.module';
 import { StatisticsModule } from './modules/app/statistics/statistics.module';
 import { BookingModule } from './modules/app/booking/booking.module';
+import { AdminModule } from './modules/app/admin/admin.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     NotificationModule,
     AuthModule,
+    AdminModule,
     CustomerModule,
+    VendorModule,
+    RiderModule,
     PrismaModule,
     ServiceModule,
     CategoryModule,
@@ -33,8 +37,6 @@ import { BookingModule } from './modules/app/booking/booking.module';
     MediaModule,
     MailModule,
     AddressModule,
-    VendorModule,
-    RiderModule,
     RoleModule,
     RoleRouteModule,
     RouteModule,

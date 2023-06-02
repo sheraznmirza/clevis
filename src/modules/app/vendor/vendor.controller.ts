@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  Req,
   UseGuards,
   Query,
   Delete,
@@ -23,6 +22,7 @@ import {
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
   VendorUpdateBusyStatusDto,
+  UpdateRequestDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
@@ -52,8 +52,14 @@ export class VendorController {
 
   @Authorized(UserType.VENDOR)
   @Post('/service')
-  createVendorService(@Body() dto: VendorCreateServiceDto, @Req() req) {
-    return this.vendorService.createVendorService(dto, req.user?.userMasterId);
+  createVendorService(@Body() dto: VendorCreateServiceDto, @GetUser() user) {
+    return this.vendorService.createVendorService(dto, user.userMasterId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Post('/reqeust-update')
+  requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user) {
+    return this.vendorService.requestUpdate(dto, user.userTypeId);
   }
 
   @Authorized(UserType.VENDOR)

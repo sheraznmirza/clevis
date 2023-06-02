@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import {
+  UpdateRequestDto,
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
@@ -44,6 +45,14 @@ export class VendorService {
         throw new BadRequestException('Unable to create this vendor service');
       }
       return successResponse(201, 'Vendor service successfully created.');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async requestUpdate(dto: UpdateRequestDto, vendorId: number) {
+    try {
+      return await this.repository.requestUpdate(dto, vendorId);
     } catch (error) {
       throw error;
     }
