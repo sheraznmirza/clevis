@@ -59,7 +59,7 @@ export class BookingRepository {
         dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
       }
 
-      let bookingDetailPrice: number[];
+      const bookingDetailPrice: number[] = [];
       for (let i = 0; i < dto.articles.length; i++) {
         const allocatePricePrice = await this.prisma.allocatePrice.findUnique({
           where: {
@@ -128,6 +128,8 @@ export class BookingRepository {
           })),
         });
       }
+
+      return successResponse(201, 'Booking created successfully.');
     } catch (error) {
       throw error;
     }
