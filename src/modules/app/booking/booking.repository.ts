@@ -8,6 +8,9 @@ import {
   UpdateBookingStatusParam,
   VendorGetBookingsDto,
 } from './dto';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 import { UserAddress } from '@prisma/client';
 
 @Injectable()
@@ -93,10 +96,12 @@ export class BookingRepository {
             dto.pickupLocation.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
-              pickupTimeFrom: dto.pickupLocation.timeFrom,
-              pickupTimeTo: dto.pickupLocation.timeTill,
-              dropoffTimeFrom: dto.dropoffLocation.timeFrom,
-              dropoffTimeTo: dto.dropoffLocation.timeTill,
+              pickupTimeFrom: dayjs(dto.pickupLocation.timeFrom).utc().format(),
+              pickupTimeTo: dayjs(dto.pickupLocation.timeTill).utc().format(),
+              dropoffTimeFrom: dayjs(dto.dropoffLocation.timeFrom)
+                .utc()
+                .format(),
+              dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
         },
         // select: {

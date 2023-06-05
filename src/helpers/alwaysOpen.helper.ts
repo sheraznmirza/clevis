@@ -1,6 +1,5 @@
 import { Days } from '@prisma/client';
 import dayjs from 'dayjs';
-// var utc = require('dayjs/plugin/utc')
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 import { VendorSchedule } from 'src/modules/app/vendor/dto';
@@ -14,11 +13,6 @@ type Schedule = {
 };
 
 export const setAlwaysOpen = (schedule: VendorSchedule[]): Schedule[] => {
-  // const startTime = new Date();
-  // const endTime = new Date();
-
-  // startTime.setHours(24, 0, 0);
-  // endTime.setHours(23, 59, 59);
   const startTime = '00:00';
   const endTime = '23:59';
 
@@ -38,11 +32,6 @@ export const setAlwaysOpen = (schedule: VendorSchedule[]): Schedule[] => {
 export const convertDateTimeToTimeString = (
   schedule: VendorSchedule[],
 ): Schedule[] => {
-  // const startTime = new Date();
-  // const endTime = new Date();
-
-  // startTime.setHours(24, 0, 0);
-  // endTime.setHours(23, 59, 59);
   const datefor = schedule.map((today) => {
     return {
       id: today.id,
