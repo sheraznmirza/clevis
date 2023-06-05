@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsDateString,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -15,11 +16,6 @@ class Articles {
   @IsNumber()
   @IsNotEmpty()
   allocatePriceId: number;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  price: number;
 
   @ApiProperty()
   @IsNumber()
@@ -54,12 +50,14 @@ class LocationType {
   longitude?: number;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
+  @IsDateString()
   @IsNotEmpty()
   timeFrom: string;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
+  @IsDateString()
   @IsNotEmpty()
   timeTill: string;
 }
@@ -106,7 +104,7 @@ export class CreateBookingDto {
     required: true,
     type: LocationType,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @ValidateNested()
   @Type(() => LocationType)
   pickupLocation: LocationType;
@@ -115,13 +113,8 @@ export class CreateBookingDto {
     required: true,
     type: LocationType,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @ValidateNested()
   @Type(() => LocationType)
   dropoffLocation: LocationType;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  totalPrice: number;
 }
