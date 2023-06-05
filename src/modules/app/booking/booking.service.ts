@@ -102,6 +102,15 @@ export class BookingService {
     }
   }
 
+  async getGoogleMaps() {
+    try {
+      const rawBookings = await this.repository.getGoogleMaps();
+      return rawBookings;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   //   async deleteCustomer(id: number) {
   //     try {
   //       return await this.repository.deleteCustomer(id);

@@ -36,10 +36,10 @@ export class RatingSetupController {
     return this.ratingSetup.updateRating(id, data);
   }
 
-  @Delete('/:ratingId')
-  deleteRating(@Param('ratingId') id: number) {
-    return this.ratingSetup.deleteRating(id);
-  }
+  // @Delete('/:ratingId')
+  // deleteRating(@Param('ratingId') id: number) {
+  //   return this.ratingSetup.deleteRating(id);
+  // }
 
   @Authorized(UserType.ADMIN)
   @Get()

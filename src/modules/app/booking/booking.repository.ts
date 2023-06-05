@@ -12,10 +12,16 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 import { UserAddress } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class BookingRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+    private httpService: HttpService,
+  ) {}
 
   async createBooking(customerId, dto: CreateBookingDto) {
     try {
@@ -88,12 +94,13 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           bookingDate: dto.bookingDate,
+          ...(dto.carNumberPlate && {
+            carNumberPlate: dto.carNumberPlate,
+          }),
           ...(dto.instructions && { instructions: dto.instructions }),
           totalPrice: totalPrice,
-          ...(dto.pickupLocation &&
-            dto.pickupLocation.timeFrom &&
-            dto.dropoffLocation &&
-            dto.pickupLocation.timeTill && {
+          ...(dto?.pickupLocation?.timeFrom &&
+            dto?.pickupLocation?.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
               pickupTimeFrom: dayjs(dto.pickupLocation.timeFrom).utc().format(),
@@ -634,6 +641,22 @@ export class BookingRepository {
         error,
         'The request was well-formed but was unable to be followed due to semantic errors',
       );
+    }
+  }
+
+  async getGoogleMaps() {
+    const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+    this;
+    const params = {
+      units: 'metric',
+      origins: '25.41414,45.5151',
+      destinations: '65.41414,25.5151',
+      key: this.config.get('GOOGLE_MAPS_API_KEY'),
+    };
+    try {
+      const response = await this.httpService.get(url, { params });
+    } catch (error) {
+      throw error;
     }
   }
 

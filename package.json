@@ -40,7 +40,9 @@
     "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/swagger": "^6.3.0",
+    "@onesignal/node-onesignal": "^2.0.0-beta1",
     "@prisma/client": "^4.14.0",
+    "@types/google.maps": "^3.53.2",
     "@types/multer": "^1.4.7",
     "argon2": "^0.30.3",
     "aws-sdk": "^2.1387.0",
@@ -54,14 +56,13 @@
     "morgan": "^1.10.0",
     "nestjs-translator": "^0.0.6",
     "nodemailer": "^6.9.1",
+    "onesignal-node": "^3.4.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "swagger-ui-express": "^4.6.2",
-    "uuid": "^9.0.0",
-    "@onesignal/node-onesignal": "^2.0.0-beta1",
-    "onesignal-node": "^3.4.0"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

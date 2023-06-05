@@ -71,6 +71,14 @@ export class AuthService {
           password,
           phone: dto.phone,
           roleId: roleId,
+          ...(dto.playerId && {
+            device: {
+              create: {
+                playerId: dto.playerId,
+                type: dto.deviceType,
+              },
+            },
+          }),
           customer: {
             create: {
               email: dto.email,
@@ -191,13 +199,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.VENDOR,
           roleId: roleId,
-          // profilePicture: {
-          //   create: {
-          //     location: dto.logo.location,
-          //     key: dto.logo.key,
-          //     name: dto.logo.name,
-          //   },
-          // },
+          ...(dto.playerId && {
+            device: {
+              create: {
+                playerId: dto.playerId,
+              },
+            },
+          }),
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -343,6 +351,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.RIDER,
           roleId: roleId,
+          ...(dto.playerId && {
+            device: {
+              create: {
+                playerId: dto.playerId,
+              },
+            },
+          }),
           rider: {
             create: {
               fullName: dto.fullName,
@@ -451,6 +466,11 @@ export class AuthService {
         phone: true,
         userType: true,
         password: true,
+        device: {
+          select: {
+            playerId: true,
+          },
+        },
         admin: {
           select: {
             // userAddress: {
@@ -470,6 +490,21 @@ export class AuthService {
     });
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
+
+    if (dto.playerId) {
+      const index = user.device.findIndex((item) => {
+        return dto.playerId === item.playerId;
+      });
+
+      if (index < 0) {
+        await this.prisma.device.create({
+          data: {
+            playerId: dto.playerId,
+            userMasterId: user.userMasterId,
+          },
+        });
+      }
+    }
 
     const pwMatches = await argon.verify(user.password, dto.password);
 

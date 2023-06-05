@@ -42,21 +42,21 @@ export class RatingSetupService {
     }
   }
 
-  async deleteRating(id: number) {
-    try {
-      await this.prisma.ratingSetup.update({
-        where: {
-          id: id,
-        },
-        data: {
-          isDeleted: true,
-        },
-      });
-      return successResponse(200, 'platform Successfully deleted');
-    } catch (error) {
-      throw error;
-    }
-  }
+  // async deleteRating(id: number) {
+  //   try {
+  //     await this.prisma.ratingSetup.update({
+  //       where: {
+  //         id: id,
+  //       },
+  //       data: {
+  //         isDeleted: true,
+  //       },
+  //     });
+  //     return successResponse(200, 'platform Successfully deleted');
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   async createRating(data: RatingSetupDto) {
     try {

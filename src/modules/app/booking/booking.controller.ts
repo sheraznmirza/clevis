@@ -79,4 +79,10 @@ export class BookingController {
   getAdminBookings(@Query() dto: AdminGetBookingsDto) {
     return this.bookingService.getAdminBookings(dto);
   }
+
+  @Authorized(UserType.ADMIN)
+  @Get('google-maps')
+  getBookingGoogleMaps() {
+    return this.bookingService.getGoogleMaps();
+  }
 }

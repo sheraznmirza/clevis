@@ -115,4 +115,9 @@ export class CreateBookingDto {
   @ValidateNested()
   @Type(() => LocationType)
   dropoffLocation: LocationType;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  carNumberPlate: string;
 }
