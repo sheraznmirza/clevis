@@ -448,6 +448,7 @@ export class BookingRepository {
                   },
                   vendorService: {
                     select: {
+                      service: true,
                       serviceImage: {
                         select: {
                           media: {
