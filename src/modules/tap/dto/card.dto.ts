@@ -1,10 +1,16 @@
 import MediaType from '@prisma/client';
+import { String } from 'aws-sdk/clients/acm';
+import { Boolean } from 'aws-sdk/clients/appstream';
+import { string1To1000 } from 'aws-sdk/clients/customerprofiles';
+import { stringValue } from 'aws-sdk/clients/iot';
 
 export interface createNewCardTokenInterface {
-  cardNumber: string;
-  expiryMonth: number;
-  expiryYear: number;
-  cvv: number;
+  card: {
+    cardNumber: string;
+    expiryMonth: number;
+    expiryYear: number;
+    cvv: number;
+  };
 }
 
 export interface createTokenForSavedCardInterface {
@@ -15,7 +21,7 @@ export interface createTokenForSavedCardInterface {
   client_ip?: string;
 }
 
-export interface createNewCardResponseInterface {
+export interface createNewCardResponse {
   id: string;
   created: number;
   object: string;
@@ -41,6 +47,35 @@ export interface createNewCardResponseInterface {
   };
 }
 
+export interface createTokenForSavedCardResponse {
+  id: string;
+  created: number;
+  object: string;
+  live_mode: boolean;
+  type: string;
+  used: Boolean;
+  card: {
+    id: string;
+    object: string;
+    address?: {};
+    customer: string;
+    funding: string;
+    fingerprint: string;
+    brand: string;
+    scheme: string;
+    name: string;
+    issuer: {
+      bank: string;
+      country: string;
+      id: string;
+    };
+    exp_month: number;
+    exp_year: number;
+    last_four: string;
+    first_six: string;
+  };
+}
+
 export interface createCustomerRequestInterface {
   first_name: string;
   middle_name?: string;
@@ -54,12 +89,33 @@ export interface createCustomerRequestInterface {
   currency?: string;
 }
 
+export interface createCustomerResponse {
+  object: string;
+  live_mode: boolean;
+  created: string;
+  merchant_id?: string;
+  description?: string;
+  metadata?: {
+    udf1: string;
+  };
+  currency: string;
+  id: string;
+  first_name: string;
+  middle_name?: string;
+  last_name?: String;
+  email: string;
+  phone?: {
+    country_code: string;
+    number: string;
+  };
+}
+
 export interface createAuthorizedRequestInterface {
   amount: number;
   currency: string;
   threeDSecure: boolean;
   save_card?: boolean;
-  statement_descriptor: string;
+  statement_descriptor?: string;
   reference: {
     transaction: string;
     order: string;
@@ -85,55 +141,23 @@ export interface createAuthorizedRequestInterface {
     type: string;
     time: number;
   };
-  post: {
-    url: string;
-  };
-  redirect: {
-    url: string;
-  };
 }
 
 export interface createBusinessRequestInterface {
   name: {
     en: string;
-    ar: string;
   };
   type: string;
   entity: {
     legal_name: {
       en: string;
-      ar: string;
     };
-    is_licensed: string;
-    license: {
-      type: string;
-      number: string;
-    };
-    not_for_profit: boolean;
     country: string;
-    tax_number: string;
-    bank_account: {
-      iban: string;
-      swift_code: string;
-      account_number: string;
-    };
-    billing_address: {
-      recipient_name: string;
-      address_1: string;
-      address_2: string;
-      po_box: string;
-      district: string;
-      city: string;
-      state: string;
-      zip_code: string;
-      country: string;
-    };
   };
   contact_person: {
     name: {
       title: string;
       first: string;
-      middle: string;
       last: string;
     };
     contact_info: {
@@ -145,28 +169,139 @@ export interface createBusinessRequestInterface {
         };
       };
     };
-    nationality: string;
-    date_of_birth: string;
     is_authorized: boolean;
     authorization: {
       name: {
         title: string;
-        first: string;
-        middle: string;
-        last: string;
       };
-      type: string;
-      issuing_country: string;
-      issuing_date: string;
-      expiry_date: string;
+    };
+    identification: [
+      {
+        name: {
+          title: string;
+        };
+        files?: any;
+      },
+    ];
+  };
+  brands: [
+    {
+      name: {
+        en: string;
+        ar: string;
+      };
+    },
+  ];
+}
+
+export interface createBusniessResponse {
+  id: string;
+  status: string;
+  created: number;
+  object: string;
+  live_mode: boolean;
+  api_version: string;
+  feature_version: string;
+  name: {
+    en: string;
+  };
+  type: string;
+  brands: [
+    {
+      id: string;
+      status: string;
+      created: number;
+      name: {
+        ar: string;
+        en: string1To1000;
+      };
+    },
+  ];
+  entity: {
+    id: string;
+    status: string;
+    created: number;
+    legal_name: {
+      en: string;
+    };
+    country: string;
+    taxable: boolean;
+    wallets: [
+      {
+        id: string;
+        status: string;
+        created: number;
+        base_currency: string;
+        country: string;
+        primary_wallet: boolean;
+        is_merchant: boolean;
+        is_non_resident: boolean;
+      },
+    ];
+    branches: [
+      {
+        id: string;
+        created: number;
+        virtual: boolean;
+        brands: [string];
+      },
+    ];
+    operator: {
+      id: string;
+      status: string;
+      created: number;
+      name: string;
+      developer_id: string;
+      is_merchant: boolean;
+      api_credentials: {
+        test: {
+          secret: string;
+          public: string;
+        };
+      };
     };
   };
-  post: {
-    url: string;
+  user: {
+    id: string;
+    status: string;
+    created: number;
+    name: {
+      title: string;
+      first: string;
+      last: string;
+    };
+    contact_info: {
+      primary: {
+        email: string;
+        phone: {
+          country_code: string;
+          number: string;
+        };
+      };
+    };
+    authorization: {
+      id: string;
+      status: string;
+      created: number;
+      name: {
+        title: string;
+      };
+    };
+    identification: [
+      {
+        id: string;
+        status: string;
+        created: number;
+        name: {
+          title: stringValue;
+        };
+        files: [];
+      },
+    ];
+    is_authorized: boolean;
+    is_verified: boolean;
   };
-  metadata: {
-    mtd: string;
-  };
+  destination_id: string;
 }
 
 export interface createMerchantRequestInterface {
@@ -181,4 +316,23 @@ export interface createMerchantRequestInterface {
     iban: string;
   };
   settlement_by: string;
+}
+
+export interface createChargeRequestInterface {
+  amount: number;
+  currency: string;
+  customer_initiated: boolean;
+  threeDSecure: boolean;
+  save_card: boolean;
+  description?: string;
+  reference?: { transaction: string; order: string };
+  receipt?: { email: boolean; sms: boolean };
+  customer?: {
+    first_name?: string;
+    middle_name?: string;
+    last_name?: string;
+    email?: string;
+    phone?: { country_code: number; number: number };
+  };
+  source: { id: string };
 }

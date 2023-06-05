@@ -99,6 +99,11 @@ const AppConfig = {
         Authorization: `Bearer ${process.env.APP_TAP_SECRET_KEY}`,
       },
     },
+    AUTH_TOKEN_MARKETPLACE: {
+      headers: {
+        Authorization: `Bearer ${process.env.APP_TAP_SECRET_KEY_MARKETPLACE}`,
+      },
+    },
   },
   ENCRYPT: {
     KEY: process.env.KEY,

@@ -143,6 +143,7 @@ model Customer {
   userMasterId  Int             @unique
   userMaster    UserMaster      @relation(fields: userMasterId, references: userMasterId)
   fullName      String
+  status        Status?         @default(APPROVED)
   userAddress   UserAddress[]
   bookingMaster BookingMaster[]
   customerCards CustomerCards[]
@@ -196,6 +197,7 @@ model Rider {
 model UserAddress {
   userAddressId   Int             @id @default(autoincrement())
   fullAddress     String?
+  title           String?
   city            City?           @relation(fields: [cityId], references: [cityId])
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @default(now()) @updatedAt
@@ -549,20 +551,20 @@ model Job {
 }
 
 model CustomerCards {
-  customerCardId Int @id @default(autoincrement())
-  customerId Int
-  tapCardId Int @unique
-  cardNumber String?
-  fingerprint3D String?
-  firstSixDigit String?
-  lastFourDigit String?
-  bankName String?
-  bankId String?
-  brand String?
-  funding String?
-  schee String?
-  isDeleted          Boolean              @default(false)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @default(now()) @updatedAt
-  customer Customer @relation(fields: [customerId],references: [customerId])
+  customerCardId Int      @id @default(autoincrement())
+  customerId     Int
+  tapCardId      Int      @unique
+  cardNumber     String?
+  fingerprint3D  String?
+  firstSixDigit  String?
+  lastFourDigit  String?
+  bankName       String?
+  bankId         String?
+  brand          String?
+  funding        String?
+  schee          String?
+  isDeleted      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+  customer       Customer @relation(fields: [customerId], references: [customerId])
 }

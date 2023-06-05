@@ -3,83 +3,78 @@ import { Injectable } from '@nestjs/common';
 import {
   createAuthorizedRequestInterface,
   createBusinessRequestInterface,
+  createChargeRequestInterface,
   createCustomerRequestInterface,
+  createCustomerResponse,
   createMerchantRequestInterface,
-  createNewCardResponseInterface,
+  createNewCardResponse,
   createNewCardTokenInterface,
   createTokenForSavedCardInterface,
+  createTokenForSavedCardResponse,
 } from './dto/card.dto';
-import { Observable, map } from 'rxjs';
+import { Observable, firstValueFrom, map, race } from 'rxjs';
 import AppConfig from 'src/configs/app.config';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class TapService {
   constructor(private httpService: HttpService) {}
 
-  async getFreshTokenForCardSave(card: createNewCardTokenInterface) {
-    const result = this.httpService
-      .post(
-        AppConfig.TAP.BASE_URL.concat('tokens'),
-        card,
-        AppConfig.TAP.AUTH_TOKEN,
-      )
-      .pipe(map((response) => response.data));
+  async getFreshTokenForCardSave(
+    card: createNewCardTokenInterface,
+  ): Promise<createNewCardResponse> {
+    const result = await this.tapPaymentApi(card, 'tokens');
     return result;
   }
 
-  async getTokenForSavedCard(card: createTokenForSavedCardInterface) {
-    const result = this.httpService
-      .post(
-        AppConfig.TAP.BASE_URL.concat('tokens'),
-        card,
-        AppConfig.TAP.AUTH_TOKEN,
-      )
-      .pipe(map((response) => response.data));
+  async getTokenForSavedCard(
+    card: createTokenForSavedCardInterface,
+  ): Promise<createTokenForSavedCardResponse> {
+    const result = await this.tapPaymentApi(card, 'tokens');
     return result;
   }
 
-  async createCustomer(card: createCustomerRequestInterface) {
-    const result = this.httpService
-      .post(
-        AppConfig.TAP.BASE_URL.concat('customers'),
-        card,
-        AppConfig.TAP.AUTH_TOKEN,
-      )
-      .pipe(map((response) => response.data));
-    return result;
-  }
-  ///////////////
-
-  async createAuthorizeForCustomer(card: createAuthorizedRequestInterface) {
-    const result = this.httpService
-      .post(
-        AppConfig.TAP.BASE_URL.concat('authorize'),
-        card,
-        AppConfig.TAP.AUTH_TOKEN,
-      )
-      .pipe(map((response) => response.data));
+  async createCustomer(
+    card: createCustomerRequestInterface,
+  ): Promise<createCustomerResponse> {
+    const result = await this.tapPaymentApi(card, 'customers');
     return result;
   }
 
-  async createAuthorizeForBusniess(card: createBusinessRequestInterface) {
-    const result = this.httpService
-      .post(
-        AppConfig.TAP.BASE_URL.concat('busniess'),
-        card,
-        AppConfig.TAP.AUTH_TOKEN,
-      )
-      .pipe(map((response) => response.data));
+  async createAuthorize(card: createAuthorizedRequestInterface) {
+    const result = await this.tapPaymentApi(card, 'authorize');
     return result;
   }
 
-  async createAuthorizeForMerchant(card: createMerchantRequestInterface) {
-    const result = this.httpService
-      .post(
-        AppConfig.TAP.BASE_URL.concat('merchant'),
-        card,
-        AppConfig.TAP.AUTH_TOKEN,
-      )
-      .pipe(map((response) => response.data));
+  async createBusniess(card: createBusinessRequestInterface) {
+    const result = await this.tapPaymentApi(card, 'busniess', true);
     return result;
+  }
+
+  async createMerchant(card: createMerchantRequestInterface) {
+    const result = await this.tapPaymentApi(card, 'merchant');
+    return result;
+  }
+
+  async createCharge(card: createChargeRequestInterface) {
+    const result = await this.tapPaymentApi(card, 'charges');
+    return result;
+  }
+
+  tapPaymentApi(
+    payload: any,
+    url: string,
+    isMarket: boolean = false,
+  ): Promise<any> {
+    return this.httpService
+      .post(
+        AppConfig.TAP.BASE_URL.concat(url),
+        payload,
+        isMarket
+          ? AppConfig.TAP.AUTH_TOKEN_MARKETPLACE
+          : AppConfig.TAP.AUTH_TOKEN,
+      )
+      .pipe(map((response: AxiosResponse<any>) => response.data))
+      .toPromise();
   }
 }
