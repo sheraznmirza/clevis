@@ -354,6 +354,9 @@ export class BookingRepository {
           bookingDate: true,
           status: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       const totalCount = await this.prisma.bookingMaster.count({
