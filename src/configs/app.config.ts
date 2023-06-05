@@ -49,6 +49,13 @@ const AppConfig = {
       APP_KEY: process.env.APP_ONE_SIGNAL_APP_KEY || '',
       USER_KEY: process.env.APP_ONE_SIGNAL_USER_KEY || '',
       APP_ID: process.env.APP_ONE_SIGNAL_APP_ID || '',
+    GOOGLE: {
+      FIREBASE_PROJECT_ID: process.env.APP_FIREBASE_PROJECT_ID,
+      FIREBASE_PRIVATE_KEY: process.env.APP_FIREBASE_PRIVATE_KEY?.replace(
+        /\\n/gm,
+        '\n',
+      ),
+      FIREBASE_CLIENT_EMAIL: process.env.APP_FIREBASE_CLIENT_EMAIL,
     },
   },
   E_SIGNATURE: {
@@ -65,14 +72,14 @@ const AppConfig = {
   IN_APP_PURCHASE: {
     GOOGLE: {
       IAP_GOOGLE_EMAIL: process.env.APP_IAP_GOOGLE_EMAIL,
-      IAP_GOOGLE_SECRET_KEY: process.env.APP_IAP_GOOGLE_SECRET_KEY.replace(
+      IAP_GOOGLE_SECRET_KEY: process.env.APP_IAP_GOOGLE_SECRET_KEY?.replace(
         /\\n/gm,
         '\n',
       ),
       IAP_ANDROID_PACKAGE_NAME: process.env.APP_IAP_ANDROID_PACKAGE_NAME,
     },
     APPLE: {
-      IAP_APPLE_SECRET_KEY: process.env.APP_IAP_APPLE_SECRET_KEY.replace(
+      IAP_APPLE_SECRET_KEY: process.env.APP_IAP_APPLE_SECRET_KEY?.replace(
         /\\n/gm,
         '\n',
       ),
@@ -94,6 +101,19 @@ const AppConfig = {
     },
   },
   CHAT_SESSION: Number(process.env.APP_CHAT_SESSION_EXPIRATION),
+  TAP: {
+    BASE_URL: process.env.APP_TAP_BASE_URL,
+    AUTH_TOKEN: {
+      headers: {
+        Authorization: `Bearer ${process.env.APP_TAP_SECRET_KEY}`,
+      },
+    },
+  },
+  ENCRYPT: {
+    KEY: process.env.KEY,
+    IV: process.env.IV,
+    ALGORITHM: process.env.ALGORITHM,
+  },
 };
 
 export default AppConfig;

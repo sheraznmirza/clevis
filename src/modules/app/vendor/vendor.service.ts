@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import {
   UpdateRequestDto,
+  CreateAndUpdateDeliverySchedule,
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
@@ -198,6 +199,8 @@ export class VendorService {
             return await this.repository.getVendorByIdAccount(id);
           case RiderVendorTabs.COMPANY_SCHEDULE:
             return await this.repository.getVendorByIdSchedule(id);
+          case RiderVendorTabs.DELIVERY_SCHEDULE:
+            return await this.repository.getDeliverySchedule(id);
           default:
             return await this.repository.getVendorById(id);
         }
@@ -239,4 +242,41 @@ export class VendorService {
       throw error;
     }
   }
+
+  async createDeliverySchedule(
+    dto: CreateAndUpdateDeliverySchedule,
+    vendorId: number,
+  ) {
+    try {
+      const deliverySchedule = await this.repository.createDeliverySchedule(
+        dto,
+        vendorId,
+      );
+      if (!deliverySchedule) {
+        throw new BadRequestException('Unable to create this vendor service');
+      }
+      return successResponse(201, 'Vendor service successfully created.');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deliveryScheduleUpdate(
+    vendorId: number,
+    dto: CreateAndUpdateDeliverySchedule,
+  ) {
+    try {
+      return await this.repository.deliveryScheduleUpdate(vendorId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // async getDeliverySchedule(vendorId: number) {
+  //   try {
+  //     return await this.repository.getDeliverySchedule(vendorId);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 }

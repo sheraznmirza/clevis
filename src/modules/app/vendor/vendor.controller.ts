@@ -18,6 +18,7 @@ import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import {
+  CreateAndUpdateDeliverySchedule,
   UpdateVendorDto,
   UpdateVendorScheduleDto,
   VendorCreateServiceDto,
@@ -158,4 +159,45 @@ export class VendorController {
   deleteVendorService(@Param('vendorServiceId') vendorServiceId: number) {
     return this.vendorService.deleteVendorService(vendorServiceId);
   }
+
+  @Authorized(UserType.VENDOR)
+  @Post('/delivery-schedule')
+  createDeliverySchedule(
+    @Body() dto: CreateAndUpdateDeliverySchedule,
+    @GetUser() user,
+  ) {
+    return this.vendorService.createDeliverySchedule(dto, user.userTypeId);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/delivery/byId/:vendorId')
+  deliveryScheduleAdminUpdate(
+    @Param('vendorId') vendorId: number,
+    @Body() dto: CreateAndUpdateDeliverySchedule,
+  ) {
+    return this.vendorService.deliveryScheduleUpdate(vendorId, dto);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @HttpCode(HttpStatus.OK)
+  @Patch('/delivery')
+  deliveryScheduleVendorUpdate(
+    @GetUser() user,
+    @Body() dto: CreateAndUpdateDeliverySchedule,
+  ) {
+    return this.vendorService.deliveryScheduleUpdate(user.userTypeId, dto);
+  }
+
+  // @Authorized(UserType.VENDOR)
+  // @Get('/deliverySchedule/:vendorId')
+  // getVendorDeliverySchedule(@GetUser() user) {
+  //   return this.vendorService.getDeliverySchedule(user.userTypeId);
+  // }
+
+  // @Authorized(UserType.ADMIN)
+  // @Get('/deliverySchedule/:vendorId')
+  // getDeliveryScheduleByVendorId(@Param('vendorId') vendorId: number) {
+  //   return this.vendorService.getDeliverySchedule(vendorId);
+  // }
 }

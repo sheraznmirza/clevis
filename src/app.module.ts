@@ -20,6 +20,8 @@ import { PlatformModule } from './modules/app/platformSetup/platform-setup.modul
 import { StatisticsModule } from './modules/app/statistics/statistics.module';
 import { BookingModule } from './modules/app/booking/booking.module';
 import { AdminModule } from './modules/app/admin/admin.module';
+import { S3Module } from './modules/s3/s3.module';
+import { TapModule } from './modules/tap/tap.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { AdminModule } from './modules/app/admin/admin.module';
     PlatformModule,
     StatisticsModule,
     BookingModule,
+    S3Module,
+    TapModule,
     // DatabaseModule,
   ],
 })

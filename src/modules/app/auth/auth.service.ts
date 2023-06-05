@@ -32,6 +32,7 @@ import {
 } from './dto';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 import { companySchedule } from 'src/core/constants';
+import { decryptData, encryptData } from 'src/helpers/util.helper';
 
 @Injectable()
 export class AuthService {
@@ -39,9 +40,8 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
-    private mail: MailService,
-  ) // private notification: NotificationService,
-  {}
+    private mail: MailService, // private notification: NotificationService,
+  ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
     //  generate the password hash
@@ -898,7 +898,7 @@ export class AuthService {
         throw new RequestTimeoutException('OTP has already expired');
       }
 
-      const id = this.encryptData(otp.userMasterId.toString());
+      const id = encryptData(otp.userMasterId.toString());
 
       return {
         ...successResponse(200, 'OTP verified'),
@@ -910,7 +910,7 @@ export class AuthService {
   }
 
   async verifyEmail(id: string) {
-    const masterId: number = parseInt(this.decryptData(id));
+    const masterId: number = parseInt(decryptData(id));
     try {
       const user = await this.prisma.userMaster.findUnique({
         where: {
@@ -968,7 +968,7 @@ export class AuthService {
 
   async resetPassword(data: ResetPasswordDataDto) {
     try {
-      const id = parseInt(this.decryptData(data.userId));
+      const id = parseInt(decryptData(data.userId));
 
       const otp = await this.prisma.otp.findFirst({
         where: {
@@ -1063,7 +1063,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '2 days',
+        expiresIn: '5 days',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {
@@ -1186,35 +1186,35 @@ export class AuthService {
   //   }
   // }
 
-  encryptData(data: string) {
-    const cipher = createCipheriv(
-      this.config.get('ALGORITHM'),
-      Buffer.from(this.config.get('KEY').slice(0, 32)),
-      this.config.get('IV'),
-    );
-    let encrypted = cipher.update(data);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return encrypted.toString('hex');
-  }
+  // encryptData(data: string) {
+  //   const cipher = createCipheriv(
+  //     this.config.get('ALGORITHM'),
+  //     Buffer.from(this.config.get('KEY')),
+  //     this.config.get('IV'),
+  //   );
+  //   let encrypted = cipher.update(data);
+  //   encrypted = Buffer.concat([encrypted, cipher.final()]);
+  //   return encrypted.toString('hex');
+  // }
 
-  decryptData(data: string) {
-    const ivString: string = this.config.get('IV');
-    const encryptedText = Buffer.from(data, 'hex');
+  // decryptData(data: string) {
+  //   const ivString: string = this.config.get('IV');
+  //   const encryptedText = Buffer.from(data, 'hex');
 
-    const decipher = createDecipheriv(
-      this.config.get('ALGORITHM'),
-      Buffer.from(this.config.get('KEY').slice(0, 32)),
-      ivString,
-    );
+  //   const decipher = createDecipheriv(
+  //     this.config.get('ALGORITHM'),
+  //     Buffer.from(this.config.get('KEY')),
+  //     ivString,
+  //   );
 
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
+  //   let decrypted = decipher.update(encryptedText);
+  //   decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-    return decrypted.toString();
-  }
+  //   return decrypted.toString();
+  // }
 
   async sendEncryptedDataToMail(user: any, userType: UserType) {
-    const encrypted = this.encryptData(user.userMasterId.toString());
+    const encrypted = encryptData(user.userMasterId.toString());
 
     const context = {
       app_name: this.config.get('APP_NAME'),

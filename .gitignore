@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /public/files
+/prisma/migrations
 
 # Logs
 logs
@@ -38,3 +39,4 @@ lerna-debug.log*
 #docker
 docker-compose.yml
 yarn.lock
+.env

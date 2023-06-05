@@ -8,6 +8,9 @@ import {
   UpdateBookingStatusParam,
   VendorGetBookingsDto,
 } from './dto';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 import { UserAddress } from '@prisma/client';
 
 @Injectable()
@@ -33,7 +36,7 @@ export class BookingRepository {
         });
       }
 
-      if (!dto.pickupLocation.userAddressId) {
+      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
         pickupLocationId = await this.prisma.userAddress.create({
           data: {
             latitude: dto.pickupLocation.latitude,
@@ -46,7 +49,7 @@ export class BookingRepository {
         dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
       }
 
-      if (!dto.dropoffLocation.userAddressId) {
+      if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
         dropoffLocationId = await this.prisma.userAddress.create({
           data: {
             latitude: dto.dropoffLocation.latitude,
@@ -59,21 +62,46 @@ export class BookingRepository {
         dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
       }
 
+      const bookingDetailPrice: number[] = [];
+      for (let i = 0; i < dto.articles.length; i++) {
+        const allocatePricePrice = await this.prisma.allocatePrice.findUnique({
+          where: {
+            id: dto.articles[i].allocatePriceId,
+          },
+          select: {
+            price: true,
+          },
+        });
+
+        bookingDetailPrice.push(
+          dto.articles[i].quantity * allocatePricePrice.price,
+        );
+      }
+
+      let totalPrice = 0;
+      for (let i = 0; i < dto.articles.length; i++) {
+        totalPrice += bookingDetailPrice[i];
+      }
+
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
           vendorId: dto.vendorId,
           bookingDate: dto.bookingDate,
           ...(dto.instructions && { instructions: dto.instructions }),
-          totalPrice: dto.totalPrice,
-          ...(dto.pickupLocation.timeFrom &&
+          totalPrice: totalPrice,
+          ...(dto.pickupLocation &&
+            dto.pickupLocation.timeFrom &&
+            dto.dropoffLocation &&
             dto.pickupLocation.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
-              pickupTimeFrom: dto.pickupLocation.timeFrom,
-              pickupTimeTo: dto.pickupLocation.timeTill,
-              dropoffTimeFrom: dto.dropoffLocation.timeFrom,
-              dropoffTimeTo: dto.dropoffLocation.timeTill,
+              pickupTimeFrom: dayjs(dto.pickupLocation.timeFrom).utc().format(),
+              pickupTimeTo: dayjs(dto.pickupLocation.timeTill).utc().format(),
+              dropoffTimeFrom: dayjs(dto.dropoffLocation.timeFrom)
+                .utc()
+                .format(),
+              dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
         },
         // select: {
@@ -81,11 +109,18 @@ export class BookingRepository {
         // }
       });
 
+      // const bookingDetailPrice = dto.articles.map(async (bookingDetail) => {
+
+      // })
+
       await this.prisma.bookingDetail.createMany({
-        data: dto.articles.map((bookingDetail) => ({
+        data: dto.articles.map((bookingDetail, index) => ({
           bookingMasterId: bookingMaster.bookingMasterId,
           allocatePriceId: bookingDetail.allocatePriceId,
-          price: bookingDetail.price,
+          price:
+            bookingDetailPrice && bookingDetailPrice.length > 0
+              ? bookingDetailPrice[index]
+              : 1,
           quantity: bookingDetail.quantity,
         })),
       });
@@ -98,6 +133,8 @@ export class BookingRepository {
           })),
         });
       }
+
+      return successResponse(201, 'Booking created successfully.');
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('Vendor does not exist');
@@ -320,6 +357,9 @@ export class BookingRepository {
           bookingDate: true,
           status: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       const totalCount = await this.prisma.bookingMaster.count({
@@ -419,6 +459,7 @@ export class BookingRepository {
                   },
                   vendorService: {
                     select: {
+                      service: true,
                       serviceImage: {
                         select: {
                           media: {
@@ -479,7 +520,10 @@ export class BookingRepository {
           status: dto.bookingStatus,
         },
       });
-      successResponse(200, `Booking status changed to ${dto.bookingStatus}`);
+      return successResponse(
+        200,
+        `Booking status changed to ${dto.bookingStatus}`,
+      );
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
