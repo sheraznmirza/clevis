@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsDateString,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -49,12 +50,14 @@ class LocationType {
   longitude?: number;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
+  @IsDateString()
   @IsNotEmpty()
   timeFrom: string;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
+  @IsDateString()
   @IsNotEmpty()
   timeTill: string;
 }
