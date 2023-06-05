@@ -17,6 +17,7 @@ import { Authorized } from '../../../core/decorators';
 import { UserType } from '@prisma/client';
 import {
   AdminGetBookingsDto,
+  BookingDetailsDto,
   CreateBookingDto,
   CustomerGetBookingsDto,
   UpdateBookingStatusParam,
@@ -81,8 +82,8 @@ export class BookingController {
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('google-maps')
-  getBookingGoogleMaps() {
-    return this.bookingService.getGoogleMaps();
+  @Post('details')
+  getBookingDetails(@Body() dto: BookingDetailsDto) {
+    return this.bookingService.getBookingDetails(dto);
   }
 }

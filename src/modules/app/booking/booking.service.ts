@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BookingRepository } from './booking.repository';
 import {
   AdminGetBookingsDto,
+  BookingDetailsDto,
   CreateBookingDto,
   CustomerGetBookingsDto,
   UpdateBookingStatusParam,
@@ -102,10 +103,9 @@ export class BookingService {
     }
   }
 
-  async getGoogleMaps() {
+  async getBookingDetails(dto: BookingDetailsDto) {
     try {
-      const rawBookings = await this.repository.getGoogleMaps();
-      return rawBookings;
+      return await this.repository.getBookingDetails(dto);
     } catch (error) {
       throw error;
     }

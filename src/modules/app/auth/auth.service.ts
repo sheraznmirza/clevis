@@ -238,6 +238,7 @@ export class AuthService {
                   create: {
                     deliveryItemMin: 1,
                     deliveryItemMax: 5,
+                    kilometerFare: 8.5,
                   },
                 },
               }),
