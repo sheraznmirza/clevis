@@ -69,7 +69,7 @@ export class BookingController {
     return this.bookingService.updateVendorBookingStatus(bookingMasterId, dto);
   }
 
-  @Authorized(UserType.ADMIN)
+  @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get('admin/ById/:bookingMasterId')
   getAdminBookingById(@Param('bookingMasterId') bookingMasterId: number) {
     return this.bookingService.getAdminBookingById(bookingMasterId);

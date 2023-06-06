@@ -200,7 +200,7 @@ export class BookingRepository {
 
   async getCustomerBookingById(bookingMasterId: number) {
     try {
-      return await this.prisma.bookingMaster.findUnique({
+      const result = await this.prisma.bookingMaster.findUnique({
         where: {
           bookingMasterId: bookingMasterId,
         },
@@ -280,6 +280,10 @@ export class BookingRepository {
           },
         },
       });
+      if (!result) {
+        throw unknowError(417, {}, 'BookingMasterId does not exist');
+      }
+      return result;
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -435,7 +439,7 @@ export class BookingRepository {
 
   async getVendorBookingById(bookingMasterId: number) {
     try {
-      return await this.prisma.bookingMaster.findUnique({
+      const result = await this.prisma.bookingMaster.findUnique({
         where: {
           bookingMasterId: bookingMasterId,
         },
@@ -514,6 +518,10 @@ export class BookingRepository {
           status: true,
         },
       });
+      if (!result) {
+        throw unknowError(417, {}, 'BookingMasterId does not exist');
+      }
+      return result;
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -749,7 +757,7 @@ export class BookingRepository {
 
   async getAdminBookingById(bookingMasterId: number) {
     try {
-      return await this.prisma.bookingMaster.findUnique({
+      const result = await this.prisma.bookingMaster.findUnique({
         where: {
           bookingMasterId: bookingMasterId,
         },
@@ -852,6 +860,10 @@ export class BookingRepository {
           status: true,
         },
       });
+      if (!result) {
+        throw unknowError(417, {}, 'BookingMasterId does not exist');
+      }
+      return result;
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
