@@ -1,7 +1,7 @@
 import { EntityType } from '@prisma/client';
 import { NotificationType } from '../../constants';
 
-export type NotificationDataT = {
+export type NotificationData = {
   title: string;
   body: string;
   type: NotificationType;

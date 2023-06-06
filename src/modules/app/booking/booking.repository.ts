@@ -399,6 +399,13 @@ export class BookingRepository {
               fullName: true,
             },
           },
+          vendor: {
+            select: {
+              isBusy: true,
+              vendorId: true,
+              fullName: true,
+            },
+          },
           bookingDetail: {
             select: {
               allocatePrice: {

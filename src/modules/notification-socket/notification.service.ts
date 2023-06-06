@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 // import DatabaseService from 'database/database.service';
-import { SQSSendNotificationArgs } from '../queue/types';
-import { OneSignalService } from './one_signal.service';
-import { NotificationDataT } from './types';
+import { SQSSendNotificationArgs } from '../queue-aws/types';
+// import { OneSignalService } from './one_signal.service';
+import { NotificationData } from './types';
 // import SocketGateway from 'modules/socket/socket.gateway';
 import { NotificationReadStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { OneSignalService } from './one-signal.service';
 // import { getUserDeviceRoom } from 'helpers/util.helper';
 // import { SocketEventNames } from 'constants/socket';
 // import { NotificationType } from '../../constants';
@@ -17,7 +18,7 @@ export class NotificationService {
   ) {}
 
   private async _sendNotification(
-    sQSSendNotificationArgs: SQSSendNotificationArgs<NotificationDataT>,
+    sQSSendNotificationArgs: SQSSendNotificationArgs<NotificationData>,
   ) {
     const { data, userId } = sQSSendNotificationArgs;
     const { entityId, entityType, title, body, type } = data;
@@ -58,29 +59,31 @@ export class NotificationService {
         await this._oneSignalService.sendNotification(playerIds, title, body);
       }
 
-      //   const unReadNotificationCount = await this._dbService.notification.count({
-      //     where: {
-      //       id: subscribedUser.id,
-      //       readStatus: NotificationReadStatus.UNREAD,
-      //     },
-      //   });
+      // const unReadNotificationCount = await this._dbService.notification.count({
+      //   where: {
+      //     id: subscribedUser.id,
+      //     readStatus: NotificationReadStatus.UNREAD,
+      //   },
+      // });
 
-      // SocketGateway._io.in(getUserDeviceRoom(elem)).emit(SocketEventNames.NOTIFICATION, {
+      // SocketGateway._io
+      //   .in(getUserDeviceRoom(elem))
+      //   .emit(SocketEventNames.NOTIFICATION, {
       //     notification: {
-      //         type: NotificationType.NEW_SUBSCRIPTION_ADMIN_NOTIFICATION,
-      //         title,
-      //         body,
-      //         data: {
-      //             subscribedUser: subscribedUser.id,
-      //         },
+      //       type: NotificationType.NEW_SUBSCRIPTION_ADMIN_NOTIFICATION,
+      //       title,
+      //       body,
+      //       data: {
+      //         subscribedUser: subscribedUser.id,
+      //       },
       //     },
       //     unReadNotificationCount,
-      // });
+      //   });
     }
   }
 
   async HandleNotifications(
-    notificationArgs: SQSSendNotificationArgs<NotificationDataT>,
+    notificationArgs: SQSSendNotificationArgs<NotificationData>,
   ) {
     await this._sendNotification(notificationArgs);
   }
