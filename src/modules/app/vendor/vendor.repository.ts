@@ -720,8 +720,13 @@ export class VendorRepository {
           },
         },
       });
+
+      if (!vendorService) {
+        throw unknowError(417, {}, 'VendorserviceId does not exist');
+      }
+
       let vendorServiceSubcategories: any;
-      if (vendorService.service.serviceType === ServiceType.LAUNDRY) {
+      if (vendorService?.service?.serviceType === ServiceType.LAUNDRY) {
         vendorServiceSubcategories = await this.prisma.allocatePrice.findMany({
           where: {
             vendorServiceId,
@@ -744,6 +749,7 @@ export class VendorRepository {
           : vendorService.service.serviceType === ServiceType.CAR_WASH
           ? vendorServiceByIdMappedCarWash(vendorService)
           : vendorService.AllocatePrice;
+
       return {
         ...vendorService,
         AllocatePrice: mappedVendorService,
@@ -752,7 +758,7 @@ export class VendorRepository {
         }),
       };
     } catch (error) {
-      throw error;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 
