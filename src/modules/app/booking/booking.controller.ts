@@ -31,7 +31,6 @@ import { BookingService } from './booking.service';
 export class BookingController {
   constructor(private bookingService: BookingService) {}
 
-  @Authorized(UserType.CUSTOMER)
   @Post()
   createBooking(@GetUser() user, @Body() dto: CreateBookingDto) {
     return this.bookingService.createBooking(user.userTypeId, dto);
@@ -70,7 +69,7 @@ export class BookingController {
     return this.bookingService.updateVendorBookingStatus(bookingMasterId, dto);
   }
 
-  @Authorized([UserType.ADMIN, UserType.VENDOR])
+  @Authorized(UserType.ADMIN)
   @Get('admin/ById/:bookingMasterId')
   getAdminBookingById(@Param('bookingMasterId') bookingMasterId: number) {
     return this.bookingService.getAdminBookingById(bookingMasterId);
