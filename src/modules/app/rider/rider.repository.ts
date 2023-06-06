@@ -229,9 +229,10 @@ export class RiderRepository {
 
   async getRiderById(id: number) {
     try {
-      return await this.prisma.userMaster.findUnique({
+      const riderget = await this.prisma.userMaster.findFirst({
         where: {
           userMasterId: id,
+          userType: UserType.RIDER,
         },
         select: {
           userMasterId: true,
@@ -335,8 +336,17 @@ export class RiderRepository {
           },
         },
       });
+      if (riderget == null) {
+        throw unknowError(417, { status: 404 }, 'Rider does not exist');
+      } else {
+        return riderget;
+      }
     } catch (error) {
-      throw error;
+      throw unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors ',
+      );
     }
   }
 
@@ -644,8 +654,16 @@ export class RiderRepository {
       }
 
       if (
-        (dto.fullAddress || dto.cityId || dto.longitude || dto.latitude) &&
-        !(dto.fullAddress && dto.cityId && dto.longitude && dto.latitude)
+        (dto.fullAddress ||
+          dto.cityId ||
+          typeof dto.longitude === 'number' ||
+          typeof dto.latitude === 'number') &&
+        !(
+          dto.fullAddress &&
+          dto.cityId &&
+          typeof dto.longitude === 'number' &&
+          typeof dto.latitude === 'number'
+        )
       ) {
         throw new BadRequestException(
           "Please provide every parameter in the address (fullAddress, cityId, lat, long) to update the user's address",
@@ -849,11 +867,12 @@ export class RiderRepository {
         ...rider,
       };
     } catch (error) {
-      unknowError(
-        417,
-        error,
-        'The request was well-formed but was unable to be followed due to semantic errors',
-      );
+      // unknowError(
+      //   417,
+      //   error,
+      //   'The request was well-formed but was unable to be followed due to semantic errors',
+      // );
+      throw error;
     }
   }
 

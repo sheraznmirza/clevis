@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsArray,
   ValidateNested,
+  Min,
   IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
@@ -97,6 +98,7 @@ export class VendorSignUpDto {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
+  @Min(1)
   cityId: number;
 
   @ApiProperty()

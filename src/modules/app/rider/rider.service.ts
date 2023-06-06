@@ -89,8 +89,6 @@ export class RiderService {
               'Please provide valid start and end times for the companySchedule.',
             );
           }
-
-          console.log('isValid: ', isValid);
         }
       }
       dto.companySchedule = convertDateTimeToTimeString(dto.companySchedule);

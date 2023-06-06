@@ -102,11 +102,60 @@ const AppConfig = {
     },
     CHAT_SESSION: Number(process.env.APP_CHAT_SESSION_EXPIRATION),
   },
+  E_SIGNATURE: {
+    DOCUSIGN_ACCOUNT_ID: process.env.APP_DOCUSIGN_ACCOUNT_ID,
+    DOCUSIGN_OAUTH_BASE_PATH: process.env.APP_DOCUSIGN_OAUTH_BASE_URL,
+    DOCUSIGN_OAUTH_CALLBACK_PATH: process.env.APP_DOCUSIGN_OAUTH_CALLBACK_URL,
+    DOCUSIGN_BASE_PATH: process.env.APP_DOCUSIGN_BASE_URL,
+    DOCUSIGN_INTEGRATION_KEY: process.env.APP_DOCUSIGN_INTEGRATION_KEY,
+    DOCUSIGN_SECRET_KEY: process.env.APP_DOCUSIGN_SECRET_KEY,
+    DOCUSIGN_WEB_RETURN_URL: process.env.APP_DOCUSIGN_WEB_RETURN_URL,
+    DOCUSIGN_RETURN_URL: process.env.APP_DOCUSIGN_RETURN_URL,
+    DOCUSIGN_WEBHOOK_SECRET: process.env.APP_DOCUSIGN_WEBHOOK_SECRET,
+  },
+  IN_APP_PURCHASE: {
+    GOOGLE: {
+      IAP_GOOGLE_EMAIL: process.env.APP_IAP_GOOGLE_EMAIL,
+      IAP_GOOGLE_SECRET_KEY: process.env.APP_IAP_GOOGLE_SECRET_KEY?.replace(
+        /\\n/gm,
+        '\n',
+      ),
+      IAP_ANDROID_PACKAGE_NAME: process.env.APP_IAP_ANDROID_PACKAGE_NAME,
+    },
+    APPLE: {
+      IAP_APPLE_SECRET_KEY: process.env.APP_IAP_APPLE_SECRET_KEY?.replace(
+        /\\n/gm,
+        '\n',
+      ),
+    },
+  },
+  PAYMENT: {
+    STRIPE: {
+      SECRET_KEY: process.env.APP_STRIPE_SECRET_KEY,
+      CURRENCY: process.env.APP_STRIPE_CURRENCY,
+      WEBHOOK: process.env.APP_STRIPE_WEBHOOK_KEY,
+    },
+    PAYPAL: {
+      CLIENT_ID: process.env.APP_PAYPAL_CLIENT_ID,
+      CLIENT_SECRET: process.env.APP_PAYPAL_CLIENT_SECRET,
+      MODE: process.env.APP_PAYPAL_ENVIRONMENT,
+      WEBHOOK_ID: process.env.APP_PAYPAL_WEBHOOK_ID,
+      RETURN_URL: process.env.APP_PAYPAL_RETURN_URL,
+      CANCEL_URL: process.env.APP_PAYPAL_CANCEL_URL,
+    },
+  },
+  TAP_PAYMENT: { CARD_TOKEN_CREATE: process.env.APP_TAP_TOKEN_CREATE },
+  CHAT_SESSION: Number(process.env.APP_CHAT_SESSION_EXPIRATION),
   TAP: {
     BASE_URL: process.env.APP_TAP_BASE_URL,
     AUTH_TOKEN: {
       headers: {
         Authorization: `Bearer ${process.env.APP_TAP_SECRET_KEY}`,
+      },
+    },
+    AUTH_TOKEN_MARKETPLACE: {
+      headers: {
+        Authorization: `Bearer ${process.env.APP_TAP_SECRET_KEY_MARKETPLACE}`,
       },
     },
   },
