@@ -81,7 +81,7 @@ export class PlatformSetupService {
 
   async updatePlatform(id: number, data: PlatFormSetupDto) {
     try {
-      await this.prisma.platformSetup.update({
+      const result = await this.prisma.platformSetup.update({
         where: {
           id: id,
         },
@@ -89,14 +89,21 @@ export class PlatformSetupService {
           isDeleted: true,
         },
       });
-
-      await this.prisma.platformSetup.create({
-        data: {
-          fee: data.fee,
-        },
-      });
+      if (result) {
+        const solve = await this.prisma.platformSetup.create({
+          data: {
+            fee: data.fee,
+          },
+        });
+        return {
+          ...successResponse(201, 'PlatformID Successfully updated '),
+          ...solve,
+        };
+      } else {
+        throw unknowError(400, {}, ' PlatFormID does not exists');
+      }
     } catch (error) {
-      throw error;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 }
