@@ -12,7 +12,7 @@ import {
   createTokenForSavedCardInterface,
   createTokenForSavedCardResponse,
 } from './dto/card.dto';
-import { Observable, firstValueFrom, map, race } from 'rxjs';
+import { map } from 'rxjs';
 import AppConfig from 'src/configs/app.config';
 import { AxiosResponse } from 'axios';
 
