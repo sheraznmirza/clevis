@@ -17,7 +17,6 @@ import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../../modules/mail/mail.service';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 // import { CreateNotificationDto } from '../notification/dto';
-// import { NotificationService } from '../notification/notification.service';
 import {
   ChangePasswordDto,
   CustomerSignUpDto,
@@ -40,7 +39,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
-    private mail: MailService, // private notification: NotificationService,
+    private mail: MailService,
   ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
@@ -1078,6 +1077,13 @@ export class AuthService {
     } catch (error) {
       throw new BadRequestException(error.meta.cause);
     }
+  }
+
+  async verify(token: string) {
+    console.log('token: ', token);
+    return await this.jwt.verify(token, {
+      secret: this.config.get('JWT_SECRET'),
+    });
   }
 
   async signToken(

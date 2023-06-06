@@ -67,7 +67,7 @@ export class RatingSetupService {
         },
       });
 
-      await this.prisma.ratingSetup.createMany({
+      return await this.prisma.ratingSetup.createMany({
         data: [
           {
             rating: data.carWashRating,

@@ -8,7 +8,6 @@ import {
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { GetUserType, ListingParams } from 'src/core/dto';
 import { addressUpdateDto } from './dto/addressUpdateDto';
-import { BadRequestExceptionResponse } from 'src/response/response.schema';
 import { addressCreateDto } from './dto/addressCreateDto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { GetCityStateDto } from './dto/cityDetailDto';

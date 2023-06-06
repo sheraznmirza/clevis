@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 // import DatabaseService from 'database/database.service';
 import { SQSSendNotificationArgs } from '../queue-aws/types';
 // import { OneSignalService } from './one_signal.service';
@@ -7,6 +7,9 @@ import { NotificationData } from './types';
 import { NotificationReadStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { OneSignalService } from './one-signal.service';
+import { NotificationType, SocketEventNames } from 'src/constants';
+import { getUserDeviceRoom } from 'src/helpers/util.helper';
+import { SocketGateway } from './socket.gateway';
 // import { getUserDeviceRoom } from 'helpers/util.helper';
 // import { SocketEventNames } from 'constants/socket';
 // import { NotificationType } from '../../constants';
@@ -16,7 +19,6 @@ export class NotificationService {
     private _dbService: PrismaService,
     private _oneSignalService: OneSignalService,
   ) {}
-
   private async _sendNotification(
     sQSSendNotificationArgs: SQSSendNotificationArgs<NotificationData>,
   ) {
@@ -25,14 +27,14 @@ export class NotificationService {
 
     for (let index = 0; index < userId.length; index++) {
       const elem = userId[index];
-      await this._dbService.notification.create({
+      const notification = await this._dbService.notification.create({
         data: {
           type,
           title,
           body,
           userMasterId: elem,
           data: {
-            loura: 'dwada',
+            lassan: 'dwada',
           },
           notificationType: 'RiderCreated',
           //   data: {
@@ -43,6 +45,13 @@ export class NotificationService {
         },
       });
 
+      SocketGateway.emitEvent(
+        'notification',
+        {
+          notification,
+        },
+        elem.toString(),
+      );
       const userDevices = await this._dbService.device.findMany({
         where: {
           userMasterId: elem,
@@ -66,19 +75,18 @@ export class NotificationService {
       //   },
       // });
 
-      // SocketGateway._io
-      //   .in(getUserDeviceRoom(elem))
-      //   .emit(SocketEventNames.NOTIFICATION, {
-      //     notification: {
-      //       type: NotificationType.NEW_SUBSCRIPTION_ADMIN_NOTIFICATION,
-      //       title,
-      //       body,
-      //       data: {
-      //         subscribedUser: subscribedUser.id,
-      //       },
-      //     },
-      //     unReadNotificationCount,
-      //   });
+      // .in(getUserDeviceRoom(elem))
+      // .emit(SocketEventNames.NOTIFICATION, {
+      //   notification: {
+      //     type: NotificationType.NEW_SUBSCRIPTION_ADMIN_NOTIFICATION,
+      //     title,
+      //     body,
+      //     // data: {
+      //     //   subscribedUser: subscribedUser.id,
+      //     // },
+      //   },
+      //   unReadNotificationCount,
+      // });
     }
   }
 
