@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Post,
   Delete,
   HttpCode,
   HttpStatus,
@@ -19,6 +20,7 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   RiderUpdateDto,
   RiderUpdateStatusDto,
+  UpdateRequestDto,
   UpdateRiderScheduleDto,
 } from './dto';
 import { RiderListingParams, VendorRiderByIdParams } from 'src/core/dto';
@@ -39,6 +41,12 @@ export class RiderController {
   @Get('/:userMasterId')
   getRiderById(@Param('userMasterId') riderId: number) {
     return this.riderService.getRiderById(riderId);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Post('/reqeust-update')
+  requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user) {
+    return this.riderService.requestUpdate(dto, user.userTypeId);
   }
 
   @Authorized(UserType.ADMIN)

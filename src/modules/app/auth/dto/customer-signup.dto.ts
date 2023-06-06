@@ -5,8 +5,10 @@ import {
   MaxLength,
   MinLength,
   IsNumber,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { DeviceType } from '@prisma/client';
 
 export class CustomerSignUpDto {
   @ApiProperty()
@@ -35,4 +37,18 @@ export class CustomerSignUpDto {
   @IsNumber()
   @IsNotEmpty()
   cityId: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  playerId: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Pick your respective device type',
+    enum: DeviceType,
+  })
+  @IsNotEmpty()
+  @IsEnum(DeviceType)
+  deviceType: DeviceType;
 }

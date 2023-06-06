@@ -1,7 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-import { async } from 'rxjs';
-import { CustomerListingParams } from 'src/core/dto';
 import { PlatFormSetupDto } from './dto/platform-setup.dto';
 import { successResponse } from 'src/helpers/response.helper';
 
@@ -36,27 +34,30 @@ export class PlatformSetupService {
           id: true,
           fee: true,
         },
+        orderBy: {
+          id: 'desc',
+        },
       });
     } catch (error) {
       throw error;
     }
   }
 
-  async deletePlatform(id: number) {
-    try {
-      await this.prisma.platformSetup.update({
-        where: {
-          id: id,
-        },
-        data: {
-          isDeleted: true,
-        },
-      });
-      return successResponse(200, 'platform Successfully deleted');
-    } catch (error) {
-      throw error;
-    }
-  }
+  // async deletePlatform(id: number) {
+  //   try {
+  //     await this.prisma.platformSetup.update({
+  //       where: {
+  //         id: id,
+  //       },
+  //       data: {
+  //         isDeleted: true,
+  //       },
+  //     });
+  //     return successResponse(200, 'platform Successfully deleted');
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   async createPlatform(dto: PlatFormSetupDto) {
     try {

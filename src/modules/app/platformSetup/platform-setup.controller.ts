@@ -44,10 +44,10 @@ export class PlatformSetupController {
     return this.platformService.updatePlatform(id, data);
   }
 
-  @Delete('/:platformId')
-  deletePlatform(@Param('platformId') id: number) {
-    return this.platformService.deletePlatform(id);
-  }
+  // @Delete('/:platformId')
+  // deletePlatform(@Param('platformId') id: number) {
+  //   return this.platformService.deletePlatform(id);
+  // }
 
   @Authorized(UserType.ADMIN)
   @Get()

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BookingRepository } from './booking.repository';
 import {
   AdminGetBookingsDto,
+  BookingDetailsDto,
   CreateBookingDto,
   CustomerGetBookingsDto,
   UpdateBookingStatusParam,
@@ -97,6 +98,14 @@ export class BookingService {
 
       rawBookings.data = cleanedBooking;
       return rawBookings;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getBookingDetails(dto: BookingDetailsDto) {
+    try {
+      return await this.repository.getBookingDetails(dto);
     } catch (error) {
       throw error;
     }

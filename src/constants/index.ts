@@ -1,0 +1,15 @@
+export enum EmailTemplates {
+    WELCOME = 'WELCOME',
+    FORGET_PASSWORD = 'FORGET_PASSWORD',
+}
+
+export enum NotificationType {
+    TEST_NOTIFICATION = 'TEST_NOTIFICATION',
+    NEW_SUBSCRIPTION_ADMIN_NOTIFICATION = 'NEW_SUBSCRIPTION_ADMIN_NOTIFICATION',
+}
+
+export enum EventType {
+    GENERATE_CERTIFICATE = 'GENERATE_CERTIFICATE',
+}
+
+export * from './socket';
