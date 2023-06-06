@@ -8,28 +8,6 @@ import { ServiceType } from '@prisma/client';
 export class RatingSetupService {
   constructor(private prisma: PrismaService) {}
 
-  async getRatingById(id: number) {
-    try {
-      const result = await this.prisma.ratingSetup.findUnique({
-        where: {
-          id: id,
-        },
-        select: {
-          id: true,
-          rating: true,
-          serviceType: true,
-        },
-      });
-      if (result === null) {
-        return unknowError(404, {}, '');
-      } else {
-        return result;
-      }
-    } catch (error) {
-      throw unknowError(404, error, 'RatingId does not exist');
-    }
-  }
-
   async getAllRating() {
     try {
       return await this.prisma.ratingSetup.findMany({
@@ -47,23 +25,7 @@ export class RatingSetupService {
     }
   }
 
-  // async deleteRating(id: number) {
-  //   try {
-  //     await this.prisma.ratingSetup.update({
-  //       where: {
-  //         id: id,
-  //       },
-  //       data: {
-  //         isDeleted: true,
-  //       },
-  //     });
-  //     return successResponse(200, 'platform Successfully deleted');
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
-  async updateRating(id: number, data: RatingSetupDto) {
+  async updateRating(data: RatingSetupDto) {
     try {
       await this.prisma.platformSetup.updateMany({
         data: {

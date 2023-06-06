@@ -9,18 +9,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-class Articles {
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  allocatePriceId: number;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  quantity: number;
-}
-
 class LocationDetails {
   @ApiProperty()
   @IsNumber()
@@ -57,17 +45,6 @@ export class BookingDetailsDto {
   @ValidateNested()
   @Type(() => LocationDetails)
   dropoffLocation: LocationDetails;
-
-  @ApiProperty({
-    isArray: true,
-    required: true,
-    type: Articles,
-  })
-  @IsArray()
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => Articles)
-  articles: Articles[];
 
   @ApiProperty()
   @IsNumber()

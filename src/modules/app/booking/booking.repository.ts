@@ -16,6 +16,7 @@ import { UserAddress } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
+import { mapsDistanceData } from 'src/helpers/maps.helper';
 
 @Injectable()
 export class BookingRepository {
@@ -29,6 +30,9 @@ export class BookingRepository {
     try {
       let pickupLocationId: UserAddress;
       let dropoffLocationId: UserAddress;
+      let dropoffLocation: UserAddress;
+      let pickupLocation: UserAddress;
+      let response: any;
 
       const attachments = [];
 
@@ -70,6 +74,50 @@ export class BookingRepository {
         dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
       }
 
+      if (dto?.dropoffLocation?.userAddressId) {
+        dropoffLocation = await this.prisma.userAddress.findUnique({
+          where: {
+            userAddressId: dto.dropoffLocation.userAddressId,
+          },
+        });
+      }
+
+      if (dto?.pickupLocation?.userAddressId) {
+        pickupLocation = await this.prisma.userAddress.findUnique({
+          where: {
+            userAddressId: dto.dropoffLocation.userAddressId,
+          },
+        });
+      }
+
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId: dto.vendorId,
+        },
+        select: {
+          deliverySchedule: {
+            select: {
+              kilometerFare: true,
+            },
+          },
+        },
+      });
+      if (pickupLocation && dropoffLocation) {
+        response = await mapsDistanceData(
+          {
+            dropoffLocation,
+            pickupLocation,
+          },
+          this.config,
+          this.httpService,
+        );
+      }
+
+      const deliveryCharges = response
+        ? response?.distanceValue *
+          (vendor?.deliverySchedule?.kilometerFare || 8.5)
+        : 0;
+
       const bookingDetailPrice: number[] = [];
       for (let i = 0; i < dto.articles.length; i++) {
         const allocatePricePrice = await this.prisma.allocatePrice.findUnique({
@@ -95,6 +143,7 @@ export class BookingRepository {
         data: {
           customerId,
           vendorId: dto.vendorId,
+          deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
@@ -354,6 +403,13 @@ export class BookingRepository {
               fullName: true,
             },
           },
+          vendor: {
+            select: {
+              isBusy: true,
+              vendorId: true,
+              fullName: true,
+            },
+          },
           bookingDetail: {
             select: {
               allocatePrice: {
@@ -460,6 +516,8 @@ export class BookingRepository {
               },
             },
           },
+          vat: true,
+          deliveryCharges: true,
           bookingDetail: {
             select: {
               quantity: true,
@@ -661,13 +719,13 @@ export class BookingRepository {
   }
 
   async getBookingDetails(dto: BookingDetailsDto) {
-    const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
-    const params = {
-      units: 'metric',
-      origins: `${dto.pickupLocation.latitude},${dto.pickupLocation.longitude}`,
-      destinations: `${dto.dropoffLocation.latitude},${dto.dropoffLocation.longitude}`,
-      key: this.config.get('GOOGLE_MAPS_API_KEY'),
-    };
+    // const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+    // const params = {
+    //   units: 'metric',
+    //   origins: `${dto.pickupLocation.latitude},${dto.pickupLocation.longitude}`,
+    //   destinations: `${dto.dropoffLocation.latitude},${dto.dropoffLocation.longitude}`,
+    //   key: this.config.get('GOOGLE_MAPS_API_KEY'),
+    // };
     try {
       const vendor = await this.prisma.vendor.findUnique({
         where: {
@@ -728,15 +786,16 @@ export class BookingRepository {
         dto.dropoffLocation.longitude = dropoffLocation.longitude;
       }
 
-      const response = await this.httpService
-        .get(url, { params })
-        .pipe(map((response) => response.data))
-        .toPromise();
+      const response = await mapsDistanceData(
+        dto,
+        this.config,
+        this.httpService,
+      );
 
       return {
-        distance: response.rows[0].elements[0].distance?.text,
+        distance: response?.distance,
         deliveryCharges:
-          (response.rows[0].elements[0].distance?.value / 1000) *
+          response?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5),
         platformFee: platformFee?.fee,
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
@@ -818,6 +877,7 @@ export class BookingRepository {
                     select: {
                       service: {
                         select: {
+                          serviceId: true,
                           serviceName: true,
                         },
                       },

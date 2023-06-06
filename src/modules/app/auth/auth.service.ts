@@ -71,6 +71,7 @@ export class AuthService {
           password,
           phone: dto.phone,
           roleId: roleId,
+
           ...(dto.playerId && {
             device: {
               create: {
@@ -1118,7 +1119,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '5 days',
+        expiresIn: '2 days',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {
