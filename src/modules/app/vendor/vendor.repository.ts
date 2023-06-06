@@ -1427,7 +1427,14 @@ export class VendorRepository {
     dto: CreateAndUpdateDeliverySchedule,
   ) {
     try {
-      if (
+      const result = await this.prisma.deliverySchedule.findUnique({
+        where: {
+          vendorId: vendorId,
+        },
+      });
+      if (!result) {
+        throw unknowError(417, {}, 'not found');
+      } else if (
         !(
           dto.deliveryDurationMax ||
           dto.deliveryDurationMin ||
@@ -1475,7 +1482,7 @@ export class VendorRepository {
         ...deliverySchedule,
       };
     } catch (error) {
-      throw error;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 
