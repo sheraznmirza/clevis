@@ -24,22 +24,12 @@ import {
   VendorGetBookingsDto,
 } from './dto';
 import { BookingService } from './booking.service';
-import { TapService } from 'src/modules/tap/tap.service';
-import { CardDto } from './dto/carddto.dto';
 
-// @UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Booking')
 @Controller('booking')
 export class BookingController {
-  constructor(
-    private bookingService: BookingService,
-    private tapService: TapService,
-  ) {}
-
-  // @Post('card')
-  // cardCreate(@Body() dto: CardDto) {
-  //   return this.tapService.createMerchant(dto.create_cus);
-  // }
+  constructor(private bookingService: BookingService) {}
 
   @Post()
   createBooking(@GetUser() user, @Body() dto: CreateBookingDto) {
