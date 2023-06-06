@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/app/auth/auth.module';
 import { CustomerModule } from './modules/app/customer/customer.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
@@ -22,10 +23,19 @@ import { BookingModule } from './modules/app/booking/booking.module';
 import { AdminModule } from './modules/app/admin/admin.module';
 import { S3Module } from './modules/s3/s3.module';
 import { TapModule } from './modules/tap/tap.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        ttl: config.get('THROTTLE_TTL'),
+        limit: config.get('THROTTLE_LIMIT'),
+      }),
+    }),
     // NotificationModule,
     AuthModule,
     AdminModule,
@@ -49,6 +59,12 @@ import { TapModule } from './modules/tap/tap.module';
     S3Module,
     TapModule,
     // DatabaseModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}
