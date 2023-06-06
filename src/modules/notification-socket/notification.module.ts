@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { OneSignalService } from './one_signal.service';
+import { OneSignalService } from './one-signal.service';
 // import { PrismaModule } from '../prisma/prisma.module';
 // import DatabaseModule from 'database/database.module';
 
