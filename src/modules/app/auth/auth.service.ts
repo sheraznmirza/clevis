@@ -71,6 +71,7 @@ export class AuthService {
           password,
           phone: dto.phone,
           roleId: roleId,
+
           ...(dto.playerId && {
             device: {
               create: {
@@ -88,6 +89,7 @@ export class AuthService {
                   cityId: dto.cityId,
                 },
               },
+              status: Status.APPROVED,
             },
           },
         },
@@ -856,24 +858,38 @@ export class AuthService {
           userType: data.userType,
           isDeleted: false,
         },
+        select: {
+          createdAt: true,
+          email: true,
+          isActive: true,
+          isDeleted: true,
+          isEmailVerified: true,
+          password: true,
+          phone: true,
+          profilePictureId: true,
+          roleId: true,
+          updatedAt: true,
+          userMasterId: true,
+          userType: true,
+          vendor: true,
+          rider: true,
+          admin: true,
+          customer: true,
+        },
       });
 
       if (!user) throw new NotFoundException('Email does not exist.');
-
       if (
-        user.userType === data.userType &&
-        !user.isEmailVerified &&
-        user[data.userType.toLowerCase()].status !== Status.APPROVED
+        user.userType !== data.userType ||
+        !user.isEmailVerified ||
+        (data.userType !== UserType.CUSTOMER &&
+          user[data.userType.toLowerCase()]?.status !== Status.APPROVED)
       ) {
         throw new BadRequestException(
           'Your account has either not been verified or the admin has not yet approved your account.',
         );
       }
 
-      // let randomOtp = Math.floor(Math.random() * 10000).toString();
-      // for (let i = 0; i < 4 - randomOtp.length; i++) {
-      //   randomOtp = '0' + randomOtp;
-      // }
       const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
       await this.expireOtp(user.userMasterId);
 
@@ -902,7 +918,11 @@ export class AuthService {
 
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
-      return unknowError(417, error, 'Invalid');
+      return unknowError(
+        417,
+        error,
+        `The ${data.userType.toLowerCase()} has not been approved by admin yet`,
+      );
     }
   }
 

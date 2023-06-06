@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
@@ -33,6 +34,7 @@ export class UpdateVendorDto {
   @ApiProperty()
   @IsNumber()
   @IsOptional()
+  @Min(1)
   cityId: number;
 
   @ApiProperty({

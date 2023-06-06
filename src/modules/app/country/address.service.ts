@@ -228,7 +228,7 @@ export class AddressService {
   async getAddressByCustomer(id: number) {
     try {
       const address = await this.prisma.userAddress.findMany({
-        where: { customerId: id },
+        where: { customerId: id, isDeleted: false },
       });
 
       if (!address) {
@@ -318,8 +318,9 @@ export class AddressService {
       userId[usertap] = user.userTypeId;
       const service = await this.prisma.userAddress.create({
         data: {
+          ...(data?.title && { title: data?.title }),
           fullAddress: data.fullAddress,
-          cityId: data.cityId,
+          ...(data?.cityId && { cityId: data?.cityId }),
           latitude: data.latitude,
           longitude: data.longitude,
           ...userId,

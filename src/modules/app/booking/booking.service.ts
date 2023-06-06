@@ -13,14 +13,6 @@ import {
 export class BookingService {
   constructor(private repository: BookingRepository) {}
 
-  //   async updateCustomer(id: number, data: CategoryUpdateDto) {
-  //     try {
-  //       return await this.repository.updateCategory(id, data);
-  //     } catch (error) {
-  //       throw error;
-  //     }
-  //   }
-
   async createBooking(customerId: number, dto: CreateBookingDto) {
     try {
       return await this.repository.createBooking(customerId, dto);

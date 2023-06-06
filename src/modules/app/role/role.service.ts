@@ -44,6 +44,9 @@ export class RoleService {
   async getAllRoles() {
     try {
       return await this.prisma.role.findMany({
+        where: {
+          isDeleted: false,
+        },
         select: {
           id: true,
           name: true,
@@ -55,15 +58,28 @@ export class RoleService {
 
   async deleteAllRoles(id: number) {
     try {
-      const delte = await this.prisma.role.update({
+      const remove = await this.prisma.role.findFirst({
         where: {
           id: id,
         },
-        data: {
+        select: {
           isDeleted: true,
         },
       });
-      return successResponse(202, 'successfully deleted');
+
+      if (!remove.isDeleted) {
+        await this.prisma.role.update({
+          where: {
+            id: id,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+        return successResponse(200, 'Role deleted successfully.');
+      } else {
+        return successResponse(200, 'Role already deleted .');
+      }
     } catch (error) {
       unknowError(
         417,

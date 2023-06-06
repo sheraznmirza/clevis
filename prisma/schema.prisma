@@ -167,6 +167,7 @@ model Customer {
   userMasterId  Int             @unique
   userMaster    UserMaster      @relation(fields: userMasterId, references: userMasterId)
   fullName      String
+  status        Status?         @default(APPROVED)
   userAddress   UserAddress[]
   bookingMaster BookingMaster[]
   customerCards CustomerCards[]
@@ -222,6 +223,7 @@ model Rider {
 model UserAddress {
   userAddressId   Int             @id @default(autoincrement())
   fullAddress     String?
+  title           String?
   city            City?           @relation(fields: [cityId], references: [cityId])
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @default(now()) @updatedAt
