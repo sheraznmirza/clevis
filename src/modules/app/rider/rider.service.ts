@@ -5,7 +5,7 @@ import {
   RiderUpdateStatusDto,
   UpdateRiderScheduleDto,
 } from './dto';
-import { successResponse } from '../../../helpers/response.helper';
+import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
 import {
   RiderListingParams,
@@ -21,6 +21,7 @@ import {
   setAlwaysOpen,
 } from 'src/helpers/alwaysOpen.helper';
 import dayjs from 'dayjs';
+import { ERROR_MESSAGE } from 'src/core/constants';
 
 @Injectable()
 export class RiderService {
@@ -54,12 +55,16 @@ export class RiderService {
         context, // `.hbs` extension is appended automatically
       );
 
-      return successResponse(
-        200,
-        `Rider successfully ${rider.status.toLowerCase()}.`,
-      );
+      if (!rider) {
+        throw unknowError(404, {}, 'Rider does not exist');
+      } else {
+        return successResponse(
+          200,
+          `Rider successfully ${rider.status.toLowerCase()}.`,
+        );
+      }
     } catch (error) {
-      throw error;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 
