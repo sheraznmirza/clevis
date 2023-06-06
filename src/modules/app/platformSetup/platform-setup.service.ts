@@ -1,7 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { PlatFormSetupDto } from './dto/platform-setup.dto';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { ERROR_MESSAGE } from 'src/core/constants';
 
 @Injectable()
 export class PlatformSetupService {
@@ -9,7 +10,7 @@ export class PlatformSetupService {
 
   async getPlatormById(id: number) {
     try {
-      return await this.prisma.platformSetup.findUnique({
+      const result = await this.prisma.platformSetup.findUnique({
         where: {
           id: id,
         },
@@ -18,8 +19,14 @@ export class PlatformSetupService {
           id: true,
         },
       });
+
+      if (result) {
+        return result;
+      } else {
+        throw unknowError(417, {}, 'PlatformID does not exist');
+      }
     } catch (error) {
-      throw error;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 
