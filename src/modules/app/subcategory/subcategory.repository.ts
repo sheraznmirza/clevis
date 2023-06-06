@@ -2,6 +2,8 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { SubcategoryCreateDto, SubcategoryUpdateDto } from './dto';
 import { ServiceCategorySubCategoryListingParams } from '../../../core/dto';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { ERROR_MESSAGE } from 'src/core/constants';
 
 @Injectable()
 export class SubcategoryRepository {
@@ -45,13 +47,18 @@ export class SubcategoryRepository {
 
   async getSubcategory(id: number) {
     try {
-      return await this.prisma.subCategory.findUnique({
+      const subcat = await this.prisma.subCategory.findUnique({
         where: {
           subCategoryId: id,
         },
       });
+      if (subcat) {
+        return subcat;
+      } else {
+        return unknowError(417, {}, 'Subcategory does not exist');
+      }
     } catch (error) {
-      return false;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 
@@ -107,7 +114,7 @@ export class SubcategoryRepository {
 
   async deleteSubcategory(id: number) {
     try {
-      await this.prisma.subCategory.update({
+      const result = await this.prisma.subCategory.update({
         where: {
           subCategoryId: id,
         },
@@ -115,9 +122,13 @@ export class SubcategoryRepository {
           isDeleted: true,
         },
       });
-      return true;
+      if (!result) {
+        return unknowError(404, {}, 'Subcategory does not exist');
+      } else {
+        return successResponse(200, '  successfully deleted');
+      }
     } catch (error) {
-      return false;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 }
