@@ -50,13 +50,11 @@ class LocationType {
   longitude?: number;
 
   @ApiProperty()
-  // @IsString()
   @IsDateString()
   @IsNotEmpty()
   timeFrom: string;
 
   @ApiProperty()
-  // @IsString()
   @IsDateString()
   @IsNotEmpty()
   timeTill: string;
@@ -64,7 +62,7 @@ class LocationType {
 
 export class CreateBookingDto {
   @ApiProperty()
-  @IsString()
+  @IsDateString()
   @IsNotEmpty()
   bookingDate: string;
 
@@ -117,4 +115,9 @@ export class CreateBookingDto {
   @ValidateNested()
   @Type(() => LocationType)
   dropoffLocation: LocationType;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  carNumberPlate: string;
 }

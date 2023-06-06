@@ -103,4 +103,9 @@ export class RiderSignUpDto {
   @IsNumber()
   @IsNotEmpty()
   longitude: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  playerId?: string;
 }

@@ -1,17 +1,14 @@
-import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ServiceType } from '@prisma/client';
 
 export class RatingSetupDto {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
-  rating: number;
+  carWashRating: number;
 
-  @ApiProperty({
-    enum: ServiceType,
-  })
-  @IsEnum(ServiceType)
+  @ApiProperty()
+  @IsNumber()
   @IsNotEmpty()
-  serviceType: ServiceType;
+  laundryRating: number;
 }

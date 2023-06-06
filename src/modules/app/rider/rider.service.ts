@@ -3,6 +3,7 @@ import { RiderRepository } from './rider.repository';
 import {
   RiderUpdateDto,
   RiderUpdateStatusDto,
+  UpdateRequestDto,
   UpdateRiderScheduleDto,
 } from './dto';
 import { successResponse } from '../../../helpers/response.helper';
@@ -58,6 +59,14 @@ export class RiderService {
         200,
         `Rider successfully ${rider.status.toLowerCase()}.`,
       );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async requestUpdate(dto: UpdateRequestDto, riderId: number) {
+    try {
+      return await this.repository.requestUpdate(dto, riderId);
     } catch (error) {
       throw error;
     }

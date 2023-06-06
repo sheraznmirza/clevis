@@ -9,6 +9,7 @@ import {
   IsArray,
   ValidateNested,
   Min,
+  IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { MediaFormat } from 'src/core/globalTypes';
@@ -102,9 +103,16 @@ export class VendorSignUpDto {
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   latitude: number;
 
   @ApiProperty()
   @IsNumber()
+  @IsNotEmpty()
   longitude: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  playerId?: string;
 }

@@ -16,8 +16,8 @@ import dayjs from 'dayjs';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../../modules/mail/mail.service';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-import { CreateNotificationDto } from '../notification/dto';
-import { NotificationService } from '../notification/notification.service';
+// import { CreateNotificationDto } from '../notification/dto';
+// import { NotificationService } from '../notification/notification.service';
 import {
   ChangePasswordDto,
   CustomerSignUpDto,
@@ -40,8 +40,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
-    private mail: MailService,
-    private notification: NotificationService,
+    private mail: MailService, // private notification: NotificationService,
   ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
@@ -73,6 +72,14 @@ export class AuthService {
           phone: dto.phone,
           roleId: roleId,
 
+          ...(dto.playerId && {
+            device: {
+              create: {
+                playerId: dto.playerId,
+                type: dto.deviceType,
+              },
+            },
+          }),
           customer: {
             create: {
               email: dto.email,
@@ -194,13 +201,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.VENDOR,
           roleId: roleId,
-          // profilePicture: {
-          //   create: {
-          //     location: dto.logo.location,
-          //     key: dto.logo.key,
-          //     name: dto.logo.name,
-          //   },
-          // },
+          ...(dto.playerId && {
+            device: {
+              create: {
+                playerId: dto.playerId,
+              },
+            },
+          }),
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -233,6 +240,7 @@ export class AuthService {
                   create: {
                     deliveryItemMin: 1,
                     deliveryItemMax: 5,
+                    kilometerFare: 8.5,
                   },
                 },
               }),
@@ -284,13 +292,13 @@ export class AuthService {
         })),
       });
       this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      const payload: CreateNotificationDto = {
-        toUser: 1,
-        fromUser: user.userMasterId,
-        message: 'message',
-        type: 'VendorCreated',
-      };
-      await this.notification.createNotification(payload);
+      // const payload: CreateNotificationDto = {
+      //   toUser: 1,
+      //   fromUser: user.userMasterId,
+      //   message: 'message',
+      //   type: 'VendorCreated',
+      // };
+      // await this.notification.createNotification(payload);
       return successResponse(
         201,
         'Vendor successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -346,6 +354,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.RIDER,
           roleId: roleId,
+          ...(dto.playerId && {
+            device: {
+              create: {
+                playerId: dto.playerId,
+              },
+            },
+          }),
           rider: {
             create: {
               fullName: dto.fullName,
@@ -454,6 +469,11 @@ export class AuthService {
         phone: true,
         userType: true,
         password: true,
+        device: {
+          select: {
+            playerId: true,
+          },
+        },
         admin: {
           select: {
             // userAddress: {
@@ -473,6 +493,21 @@ export class AuthService {
     });
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
+
+    if (dto.playerId) {
+      const index = user.device.findIndex((item) => {
+        return dto.playerId === item.playerId;
+      });
+
+      if (index < 0) {
+        await this.prisma.device.create({
+          data: {
+            playerId: dto.playerId,
+            userMasterId: user.userMasterId,
+          },
+        });
+      }
+    }
 
     const pwMatches = await argon.verify(user.password, dto.password);
 
@@ -1084,7 +1119,7 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
-        expiresIn: '5 days',
+        expiresIn: '2 days',
         secret: jwtSecret,
       }),
       this.jwt.signAsync(payload, {
