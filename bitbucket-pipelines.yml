@@ -10,19 +10,21 @@ pipelines:
             - node
           script:
             #- wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s .env.example .env SECRETS
-              #cat .env
+            #cat .env
             - wget -O - https://raw.githubusercontent.com/shahzaib-sheikh/replace-env-vars/master/replace-env-vars.sh | bash -s  docker-compose.dumy.yml docker-compose.yml SECRETS
               #cat docker-compose.yml
             - yarn install
             - yarn build
             - ssh ubuntu@54.151.24.157 "mkdir -p ~/clevis-be-stg"
-            - rsync -av . ./package.json ./dist ./yarn.lock ./.env ./docker-compose.yml -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
+            #- rsync -av . ./package.json ./dist ./yarn.lock ./.env ./docker-compose.yml -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
+            - rsync -av . ./dist ./.env ./docker-compose.yml -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && rm -rf ./prisma/migrations/*_init"
             - rsync -av . ./prisma/migrations -e ssh ubuntu@54.151.24.157:~/clevis-be-stg
             - rsync -av ./src/modules/mail/templates -e ssh ubuntu@54.151.24.157:~/clevis-be-stg/dist/src/modules/mail/
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && sudo docker compose up -d"
             - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg  && yarn db:dev:rm && yarn db:dev:up"
-            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn install"
-            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn prisma:dev:deploy"
-            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn build && sleep 4 && yarn db:seed"
+            #- ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn install"
+            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && sleep 3 && npx prisma generate && sleep 5 && yarn prisma:dev:deploy"
+            #- ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn build && sleep 4 && yarn db:seed"
+            - ssh ubuntu@54.151.24.157 "cd ~/clevis-be-stg && yarn db:seed"
             - ssh ubuntu@54.151.24.157 'cd ~/clevis-be-stg && pm2 start npm --name "CLEVIS-API-STG" -- run start:prod && pm2 delete "CLEVIS-API-STG" && pm2 start npm --name "CLEVIS-API-STG" -- run start:prod'

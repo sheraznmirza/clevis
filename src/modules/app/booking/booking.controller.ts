@@ -30,7 +30,7 @@ import { BookingService } from './booking.service';
 @Controller('booking')
 export class BookingController {
   constructor(private bookingService: BookingService) {}
-  @Authorized(UserType.CUSTOMER)
+
   @Post()
   createBooking(@GetUser() user, @Body() dto: CreateBookingDto) {
     return this.bookingService.createBooking(user.userTypeId, dto);

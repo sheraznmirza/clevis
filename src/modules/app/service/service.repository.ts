@@ -7,6 +7,7 @@ import {
 } from '../../../core/dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { count } from 'console';
+import { ERROR_MESSAGE } from 'src/core/constants';
 
 @Injectable()
 export class ServiceRepository {
@@ -155,21 +156,27 @@ export class ServiceRepository {
 
   async deleteService(id: number) {
     try {
-      await this.prisma.services.update({
+      const count = await this.prisma.vendorService.count({
         where: {
           serviceId: id,
-        },
-        data: {
-          isDeleted: true,
+          isDeleted: false,
         },
       });
-      return successResponse(202, 'successfully deleted');
+      if (count < 1) {
+        await this.prisma.services.update({
+          where: {
+            serviceId: id,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+        return successResponse(202, 'successfully deleted');
+      } else {
+        return unknowError(417, {}, 'Service exist on this service type');
+      }
     } catch (error) {
-      return unknowError(
-        417,
-        error,
-        'The request was well-formed but was unable to be followed due to semantic errors ',
-      );
+      return unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 }

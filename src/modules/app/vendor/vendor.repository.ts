@@ -54,7 +54,7 @@ export class VendorRepository {
     vendorId: number,
   ) {
     try {
-      const deliverySchedule = await this.prisma.deliverySchedule.create({
+      await this.prisma.deliverySchedule.create({
         data: {
           vendorId,
           ...(dto.deliveryDurationMax && {
@@ -74,7 +74,7 @@ export class VendorRepository {
           ...(dto.kilometerFare && { kilometerFare: dto.kilometerFare }),
         },
       });
-      return true;
+      return successResponse(200, 'successfully Created');
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('Delivery Schedule is already created');
@@ -333,8 +333,16 @@ export class VendorRepository {
       }
 
       if (
-        (dto.fullAddress || dto.cityId || dto.longitude || dto.latitude) &&
-        !(dto.fullAddress && dto.cityId && dto.longitude && dto.latitude)
+        (dto.fullAddress ||
+          dto.cityId ||
+          typeof dto.longitude === 'number' ||
+          typeof dto.latitude === 'number') &&
+        !(
+          dto.fullAddress &&
+          dto.cityId &&
+          typeof dto.longitude === 'number' &&
+          typeof dto.latitude === 'number'
+        )
       ) {
         throw new BadRequestException(
           "Please provide every parameter in the address (fullAddress, cityId, lat, long) to update the user's address",
@@ -722,8 +730,13 @@ export class VendorRepository {
           },
         },
       });
+
+      if (!vendorService) {
+        throw unknowError(417, {}, 'VendorserviceId does not exist');
+      }
+
       let vendorServiceSubcategories: any;
-      if (vendorService.service.serviceType === ServiceType.LAUNDRY) {
+      if (vendorService?.service?.serviceType === ServiceType.LAUNDRY) {
         vendorServiceSubcategories = await this.prisma.allocatePrice.findMany({
           where: {
             vendorServiceId,
@@ -746,6 +759,7 @@ export class VendorRepository {
           : vendorService.service.serviceType === ServiceType.CAR_WASH
           ? vendorServiceByIdMappedCarWash(vendorService)
           : vendorService.AllocatePrice;
+
       return {
         ...vendorService,
         AllocatePrice: mappedVendorService,
@@ -754,7 +768,7 @@ export class VendorRepository {
         }),
       };
     } catch (error) {
-      throw error;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 
@@ -949,9 +963,10 @@ export class VendorRepository {
 
   async getVendorById(id: number) {
     try {
-      const vendorGet = await this.prisma.userMaster.findUnique({
+      const vendorGet = await this.prisma.userMaster.findFirst({
         where: {
           userMasterId: id,
+          userType: UserType.VENDOR,
         },
         select: {
           userMasterId: true,
@@ -1302,13 +1317,6 @@ export class VendorRepository {
       });
 
       return successResponse(201, 'Vendor service successfully created');
-
-      // await this.prisma.allocatePrice.createMany({
-      //   data: dto.allocatePrice.map((item) => ({
-      //     ...item,
-      //     vendorServiceId: vendorService.vendorServiceId,
-      //   })),
-      // });
     } catch (error) {
       throw error;
     }
@@ -1347,35 +1355,7 @@ export class VendorRepository {
         },
       });
 
-      // await this.prisma.allocatePrice.updateMany({
-      //   data: dto.allocatePrice.map((item) => ({
-      //     ...item,
-      //     vendorServiceId: vendorService.vendorServiceId,
-      //   })),
-      // });
-
       if (dto.allocatePrice) {
-        // let createAllocatePrice = dto.allocatePrice.filter(
-        //   (item) => !item.allocatePriceId,
-        // );
-
-        // const update
-
-        // createAllocatePrice = createAllocatePrice.map((item) => {
-        //   return {
-        //     vendorServiceId,
-        //     ...item,
-        //   };
-        // });
-
-        // await this.prisma.allocatePrice.createMany({
-        //   data: createAllocatePrice.map((item) => ({
-        //     vendorServiceId,
-        //     ...item,
-        //     subcategoryId: item?.subcategoryId || null,
-        //   })),
-        // });
-
         const unRemovedAllocatePrice = dto.allocatePrice.filter(
           (item) => item.allocatePriceId,
         );
@@ -1457,7 +1437,27 @@ export class VendorRepository {
     dto: CreateAndUpdateDeliverySchedule,
   ) {
     try {
-      await this.prisma.deliverySchedule.update({
+      const result = await this.prisma.deliverySchedule.findUnique({
+        where: {
+          vendorId: vendorId,
+        },
+      });
+      if (!result) {
+        throw unknowError(417, {}, 'not found');
+      } else if (
+        !(
+          dto.deliveryDurationMax ||
+          dto.deliveryDurationMin ||
+          dto.deliveryItemMax ||
+          dto.deliveryItemMin ||
+          dto.serviceDurationMax ||
+          dto.serviceDurationMin ||
+          dto.kilometerFare
+        )
+      ) {
+        throw new BadRequestException('Invalid payload');
+      }
+      const deliverySchedule = await this.prisma.deliverySchedule.update({
         where: { vendorId },
         data: {
           ...(dto.deliveryDurationMax && {
@@ -1476,11 +1476,23 @@ export class VendorRepository {
           ...(dto.deliveryItemMin && { deliveryItemMin: dto.deliveryItemMin }),
           ...(dto.kilometerFare && { kilometerFare: dto.kilometerFare }),
         },
+        select: {
+          deliveryDurationMax: true,
+          deliveryDurationMin: true,
+          serviceDurationMax: true,
+          serviceDurationMin: true,
+          deliveryItemMax: true,
+          deliveryItemMin: true,
+          kilometerFare: true,
+        },
       });
 
-      return successResponse(200, 'DeliverySchedule updated successfully.');
+      return {
+        ...successResponse(200, 'DeliverySchedule updated successfully.'),
+        ...deliverySchedule,
+      };
     } catch (error) {
-      throw error;
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
   }
 

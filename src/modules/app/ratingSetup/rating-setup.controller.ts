@@ -18,28 +18,11 @@ import { RatingSetupService } from './rating-setup.service';
 export class RatingSetupController {
   constructor(private ratingSetup: RatingSetupService) {}
 
-  @Authorized([UserType.ADMIN])
-  @Get('/:ratingId')
-  getRatingById(@Param('ratingId') id: number) {
-    return this.ratingSetup.getRatingById(id);
-  }
-
-  // @Authorized(UserType.ADMIN)
-  // @Post()
-  // createRating(@Body() data: RatingSetupDto) {
-  //   return this.ratingSetup.createRating(data);
-  // }
-
   @Authorized(UserType.ADMIN)
-  @Patch('/:ratingId')
-  updateRating(@Param('ratingId') id: number, @Body() data: RatingSetupDto) {
-    return this.ratingSetup.updateRating(id, data);
+  @Patch('/updateRating')
+  updateRating(@Body() data: RatingSetupDto) {
+    return this.ratingSetup.updateRating(data);
   }
-
-  // @Delete('/:ratingId')
-  // deleteRating(@Param('ratingId') id: number) {
-  //   return this.ratingSetup.deleteRating(id);
-  // }
 
   @Authorized(UserType.ADMIN)
   @Get()

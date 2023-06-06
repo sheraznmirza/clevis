@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 import {
@@ -130,21 +134,35 @@ export class CategoryRepository {
 
   async deleteCategory(id: number) {
     try {
-      const delte = await this.prisma.category.update({
+      const remove = await this.prisma.category.findUnique({
         where: {
           categoryId: id,
         },
-        data: {
+        select: {
           isDeleted: true,
         },
       });
-      return successResponse(202, 'successfully deleted');
+
+      if (!remove.isDeleted) {
+        await this.prisma.category.update({
+          where: {
+            categoryId: id,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+        return successResponse(200, 'Customer deleted successfully.');
+      } else {
+        throw new BadRequestException('Customer is already deleted.');
+      }
     } catch (error) {
-      return unknowError(
-        417,
-        error,
-        'The request was well-formed but was unable to be followed due to semantic errors ',
-      );
+      // return unknowError(
+      //   417,
+      //   error,
+      //   'The request was well-formed but was unable to be followed due to semantic errors ',
+      // );
+      throw error;
     }
   }
 }

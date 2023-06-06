@@ -20,6 +20,7 @@ import { addressCreateDto } from './dto/addressCreateDto';
 import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
 import { GetCityStateDto } from './dto/cityDetailDto';
+import { userInfo } from 'os';
 
 @ApiTags('Address')
 @Controller('address')
@@ -102,6 +103,11 @@ export class AddressController {
       id,
       user.userMasterId,
     );
+  }
+
+  @Patch('activeAddress/:addressId')
+  updateIsActive(@GetUser() user, @Param('addressId') id: number) {
+    return this.addressService.updateIsActive(user.userTypeId, id);
   }
 
   @UseGuards(JwtGuard, RolesGuard)
