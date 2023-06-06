@@ -311,11 +311,49 @@ export class AddressService {
     }
   }
 
+  async updateIsActive(user: GetUserType, id: number) {
+    try {
+      const usertap = user.userType.toLowerCase() + 'Id';
+      await this.prisma.userAddress.updateMany({
+        where: {
+          [usertap]: user.userTypeId,
+          isActive: true,
+        },
+        data: {
+          isActive: false,
+        },
+      });
+      const result = await this.prisma.userAddress.update({
+        where: {
+          userAddressId: id,
+        },
+        data: {
+          isActive: true,
+        },
+      });
+      return {
+        ...successResponse(201, 'Address Successfully updated to active'),
+        ...result,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async createAddress(data: addressCreateDto, user: GetUserType) {
     try {
       const usertap = user.userType.toLowerCase() + 'Id';
       const userId = {};
       userId[usertap] = user.userTypeId;
+      await this.prisma.userAddress.updateMany({
+        where: {
+          [usertap]: user.userTypeId,
+          isActive: true,
+        },
+        data: {
+          isActive: false,
+        },
+      });
       const service = await this.prisma.userAddress.create({
         data: {
           ...(data?.title && { title: data?.title }),
