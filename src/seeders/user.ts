@@ -1,4 +1,4 @@
-import { PrismaClient, UserType } from '@prisma/client';
+import { PrismaClient, ServiceType, UserType } from '@prisma/client';
 import * as argon from 'argon2';
 import { riders, vendors } from './constants';
 import { companySchedule } from 'src/core/constants';
@@ -94,6 +94,15 @@ export async function createVendors(prisma: PrismaClient) {
               fullName: vendor.fullName,
               companyEmail: vendor.companyEmail,
               companyName: vendor.companyName,
+              ...(vendor.serviceType === ServiceType.LAUNDRY && {
+                deliverySchedule: {
+                  create: {
+                    deliveryItemMin: 1,
+                    deliveryItemMax: 5,
+                    kilometerFare: 8.5,
+                  },
+                },
+              }),
               status: 'APPROVED',
               logo: {
                 create: {

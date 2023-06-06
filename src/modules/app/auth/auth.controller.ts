@@ -27,6 +27,7 @@ import { GetUser } from './decorator';
 import { Authorized } from 'src/core/decorators';
 import { UserType } from '@prisma/client';
 import { RolesGuard } from 'src/core/guards';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -72,6 +73,7 @@ export class AuthController {
     return this.authService.signinRider(dto);
   }
 
+  @Throttle(1, 60)
   @UseGuards(JwtRefreshGuard)
   @Post('/refresh')
   refreshTokens(@Body() refreshToken: RefreshDto) {

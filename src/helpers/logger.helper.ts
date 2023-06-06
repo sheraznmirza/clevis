@@ -1,4 +1,5 @@
-import chalk from 'chalk';
+import Chalk from 'chalk';
+import dayjs from 'dayjs';
 import Morgan from 'morgan';
 import AppConfig from '../configs/app.config';
 
@@ -13,12 +14,12 @@ export enum LogLevel {
 
 export class Logger {
   private static logTemplate = {
-    [LogLevel.TRACE]: chalk.greenBright,
-    [LogLevel.DEBUG]: chalk.whiteBright,
-    [LogLevel.INFO]: chalk.blueBright,
-    [LogLevel.WARN]: chalk.magenta,
-    [LogLevel.ERROR]: chalk.redBright,
-    [LogLevel.FATAL]: chalk.bgRed,
+    [LogLevel.TRACE]: Chalk.greenBright,
+    [LogLevel.DEBUG]: Chalk.whiteBright,
+    [LogLevel.INFO]: Chalk.blueBright,
+    [LogLevel.WARN]: Chalk.magenta,
+    [LogLevel.ERROR]: Chalk.redBright,
+    [LogLevel.FATAL]: Chalk.bgRed,
   };
 
   private static loggerMiddleware: any = null;
@@ -35,9 +36,10 @@ export class Logger {
       }
     }
 
+    const date = dayjs();
     if (tag !== undefined) {
       console.log(
-        chalk.bold.underline.white(tag),
+        Chalk.bold.underline.white(tag),
         this.logTemplate[logLevel](data),
       );
     } else {

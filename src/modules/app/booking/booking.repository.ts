@@ -3,6 +3,7 @@ import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import {
   AdminGetBookingsDto,
+  BookingDetailsDto,
   CreateBookingDto,
   CustomerGetBookingsDto,
   UpdateBookingStatusParam,
@@ -12,10 +13,17 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 import { UserAddress } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { map } from 'rxjs';
 
 @Injectable()
 export class BookingRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+    private httpService: HttpService,
+  ) {}
 
   async createBooking(customerId, dto: CreateBookingDto) {
     try {
@@ -88,12 +96,13 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           bookingDate: dto.bookingDate,
+          ...(dto.carNumberPlate && {
+            carNumberPlate: dto.carNumberPlate,
+          }),
           ...(dto.instructions && { instructions: dto.instructions }),
           totalPrice: totalPrice,
-          ...(dto.pickupLocation &&
-            dto.pickupLocation.timeFrom &&
-            dto.dropoffLocation &&
-            dto.pickupLocation.timeTill && {
+          ...(dto?.pickupLocation?.timeFrom &&
+            dto?.pickupLocation?.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
               pickupTimeFrom: dayjs(dto.pickupLocation.timeFrom).utc().format(),
@@ -136,6 +145,9 @@ export class BookingRepository {
 
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('Vendor does not exist');
+      }
       throw error;
     }
   }
@@ -282,7 +294,13 @@ export class BookingRepository {
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           vendorId: vendorId,
+          // ...(dto.vendorServiceId && {
+          //   vendor: {
+          //     vendorService: {
 
+          //     }
+          //   }
+          // }),
           ...(search && {
             OR: [
               {
@@ -634,6 +652,101 @@ export class BookingRepository {
     }
   }
 
+  async getBookingDetails(dto: BookingDetailsDto) {
+    const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+    const params = {
+      units: 'metric',
+      origins: `${dto.pickupLocation.latitude},${dto.pickupLocation.longitude}`,
+      destinations: `${dto.dropoffLocation.latitude},${dto.dropoffLocation.longitude}`,
+      key: this.config.get('GOOGLE_MAPS_API_KEY'),
+    };
+    try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId: dto.vendorId,
+        },
+        select: {
+          deliverySchedule: {
+            select: {
+              kilometerFare: true,
+              deliveryDurationMin: true,
+              deliveryDurationMax: true,
+              serviceDurationMin: true,
+              serviceDurationMax: true,
+            },
+          },
+        },
+      });
+
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          id: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
+      if (dto?.pickupLocation?.userAddressId) {
+        const pickupLocation = await this.prisma.userAddress.findUnique({
+          where: {
+            userAddressId: dto.pickupLocation.userAddressId,
+          },
+          select: {
+            latitude: true,
+            longitude: true,
+          },
+        });
+
+        dto.pickupLocation.latitude = pickupLocation.latitude;
+        dto.pickupLocation.longitude = pickupLocation.longitude;
+      }
+
+      if (dto?.dropoffLocation?.userAddressId) {
+        const dropoffLocation = await this.prisma.userAddress.findUnique({
+          where: {
+            userAddressId: dto.dropoffLocation.userAddressId,
+          },
+          select: {
+            latitude: true,
+            longitude: true,
+          },
+        });
+
+        dto.dropoffLocation.latitude = dropoffLocation.latitude;
+        dto.dropoffLocation.longitude = dropoffLocation.longitude;
+      }
+
+      const response = await this.httpService
+        .get(url, { params })
+        .pipe(map((response) => response.data))
+        .toPromise();
+
+      return {
+        distance: response.rows[0].elements[0].distance?.text,
+        deliveryCharges:
+          (response.rows[0].elements[0].distance?.value / 1000) *
+          (vendor?.deliverySchedule?.kilometerFare || 8.5),
+        platformFee: platformFee?.fee,
+        deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
+        deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
+        serviceDurationMin: vendor?.deliverySchedule?.serviceDurationMin,
+        serviceDurationMax: vendor?.deliverySchedule?.serviceDurationMax,
+      };
+      // return response.rows[0].elements[0].distance.value / 1000;
+    } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException(
+          'Either vendorId or userAddressId does not exist',
+        );
+      }
+      throw error;
+    }
+  }
+
   async getAdminBookingById(bookingMasterId: number) {
     try {
       return await this.prisma.bookingMaster.findUnique({
@@ -662,6 +775,7 @@ export class BookingRepository {
             select: {
               fullName: true,
               companyName: true,
+              serviceType: true,
               userMaster: {
                 select: {
                   email: true,
