@@ -294,7 +294,13 @@ export class BookingRepository {
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           vendorId: vendorId,
+          // ...(dto.vendorServiceId && {
+          //   vendor: {
+          //     vendorService: {
 
+          //     }
+          //   }
+          // }),
           ...(search && {
             OR: [
               {
@@ -769,6 +775,7 @@ export class BookingRepository {
             select: {
               fullName: true,
               companyName: true,
+              serviceType: true,
               userMaster: {
                 select: {
                   email: true,

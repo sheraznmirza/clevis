@@ -24,11 +24,11 @@ export class RatingSetupController {
     return this.ratingSetup.getRatingById(id);
   }
 
-  @Authorized(UserType.ADMIN)
-  @Post()
-  createRating(@Body() data: RatingSetupDto) {
-    return this.ratingSetup.createRating(data);
-  }
+  // @Authorized(UserType.ADMIN)
+  // @Post()
+  // createRating(@Body() data: RatingSetupDto) {
+  //   return this.ratingSetup.createRating(data);
+  // }
 
   @Authorized(UserType.ADMIN)
   @Patch('/:ratingId')

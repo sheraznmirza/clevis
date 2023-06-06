@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "BookingMaster" ADD COLUMN     "deliveryCharges" DOUBLE PRECISION DEFAULT 0,
+ADD COLUMN     "vat" DOUBLE PRECISION DEFAULT 0;

@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { async } from 'rxjs';
 import { successResponse } from 'src/helpers/response.helper';
 import { RatingSetupDto } from './dto';
+import { ServiceType } from '@prisma/client';
 
 @Injectable()
 export class RatingSetupService {
@@ -58,36 +59,25 @@ export class RatingSetupService {
   //   }
   // }
 
-  async createRating(data: RatingSetupDto) {
-    try {
-      await this.prisma.ratingSetup.create({
-        data: {
-          rating: data.rating,
-          serviceType: data.serviceType,
-        },
-      });
-      return successResponse(200, 'platform Successfully deleted');
-    } catch (error) {
-      throw error;
-    }
-  }
-
   async updateRating(id: number, data: RatingSetupDto) {
     try {
-      await this.prisma.platformSetup.update({
-        where: {
-          id: id,
-        },
+      await this.prisma.platformSetup.updateMany({
         data: {
           isDeleted: true,
         },
       });
 
-      await this.prisma.ratingSetup.create({
-        data: {
-          rating: data.rating,
-          serviceType: data.serviceType,
-        },
+      await this.prisma.ratingSetup.createMany({
+        data: [
+          {
+            rating: data.carWashRating,
+            serviceType: ServiceType.CAR_WASH,
+          },
+          {
+            rating: data.laundryRating,
+            serviceType: ServiceType.LAUNDRY,
+          },
+        ],
       });
     } catch (error) {
       throw error;

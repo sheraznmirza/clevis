@@ -540,6 +540,8 @@ model BookingMaster {
   dropoffTimeTo      DateTime?
   instructions       String?
   carNumberPlate     String?
+  deliveryCharges    Float?               @default(0)
+  vat                Float?               @default(0)
   totalPrice         Float
   customer           Customer             @relation(fields: [customerId], references: [customerId])
   vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])

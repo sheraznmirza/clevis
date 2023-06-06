@@ -136,7 +136,7 @@ export class VendorController {
     );
   }
 
-  @Authorized(UserType.VENDOR)
+  @Authorized([UserType.VENDOR, UserType.ADMIN])
   @Get('/service-names')
   getVendorServices(@GetUser() user) {
     return this.vendorService.getVendorServices(user.userTypeId);
