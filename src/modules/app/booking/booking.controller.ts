@@ -17,6 +17,7 @@ import { Authorized } from '../../../core/decorators';
 import { UserType } from '@prisma/client';
 import {
   AdminGetBookingsDto,
+  BookingDetailsDto,
   CreateBookingDto,
   CustomerGetBookingsDto,
   UpdateBookingStatusParam,
@@ -88,5 +89,11 @@ export class BookingController {
   @Get('admin')
   getAdminBookings(@Query() dto: AdminGetBookingsDto) {
     return this.bookingService.getAdminBookings(dto);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Post('details')
+  getBookingDetails(@Body() dto: BookingDetailsDto) {
+    return this.bookingService.getBookingDetails(dto);
   }
 }

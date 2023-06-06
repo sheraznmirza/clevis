@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import {
   RiderUpdateDto,
   RiderUpdateStatusDto,
+  UpdateRequestDto,
   UpdateRiderScheduleDto,
 } from './dto';
 import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
@@ -346,6 +347,42 @@ export class RiderRepository {
         error,
         'The request was well-formed but was unable to be followed due to semantic errors',
       );
+    }
+  }
+
+  async requestUpdate(dto: UpdateRequestDto, riderId: number) {
+    try {
+      const businesess = [];
+
+      if (dto.businessLicense) {
+        dto.businessLicense.forEach(async (business) => {
+          const result = await this.prisma.media.create({
+            data: business,
+            select: {
+              id: true,
+            },
+          });
+          businesess.push(result.id.toString());
+        });
+      }
+
+      const businessLicenseIds = businesess.join(',');
+
+      await this.prisma.updateApproval.create({
+        data: {
+          companyEmail:
+            dto.companyEmail !== null ? dto.companyEmail : undefined,
+          riderId,
+          ...(businessLicenseIds && {
+            businessLicenseIds: businessLicenseIds,
+          }),
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ForbiddenException('Update request is already created');
+      }
+      throw error;
     }
   }
 

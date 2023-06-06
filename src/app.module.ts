@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/app/auth/auth.module';
 import { CustomerModule } from './modules/app/customer/customer.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
@@ -11,7 +12,7 @@ import { VendorModule } from './modules/app/vendor/vendor.module';
 import { RoleModule } from './modules/app/role/role.module';
 import { RoleRouteModule } from './modules/app/roleRoute/role-route.module';
 import { RouteModule } from './modules/app/route/route.module';
-import { NotificationModule } from './modules/app/notification/notification.module';
+// import { NotificationModule } from './modules/app/notification/notification.module';
 import { MailModule } from './modules/mail/mail.module';
 import { RiderModule } from './modules/app/rider/rider.module';
 import MediaModule from './modules/app/media/media.module';
@@ -19,15 +20,28 @@ import { RatingModule } from './modules/app/ratingSetup/rating-setup.module';
 import { PlatformModule } from './modules/app/platformSetup/platform-setup.module';
 import { StatisticsModule } from './modules/app/statistics/statistics.module';
 import { BookingModule } from './modules/app/booking/booking.module';
+import { AdminModule } from './modules/app/admin/admin.module';
 import { S3Module } from './modules/s3/s3.module';
 import { TapModule } from './modules/tap/tap.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    NotificationModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        ttl: config.get('THROTTLE_TTL'),
+        limit: config.get('THROTTLE_LIMIT'),
+      }),
+    }),
+    // NotificationModule,
     AuthModule,
+    AdminModule,
     CustomerModule,
+    VendorModule,
+    RiderModule,
     PrismaModule,
     ServiceModule,
     CategoryModule,
@@ -35,8 +49,6 @@ import { TapModule } from './modules/tap/tap.module';
     MediaModule,
     MailModule,
     AddressModule,
-    VendorModule,
-    RiderModule,
     RoleModule,
     RoleRouteModule,
     RouteModule,
@@ -47,6 +59,12 @@ import { TapModule } from './modules/tap/tap.module';
     S3Module,
     TapModule,
     // DatabaseModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

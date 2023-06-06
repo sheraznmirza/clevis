@@ -3,6 +3,7 @@ import { RiderRepository } from './rider.repository';
 import {
   RiderUpdateDto,
   RiderUpdateStatusDto,
+  UpdateRequestDto,
   UpdateRiderScheduleDto,
 } from './dto';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
@@ -65,6 +66,14 @@ export class RiderService {
       }
     } catch (error) {
       throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
+    }
+  }
+
+  async requestUpdate(dto: UpdateRequestDto, riderId: number) {
+    try {
+      return await this.repository.requestUpdate(dto, riderId);
+    } catch (error) {
+      throw error;
     }
   }
 

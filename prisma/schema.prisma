@@ -85,6 +85,28 @@ enum BookingStatus {
   In_Progress
 }
 
+enum DeviceType {
+  WEB
+  ANDROID
+  IOS
+}
+
+enum NotificationReadStatus {
+  UNREAD
+  READ
+}
+
+enum NotificationVisiblityStatus {
+  VISIBLE
+  HIDDEN
+}
+
+enum EntityType {
+  VENDOR
+  RIDER
+  CUSTOMER
+}
+
 model UserMaster {
   userMasterId     Int            @id @default(autoincrement())
   email            String
@@ -105,10 +127,12 @@ model UserMaster {
   refreshToken     RefreshToken[]
   Otp              Otp[]
   role             Role?          @relation(fields: [roleId], references: [id])
-  ToNotification   Notification[] @relation("ToNotification")
-  FromNotification Notification[] @relation("FromNotification")
+  // ToNotification   Notification[] @relation("ToNotification")
+  // FromNotification Notification[] @relation("FromNotification")
+  notifications    Notification[]
   profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
   earnings         Earnings[]
+  device           Device[]
 }
 
 model RefreshToken {
@@ -171,6 +195,7 @@ model Vendor {
   companySchedule  CompanySchedule[]
   deliverySchedule DeliverySchedule?
   bookingMaster    BookingMaster[]
+  UpdateApproval   UpdateApproval[]
 }
 
 model Rider {
@@ -192,6 +217,7 @@ model Rider {
   banking         Banking[]
   companySchedule CompanySchedule[]
   Job             Job[]
+  UpdateApproval  UpdateApproval[]
 }
 
 model UserAddress {
@@ -392,15 +418,23 @@ model RolePermissionMapping {
 }
 
 model Notification {
-  id             Int              @id @default(autoincrement())
-  toUser         Int?
-  fromUser       Int?
-  toUserMaster   UserMaster?      @relation("ToNotification", fields: [toUser], references: [userMasterId])
-  fromUserMaster UserMaster?      @relation("FromNotification", fields: [fromUser], references: [userMasterId])
-  type           NotificationType
-  message        String
-  seen           Boolean          @default(false)
-  createdAt      DateTime         @default(now())
+  id               Int                         @id @default(autoincrement())
+  userMasterId     Int
+  // toUserMaster   UserMaster?      @relation("ToNotification", fields: [toUser], references: [userMasterId])
+  // fromUserMaster UserMaster?      @relation("FromNotification", fields: [fromUser], references: [userMasterId])
+  entityId         Int? /// Entity or Model Id for example: userId
+  entityType       EntityType? /// Entity or Model Type for example: User
+  userMaster       UserMaster                  @relation(fields: [userMasterId], references: [userMasterId])
+  notificationType NotificationType
+  type             String
+  title            String
+  body             String
+  data             Json?
+  readStatus       NotificationReadStatus      @default(UNREAD)
+  visibilityStatus NotificationVisiblityStatus @default(VISIBLE)
+  createdAt        DateTime                    @default(now()) @db.Timestamptz()
+  updatedAt        DateTime                    @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt        DateTime?                   @db.Timestamptz()
 }
 
 model Media {
@@ -507,6 +541,9 @@ model BookingMaster {
   dropoffTimeFrom    DateTime?
   dropoffTimeTo      DateTime?
   instructions       String?
+  carNumberPlate     String?
+  deliveryCharges    Float?               @default(0)
+  vat                Float?               @default(0)
   totalPrice         Float
   customer           Customer             @relation(fields: [customerId], references: [customerId])
   vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])
@@ -548,6 +585,29 @@ model Job {
   jobType         JobType
   rider           Rider?         @relation(fields: [riderId], references: [riderId])
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+}
+
+model UpdateApproval {
+  id                 Int     @id @default(autoincrement())
+  companyEmail       String?
+  businessLicenseIds String?
+  vendorId           Int?
+  riderId            Int?
+  vendor             Vendor? @relation(fields: [vendorId], references: [vendorId])
+  rider              Rider?  @relation(fields: [riderId], references: [riderId])
+  status             Status  @default(PENDING)
+}
+
+model Device {
+  id           Int        @id @default(autoincrement())
+  userMasterId Int
+  playerId     String?
+  type         DeviceType @default(WEB)
+  userMaster   UserMaster @relation(fields: [userMasterId], references: [userMasterId])
+  createdAt    DateTime   @default(now()) @db.Timestamptz()
+  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz()
+  deletedAt    DateTime?  @db.Timestamptz()
+  isDeleted    Boolean    @default(false)
 }
 
 model CustomerCards {
