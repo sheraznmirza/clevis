@@ -6,7 +6,7 @@ services:
     ports:
       - 5434:5432
     volumes:
-      - pgdb-clevis:/var/lib/postgresql/data
+      - pgdb-clevis: /var/lib/docker/volumes/pgdb-clevis/_data
     environment:
       POSTGRES_USER: SECRETS_POSTGRES_USER
       POSTGRES_PASSWORD: SECRETS_POSTGRES_PASSWORD
