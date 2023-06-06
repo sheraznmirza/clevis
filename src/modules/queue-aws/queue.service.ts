@@ -8,7 +8,7 @@ import {
   SQSSendEmailArgs,
   SQSSendNotificationArgs,
 } from './types';
-import { NotificationDataT } from '../notification/types';
+import { NotificationDataT } from '../notification-socket/types';
 
 @Injectable()
 export default class QueueService {
