@@ -35,6 +35,10 @@ export const decryptData = (data: string) => {
   return decrypted.toString();
 };
 
+export function getUserDeviceRoom(userId: number): string {
+  return `user_devices:${userId}`;
+}
+
 // export async function HashPassword(plainText: string): Promise<any> {
 //   return new Promise(function (resolve, reject) {
 //     genSalt(10, function (error, salt) {

@@ -24,6 +24,9 @@ import { AdminModule } from './modules/app/admin/admin.module';
 import { S3Module } from './modules/s3/s3.module';
 import { TapModule } from './modules/tap/tap.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { NotificationModule } from './modules/notification-socket/notification.module';
+import { SocketGateway } from './modules/notification-socket/socket.gateway';
+import { SocketEventHandler } from './modules/notification-socket/socket_event.handler';
 
 @Module({
   imports: [
@@ -36,7 +39,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
         limit: config.get('THROTTLE_LIMIT'),
       }),
     }),
-    // NotificationModule,
+    NotificationModule,
     AuthModule,
     AdminModule,
     CustomerModule,
@@ -65,6 +68,8 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    SocketGateway,
+    SocketEventHandler,
   ],
 })
 export class AppModule {}
