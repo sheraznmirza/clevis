@@ -1,8 +1,9 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { async } from 'rxjs';
-import { successResponse } from 'src/helpers/response.helper';
+import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { RatingSetupDto } from './dto';
+import { ERROR_MESSAGE } from 'src/core/constants';
 
 @Injectable()
 export class RatingSetupService {
@@ -10,7 +11,7 @@ export class RatingSetupService {
 
   async getRatingById(id: number) {
     try {
-      return await this.prisma.ratingSetup.findUnique({
+      const result = await this.prisma.ratingSetup.findUnique({
         where: {
           id: id,
         },
@@ -20,8 +21,13 @@ export class RatingSetupService {
           serviceType: true,
         },
       });
+      if (result === null) {
+        return unknowError(404, {}, '');
+      } else {
+        return result;
+      }
     } catch (error) {
-      throw error;
+      throw unknowError(404, error, 'RatingId does not exist');
     }
   }
 
