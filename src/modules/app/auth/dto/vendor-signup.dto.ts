@@ -8,8 +8,8 @@ import {
   IsNumber,
   IsArray,
   ValidateNested,
-  Min,
   IsOptional,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { MediaFormat } from 'src/core/globalTypes';

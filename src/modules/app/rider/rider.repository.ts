@@ -345,7 +345,7 @@ export class RiderRepository {
       throw unknowError(
         417,
         error,
-        'The request was well-formed but was unable to be followed due to semantic errors ',
+        'The request was well-formed but was unable to be followed due to semantic errors',
       );
     }
   }
