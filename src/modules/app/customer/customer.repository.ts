@@ -835,48 +835,89 @@ export class CustomerRepository {
     const { page = 1, take = 10, search } = dto;
     try {
       if (!dto.categoryId) {
-        const vendorService = await this.prisma.vendorService.findMany({
+        // const vendorService = await this.prisma.vendorService.findMany({
+        //   take: +take,
+        //   skip: +take * (+page - 1),
+        //   where: {
+        //     vendorId,
+        //     ...(search && {
+        //       service: {
+        //         serviceName: {
+        //           contains: search,
+        //           mode: 'insensitive',
+        //         },
+        //       },
+        //     }),
+        //   },
+        //   select: {
+        //     vendorServiceId: true,
+        //     AllocatePrice: {
+        //       select: {
+        //         id: true,
+        //         category: {
+        //           select: {
+        //             categoryId: true,
+        //             categoryName: true,
+        //           },
+        //         },
+        //       },
+        //     },
+        //     // service: {
+        //     //   select: {
+        //     //     serviceId: true,
+        //     //     serviceName: true,
+        //     //   },
+        //     // },
+        //   },
+        // });
+
+        const allocatePrice = await this.prisma.allocatePrice.findMany({
           take: +take,
           skip: +take * (+page - 1),
           where: {
-            vendorId,
+            vendorService: {
+              vendorId,
+            },
             ...(search && {
-              service: {
-                serviceName: {
+              category: {
+                categoryName: {
                   contains: search,
                   mode: 'insensitive',
                 },
               },
             }),
           },
+          // distinct: ['categoryId'],
           select: {
-            vendorServiceId: true,
-            AllocatePrice: {
+            id: true,
+            price: true,
+            vendorService: {
               select: {
-                id: true,
-                category: {
+                service: {
                   select: {
-                    categoryId: true,
-                    categoryName: true,
+                    serviceId: true,
+                    serviceName: true,
                   },
                 },
               },
             },
-            // service: {
-            //   select: {
-            //     serviceId: true,
-            //     serviceName: true,
-            //   },
-            // },
+            category: {
+              select: {
+                categoryId: true,
+                categoryName: true,
+              },
+            },
           },
         });
 
-        const totalCount = await this.prisma.vendorService.count({
+        const totalCount = await this.prisma.allocatePrice.count({
           where: {
-            vendorId,
+            vendorService: {
+              vendorId,
+            },
             ...(search && {
-              service: {
-                serviceName: {
+              category: {
+                categoryName: {
                   contains: search,
                   mode: 'insensitive',
                 },
@@ -886,7 +927,7 @@ export class CustomerRepository {
         });
 
         return {
-          data: vendorService,
+          data: allocatePrice,
           page: +page,
           take: +take,
           totalCount,
