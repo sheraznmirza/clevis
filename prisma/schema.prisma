@@ -167,6 +167,7 @@ model Customer {
   userMasterId  Int             @unique
   userMaster    UserMaster      @relation(fields: userMasterId, references: userMasterId)
   fullName      String
+  tapCustomerId String?
   status        Status?         @default(APPROVED)
   userAddress   UserAddress[]
   bookingMaster BookingMaster[]

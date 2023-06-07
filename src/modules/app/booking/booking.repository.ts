@@ -27,6 +27,14 @@ export class BookingRepository {
     private httpService: HttpService,
   ) {}
 
+  // async bookingPayment(dto) {
+  //   try {
+
+  //   } catch (error) {
+
+  //   }
+  // }
+
   async createBooking(customerId, dto: CreateBookingDto) {
     try {
       let pickupLocationId: UserAddress;
