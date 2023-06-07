@@ -25,6 +25,7 @@ import { UserType } from '@prisma/client';
 import {
   UpdateCustomerDto,
   VendorLocationDto,
+  VendorServiceCarWashParams,
   VendorServiceParams,
 } from './dto';
 
@@ -80,6 +81,18 @@ export class CustomerController {
     @Query() dto: VendorServiceParams,
   ) {
     return this.customerService.getVendorServicesByVendorId(vendorId, dto);
+  }
+
+  @Authorized(UserType.CUSTOMER)
+  @Get('car-wash-vendor-services/:vendorId')
+  getVendorServicesCarWash(
+    @Param('vendorId') vendorId: number,
+    @Query() dto: VendorServiceCarWashParams,
+  ) {
+    return this.customerService.getVendorServicesCarWashByVendorId(
+      vendorId,
+      dto,
+    );
   }
 
   @Authorized(UserType.ADMIN)
