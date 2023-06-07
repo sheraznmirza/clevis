@@ -21,3 +21,14 @@ export class VendorServiceParams extends ListingParams {
   @IsOptional()
   categoryId?: string;
 }
+
+export class VendorServiceCarWashParams extends ListingParams {
+  @ApiProperty({
+    required: false,
+    description:
+      'Send category ID to get the respective subcategories in the vendor service',
+  })
+  @IsString()
+  @IsOptional()
+  categoryId?: string;
+}
