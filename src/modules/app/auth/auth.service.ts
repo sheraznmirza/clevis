@@ -879,8 +879,8 @@ export class AuthService {
 
       if (!user) throw new NotFoundException('Email does not exist.');
       if (
-        user.userType !== data.userType ||
-        !user.isEmailVerified ||
+        (user.userType !== UserType.ADMIN &&
+          (user.userType !== data.userType || !user.isEmailVerified)) ||
         (data.userType !== UserType.CUSTOMER &&
           user[data.userType.toLowerCase()]?.status !== Status.APPROVED)
       ) {
@@ -917,7 +917,8 @@ export class AuthService {
 
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
-      if (error.response.statusCode === 404) {
+      console.log('error: ', error);
+      if (error?.response?.statusCode === 404) {
         throw error;
       }
       return unknowError(

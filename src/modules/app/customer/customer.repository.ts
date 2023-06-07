@@ -740,33 +740,6 @@ export class CustomerRepository {
           totalCount,
         };
       } else if (dto.vendorServiceId && !dto.categoryId) {
-        // const vendorService = await this.prisma.vendorService.findMany({
-        //   take: +take,
-        //   skip: +take * (+page - 1),
-        // where: {
-        //   vendorServiceId: +dto.vendorServiceId,
-        //   AllocatePrice: {
-        //     some: {
-        //       categoryId: dto.categoryId
-        //     }
-        //   }
-        // },
-        //   select: {
-        //     vendorServiceId: true,
-        //     AllocatePrice: {
-        //       select: {
-        //         id:true,
-        //         category: {
-        //           select: {
-        //             categoryId:true,
-        //             categoryName: true
-        //           }
-        //         }
-        //       }
-        //     }
-        //   },
-        // });
-
         const allocatePrice = await this.prisma.allocatePrice.findMany({
           take: +take,
           skip: +take * (+page - 1),
@@ -850,83 +823,126 @@ export class CustomerRepository {
           totalCount,
         };
       }
-      // const vendorService = await this.prisma.vendorService.findMany({
-      //   take: +take,
-      //   skip: +take * (+page - 1),
-      //   where: {
-      //     vendorId,
-      //   },
-      //   select: {
-      //     vendorServiceId: true,
-      //     vendorId: true,
-      //     service: {
-      //       select: {
-      //         serviceId: true,
-      //         serviceName: true,
-      //         serviceType: true,
-      //       },
-      //     },
-      //   },
-      // });
-      // const vendorServiceIds = vendorService.map(
-      //   (item) => item.vendorServiceId,
-      // );
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      // const categories = await this.prisma.allocatePrice.findMany({
-      //   where: {
-      //     vendorServiceId: {
-      //       in: vendorServiceIds,
-      //     },
-      //   },
-      //   distinct: ['vendorServiceId'],
-      //   select: {
-      //     id: true,
-      //     vendorServiceId: true,
-      //     category: {
-      //       select: {
-      //         categoryId: true,
-      //         categoryName: true,
-      //       },
-      //     },
-      //     price: true,
-      //   },
-      // });
+  async getVendorServicesCarWashByVendorId(
+    vendorId: number,
+    dto: VendorServiceParams,
+  ) {
+    const { page = 1, take = 10, search } = dto;
+    try {
+      if (!dto.categoryId) {
+        const vendorService = await this.prisma.vendorService.findMany({
+          take: +take,
+          skip: +take * (+page - 1),
+          where: {
+            vendorId,
+            ...(search && {
+              service: {
+                serviceName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
+          },
+          select: {
+            vendorServiceId: true,
+            AllocatePrice: {
+              select: {
+                id: true,
+                category: {
+                  select: {
+                    categoryId: true,
+                    categoryName: true,
+                  },
+                },
+              },
+            },
+            // service: {
+            //   select: {
+            //     serviceId: true,
+            //     serviceName: true,
+            //   },
+            // },
+          },
+        });
 
-      // let subcategories: subcategories[];
+        const totalCount = await this.prisma.vendorService.count({
+          where: {
+            vendorId,
+            ...(search && {
+              service: {
+                serviceName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
+          },
+        });
 
-      // if (vendorService && vendorService[0].service.serviceType) {
-      //   subcategories = await this.prisma.allocatePrice.findMany({
-      //     where: {
-      //       vendorServiceId: {
-      //         in: vendorServiceIds,
-      //       },
-      //     },
-      //     distinct: ['vendorServiceId'],
-      //     select: {
-      //       id: true,
-      //       vendorServiceId: true,
-      //       category: {
-      //         select: {
-      //           categoryId: true,
-      //           categoryName: true,
-      //         },
-      //       },
-      //       subcategory: {
-      //         select: {
-      //           subCategoryId: true,
-      //           subCategoryName: true,
-      //         },
-      //       },
-      //       price: true,
-      //     },
-      //   });
-      // }
+        return {
+          data: vendorService,
+          page: +page,
+          take: +take,
+          totalCount,
+        };
+      } else if (dto.categoryId) {
+        const allocatePrice = await this.prisma.allocatePrice.findMany({
+          take: +take,
+          skip: +take * (+page - 1),
+          where: {
+            categoryId: +dto.categoryId,
 
-      // return {
-      //   vendorService,
-      //   categories,
-      //   ...(subcategories && { subcategories }),
-      // };
+            ...(search && {
+              category: {
+                categoryName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
+          },
+          // distinct: ['categoryId'],
+          select: {
+            id: true,
+            price: true,
+            vendorService: {
+              select: {
+                service: {
+                  select: {
+                    serviceId: true,
+                    serviceName: true,
+                  },
+                },
+              },
+            },
+            category: {
+              select: {
+                categoryId: true,
+                categoryName: true,
+              },
+            },
+          },
+        });
+
+        const totalCount = await this.prisma.allocatePrice.count({
+          where: {
+            categoryId: +dto.categoryId,
+          },
+        });
+
+        return {
+          data: allocatePrice,
+          page: +page,
+          take: +take,
+          totalCount,
+        };
+      }
     } catch (error) {
       throw error;
     }
