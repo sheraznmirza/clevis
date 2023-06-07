@@ -3,6 +3,7 @@ import { BookingRepository } from './booking.repository';
 import {
   AdminGetBookingsDto,
   BookingDetailsDto,
+  CreateBookingCarWashDto,
   CreateBookingDto,
   CustomerGetBookingsDto,
   UpdateBookingStatusParam,
@@ -16,6 +17,14 @@ export class BookingService {
   async createBooking(customerId: number, dto: CreateBookingDto) {
     try {
       return await this.repository.createBooking(customerId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createBookingCarWash(customerId: number, dto: CreateBookingCarWashDto) {
+    try {
+      return await this.repository.createBookingCarWash(customerId, dto);
     } catch (error) {
       throw error;
     }
