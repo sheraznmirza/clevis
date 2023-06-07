@@ -89,7 +89,7 @@ export class BookingController {
     return this.bookingService.getAdminBookings(dto);
   }
 
-  @Authorized(UserType.ADMIN)
+  @Authorized(UserType.CUSTOMER)
   @Post('details')
   getBookingDetails(@Body() dto: BookingDetailsDto) {
     return this.bookingService.getBookingDetails(dto);
