@@ -5,6 +5,7 @@ import { CustomerRepository } from './customer.repository';
 import {
   UpdateCustomerDto,
   VendorLocationDto,
+  VendorServiceCarWashParams,
   VendorServiceParams,
 } from './dto';
 import dayjs from 'dayjs';
@@ -67,6 +68,20 @@ export class CustomerService {
   ) {
     try {
       return await this.repository.getVendorServicesByVendorId(vendorId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVendorServicesCarWashByVendorId(
+    vendorId: number,
+    dto: VendorServiceCarWashParams,
+  ) {
+    try {
+      return await this.repository.getVendorServicesCarWashByVendorId(
+        vendorId,
+        dto,
+      );
     } catch (error) {
       throw error;
     }
