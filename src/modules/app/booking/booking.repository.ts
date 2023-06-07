@@ -4,6 +4,7 @@ import { successResponse, unknowError } from 'src/helpers/response.helper';
 import {
   AdminGetBookingsDto,
   BookingDetailsDto,
+  CreateBookingCarWashDto,
   CreateBookingDto,
   CustomerGetBookingsDto,
   UpdateBookingStatusParam,
@@ -85,7 +86,7 @@ export class BookingRepository {
       if (dto?.pickupLocation?.userAddressId) {
         pickupLocation = await this.prisma.userAddress.findUnique({
           where: {
-            userAddressId: dto.dropoffLocation.userAddressId,
+            userAddressId: dto.pickupLocation.userAddressId,
           },
         });
       }
@@ -119,6 +120,7 @@ export class BookingRepository {
         : 0;
 
       const bookingDetailPrice: number[] = [];
+
       for (let i = 0; i < dto.articles.length; i++) {
         const allocatePricePrice = await this.prisma.allocatePrice.findUnique({
           where: {
@@ -166,6 +168,137 @@ export class BookingRepository {
 
         // }
       });
+
+      await this.prisma.bookingDetail.createMany({
+        data: dto.articles.map((bookingDetail, index) => ({
+          bookingMasterId: bookingMaster.bookingMasterId,
+          allocatePriceId: bookingDetail.allocatePriceId,
+          price:
+            bookingDetailPrice && bookingDetailPrice.length > 0
+              ? bookingDetailPrice[index]
+              : 1,
+          quantity: bookingDetail.quantity,
+        })),
+      });
+
+      if (attachments && attachments.length > 0) {
+        await this.prisma.bookingAttachments.createMany({
+          data: attachments.map((item) => ({
+            bookingMasterId: bookingMaster.bookingMasterId,
+            mediaId: item.id,
+          })),
+        });
+      }
+
+      return successResponse(201, 'Booking created successfully.');
+    } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('Vendor does not exist');
+      }
+      throw error;
+    }
+  }
+
+  async createBookingCarWash(customerId, dto: CreateBookingCarWashDto) {
+    try {
+      let pickupLocationId: UserAddress;
+      let response: any;
+
+      const attachments = [];
+
+      if (dto.attachments && dto.attachments.length > 0) {
+        dto.attachments.forEach(async (item) => {
+          const result = await this.prisma.media.create({
+            data: item,
+            select: {
+              id: true,
+            },
+          });
+          attachments.push(result);
+        });
+      }
+
+      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
+        pickupLocationId = await this.prisma.userAddress.create({
+          data: {
+            latitude: dto.pickupLocation.latitude,
+            longitude: dto.pickupLocation.longitude,
+            cityId: dto.pickupLocation.cityId,
+            customerId,
+            fullAddress: dto.pickupLocation.fullAddress,
+          },
+        });
+        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+      }
+
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId: dto.vendorId,
+        },
+        select: {
+          deliverySchedule: {
+            select: {
+              kilometerFare: true,
+            },
+          },
+        },
+      });
+
+      const deliveryCharges = response
+        ? response?.distanceValue *
+          (vendor?.deliverySchedule?.kilometerFare || 8.5)
+        : 0;
+
+      const bookingDetailPrice: number[] = [];
+      for (let i = 0; i < dto.articles.length; i++) {
+        const allocatePricePrice = await this.prisma.allocatePrice.findUnique({
+          where: {
+            id: dto.articles[i].allocatePriceId,
+          },
+          select: {
+            price: true,
+          },
+        });
+
+        bookingDetailPrice.push(
+          dto.articles[i].quantity * allocatePricePrice.price,
+        );
+      }
+
+      let totalPrice = 0;
+      for (let i = 0; i < dto.articles.length; i++) {
+        totalPrice += bookingDetailPrice[i];
+      }
+
+      const bookingMaster = await this.prisma.bookingMaster.create({
+        data: {
+          customerId,
+          vendorId: dto.vendorId,
+          deliveryCharges,
+          bookingDate: dto.bookingDate,
+          ...(dto.carNumberPlate && {
+            carNumberPlate: dto.carNumberPlate,
+          }),
+          ...(dto.instructions && { instructions: dto.instructions }),
+          totalPrice: totalPrice,
+          ...// dto?.pickupLocation?.timeFrom &&
+          // dto?.pickupLocation?.timeTill &&
+          {
+            pickupLocationId: dto.pickupLocation.userAddressId,
+            // pickupTimeFrom: dayjs(dto.pickupLocation.timeFrom).utc().format(),
+            // pickupTimeTo: dayjs(dto.pickupLocation.timeTill).utc().format(),
+            // dropoffTimeFrom: dayjs(dto.dropoffLocation.timeFrom).utc().format(),
+            // dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
+          },
+        },
+        // select: {
+
+        // }
+      });
+
+      // const bookingDetailPrice = dto.articles.map(async (bookingDetail) => {
+
+      // })
 
       await this.prisma.bookingDetail.createMany({
         data: dto.articles.map((bookingDetail, index) => ({
