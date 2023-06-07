@@ -917,6 +917,9 @@ export class AuthService {
 
       return successResponse(200, 'OTP sent to your email');
     } catch (error) {
+      if (error.response.statusCode === 404) {
+        throw error;
+      }
       return unknowError(
         417,
         error,
