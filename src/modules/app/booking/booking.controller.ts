@@ -24,6 +24,7 @@ import {
   VendorGetBookingsDto,
 } from './dto';
 import { BookingService } from './booking.service';
+import { CreateBookingCarWashDto } from './dto/create-booking-carwash.dto';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Booking')
@@ -31,8 +32,15 @@ import { BookingService } from './booking.service';
 export class BookingController {
   constructor(private bookingService: BookingService) {}
 
-  @Post()
-  createBooking(@GetUser() user, @Body() dto: CreateBookingDto) {
+  @Authorized(UserType.CUSTOMER)
+  @Post('car-wash')
+  createBookingCarWash(@GetUser() user, @Body() dto: CreateBookingCarWashDto) {
+    return this.bookingService.createBookingCarWash(user.userTypeId, dto);
+  }
+
+  @Authorized(UserType.CUSTOMER)
+  @Post('laundry')
+  createBookingLaundry(@GetUser() user, @Body() dto: CreateBookingDto) {
     return this.bookingService.createBooking(user.userTypeId, dto);
   }
 
