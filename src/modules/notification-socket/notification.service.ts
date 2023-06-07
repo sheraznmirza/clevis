@@ -10,6 +10,9 @@ import { OneSignalService } from './one-signal.service';
 import { NotificationType, SocketEventNames } from 'src/constants';
 import { getUserDeviceRoom } from 'src/helpers/util.helper';
 import { SocketGateway } from './socket.gateway';
+import { ListingParams } from 'src/core/dto';
+import { successResponse } from 'src/helpers/response.helper';
+import { NotificationUpdateParams } from './dto';
 // import { getUserDeviceRoom } from 'helpers/util.helper';
 // import { SocketEventNames } from 'constants/socket';
 // import { NotificationType } from '../../constants';
@@ -87,6 +90,56 @@ export class NotificationService {
       //   },
       //   unReadNotificationCount,
       // });
+    }
+  }
+
+  async getAllNotifications(
+    userMasterId: number,
+    listingParams: ListingParams,
+  ) {
+    const { page = 1, take = 10 } = listingParams;
+    try {
+      const notifications = await this._dbService.notification.findMany({
+        where: {
+          userMasterId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: +take,
+        skip: +take * (+page - 1),
+      });
+
+      const totalCount = await this._dbService.notification.count({
+        where: {
+          userMasterId,
+        },
+      });
+
+      return {
+        data: notifications,
+        take: +take,
+        page: +page,
+        totalCount,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateNotification(params: NotificationUpdateParams) {
+    try {
+      await this._dbService.notification.update({
+        where: {
+          id: +params.notificationId,
+        },
+        data: {
+          readStatus: NotificationReadStatus.READ,
+        },
+      });
+      return successResponse(200, 'Notification read');
+    } catch (error) {
+      throw error;
     }
   }
 
