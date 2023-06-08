@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { UserType } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from 'src/core/dto';
+import { GetUserType, ListingParams } from 'src/core/dto';
 import { GetUser } from '../app/auth/decorator';
 import { JwtGuard } from '../app/auth/guard';
 import { RolesGuard } from 'src/core/guards';
@@ -32,7 +32,10 @@ export class NotificationController {
     UserType.VENDOR,
   ])
   @Get()
-  getAllNotifications(@GetUser() user, @Query() listingParams: ListingParams) {
+  getAllNotifications(
+    @GetUser() user: GetUserType,
+    @Query() listingParams: ListingParams,
+  ) {
     return this.notificationService.getAllNotifications(
       user.userMasterId,
       listingParams,

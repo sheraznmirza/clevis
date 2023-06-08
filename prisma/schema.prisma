@@ -105,6 +105,7 @@ enum EntityType {
   VENDOR
   RIDER
   CUSTOMER
+  BOOKINGMASTER
 }
 
 model UserMaster {
@@ -546,6 +547,7 @@ model BookingMaster {
   deliveryCharges    Float?               @default(0)
   vat                Float?               @default(0)
   totalPrice         Float
+  tapAuthId          String
   customer           Customer             @relation(fields: [customerId], references: [customerId])
   vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])
   pickupLocation     UserAddress?         @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])

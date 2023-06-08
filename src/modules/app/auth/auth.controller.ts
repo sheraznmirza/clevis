@@ -28,6 +28,7 @@ import { Authorized } from 'src/core/decorators';
 import { UserType } from '@prisma/client';
 import { RolesGuard } from 'src/core/guards';
 import { Throttle } from '@nestjs/throttler';
+import { GetUserType } from 'src/core/dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -113,7 +114,7 @@ export class AuthController {
   ])
   @HttpCode(HttpStatus.OK)
   @Post('/change-password')
-  changePassword(@Body() dto: ChangePasswordDto, @GetUser() user) {
+  changePassword(@Body() dto: ChangePasswordDto, @GetUser() user: GetUserType) {
     return this.authService.changePassword(dto, user.userMasterId);
   }
 
