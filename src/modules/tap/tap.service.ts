@@ -35,29 +35,29 @@ export class TapService {
   }
 
   async createCustomer(
-    card: createCustomerRequestInterface,
+    customer: createCustomerRequestInterface,
   ): Promise<createCustomerResponse> {
-    const result = await this.tapPaymentApi(card, 'customers');
+    const result = await this.tapPaymentApi(customer, 'customers');
     return result;
   }
 
-  async createAuthorize(card: createAuthorizedRequestInterface) {
-    const result = await this.tapPaymentApi(card, 'authorize');
+  async createAuthorize(authorize: createAuthorizedRequestInterface) {
+    const result = await this.tapPaymentApi(authorize, 'authorize');
     return result;
   }
 
-  async createBusniess(card: createBusinessRequestInterface) {
-    const result = await this.tapPaymentApi(card, 'busniess', true);
+  async createBusniess(business: createBusinessRequestInterface) {
+    const result = await this.tapPaymentApi(business, 'busniess', true);
     return result;
   }
 
-  async createMerchant(card: createMerchantRequestInterface) {
-    const result = await this.tapPaymentApi(card, 'merchant');
+  async createMerchant(merchant: createMerchantRequestInterface) {
+    const result = await this.tapPaymentApi(merchant, 'merchant');
     return result;
   }
 
-  async createCharge(card: createChargeRequestInterface) {
-    const result = await this.tapPaymentApi(card, 'charges');
+  async createCharge(charge: createChargeRequestInterface) {
+    const result = await this.tapPaymentApi(charge, 'charges');
     return result;
   }
 

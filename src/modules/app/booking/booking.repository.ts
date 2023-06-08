@@ -177,10 +177,6 @@ export class BookingRepository {
         // }
       });
 
-      // const bookingDetailPrice = dto.articles.map(async (bookingDetail) => {
-
-      // })
-
       await this.prisma.bookingDetail.createMany({
         data: dto.articles.map((bookingDetail, index) => ({
           bookingMasterId: bookingMaster.bookingMasterId,
