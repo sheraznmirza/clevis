@@ -447,6 +447,31 @@ export class BookingRepository {
               },
             },
           }),
+
+          ...(dto?.serviceType && {
+            vendor: {
+              serviceType: dto.serviceType,
+            },
+          }),
+
+          ...(dto?.status && {
+            status: dto.status,
+          }),
+
+          ...(serviceIds &&
+            serviceIds.length > 0 && {
+              bookingDetail: {
+                some: {
+                  allocatePrice: {
+                    vendorService: {
+                      serviceId: {
+                        in: serviceIds,
+                      },
+                    },
+                  },
+                },
+              },
+            }),
         },
       });
 
