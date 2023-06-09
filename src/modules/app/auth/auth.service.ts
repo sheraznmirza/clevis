@@ -923,9 +923,12 @@ export class AuthService {
 
       if (!user) throw new NotFoundException('Email does not exist.');
       if (
-        (user.userType !== UserType.ADMIN &&
-          (user.userType !== data.userType || !user.isEmailVerified)) ||
-        (data.userType !== UserType.CUSTOMER &&
+        !(
+          data.userType === UserType.ADMIN ||
+          data.userType === UserType.CUSTOMER
+        ) &&
+        (user.userType !== data.userType ||
+          !user.isEmailVerified ||
           user[data.userType.toLowerCase()]?.status !== Status.APPROVED)
       ) {
         throw new BadRequestException(
