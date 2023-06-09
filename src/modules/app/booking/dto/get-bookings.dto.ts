@@ -66,31 +66,7 @@ export class CustomerGetBookingsDto {
   services: ServiceNames[];
 }
 
-export class VendorGetBookingsDto {
-  @ApiProperty({
-    required: false,
-    description: 'Listing parameters Page Number',
-  })
-  @IsOptional()
-  @IsNumber()
-  page?: number;
-
-  @ApiProperty({
-    required: false,
-    description: 'Listing parameters Per Page Limit',
-  })
-  @IsOptional()
-  @IsNumber()
-  take?: number;
-
-  @ApiProperty({
-    required: false,
-    description: 'Search by name, title or code',
-  })
-  @IsOptional()
-  @IsString()
-  search?: string;
-
+export class VendorGetBookingsDto extends ListingParams {
   @ApiProperty({
     required: false,
     description: 'Select the respective service type.',
