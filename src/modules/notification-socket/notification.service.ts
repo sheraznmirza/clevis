@@ -22,6 +22,7 @@ export class NotificationService {
     private _dbService: PrismaService,
     private _oneSignalService: OneSignalService,
   ) {}
+
   private async _sendNotification(
     sQSSendNotificationArgs: SQSSendNotificationArgs<NotificationData>,
   ) {

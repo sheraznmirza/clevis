@@ -25,6 +25,7 @@ import {
 } from './dto';
 import { BookingService } from './booking.service';
 import { CreateBookingCarWashDto } from './dto/create-booking-carwash.dto';
+import { GetUserType } from 'src/core/dto';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Booking')
@@ -34,25 +35,37 @@ export class BookingController {
 
   @Authorized(UserType.CUSTOMER)
   @Post('car-wash')
-  createBookingCarWash(@GetUser() user, @Body() dto: CreateBookingCarWashDto) {
+  createBookingCarWash(
+    @GetUser() user: GetUserType,
+    @Body() dto: CreateBookingCarWashDto,
+  ) {
     return this.bookingService.createBookingCarWash(user.userTypeId, dto);
   }
 
   @Authorized(UserType.CUSTOMER)
   @Post('laundry')
-  createBookingLaundry(@GetUser() user, @Body() dto: CreateBookingDto) {
+  createBookingLaundry(
+    @GetUser() user: GetUserType,
+    @Body() dto: CreateBookingDto,
+  ) {
     return this.bookingService.createBooking(user.userTypeId, dto);
   }
 
   @Authorized(UserType.CUSTOMER)
   @Post('customer/me')
-  getCustomerBookings(@GetUser() user, @Body() dto: CustomerGetBookingsDto) {
+  getCustomerBookings(
+    @GetUser() user: GetUserType,
+    @Body() dto: CustomerGetBookingsDto,
+  ) {
     return this.bookingService.getCustomerBookings(user.userTypeId, dto);
   }
 
   @Authorized(UserType.VENDOR)
   @Get('vendor/me')
-  getVendorBookings(@GetUser() user, @Query() dto: VendorGetBookingsDto) {
+  getVendorBookings(
+    @GetUser() user: GetUserType,
+    @Query() dto: VendorGetBookingsDto,
+  ) {
     return this.bookingService.getVendorBookings(user.userTypeId, dto);
   }
 
@@ -91,7 +104,10 @@ export class BookingController {
 
   @Authorized(UserType.CUSTOMER)
   @Post('details')
-  getBookingDetails(@Body() dto: BookingDetailsDto) {
-    return this.bookingService.getBookingDetails(dto);
+  getBookingDetails(
+    @GetUser() user: GetUserType,
+    @Body() dto: BookingDetailsDto,
+  ) {
+    return this.bookingService.getBookingDetails(user, dto);
   }
 }

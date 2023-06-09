@@ -948,7 +948,7 @@ export class CustomerRepository {
               },
             }),
           },
-          // distinct: ['categoryId'],
+          distinct: ['vendorServiceId'],
           select: {
             id: true,
             price: true,

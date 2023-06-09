@@ -50,4 +50,9 @@ export class BookingDetailsDto {
   @IsNumber()
   @IsNotEmpty()
   vendorId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty()
+  productsTotal: number;
 }
