@@ -28,8 +28,8 @@ export class CustomerSignUpDto {
   password: string;
 
   @ApiProperty()
-  @Matches(/^\+?[1-9]\d{1,14}$/)
-  // @IsPhoneNumber()
+  // @Matches(/^\+?[1-9]\d{1,14}$/)
+  @IsPhoneNumber()
   @IsNotEmpty()
   phone: string;
 
