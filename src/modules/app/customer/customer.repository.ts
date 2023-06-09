@@ -459,15 +459,11 @@ export class CustomerRepository {
               select: {
                 userAddress: {
                   where: {
-                    isActive: true,
-                    isDeleted: false,
+                    cityId: { not: null },
                   },
                   select: {
                     cityId: true,
                   },
-                  // select: {
-                  //   cityId: true,
-                  // },
                 },
               },
             },
@@ -481,6 +477,10 @@ export class CustomerRepository {
             return service.serviceId;
           });
         }
+        console.log(
+          'customerCity.customer.userAddress[0].cityId: ',
+          customerCity.customer.userAddress[0].cityId,
+        );
 
         const vendors = await this.prisma.userMaster.findMany({
           where: {
@@ -490,51 +490,51 @@ export class CustomerRepository {
             vendor: {
               status: Status.APPROVED,
               serviceType: dto.serviceType,
-              userAddress: {
-                some: {
-                  cityId: customerCity.customer.userAddress[0].cityId,
-                  isDeleted: false,
-                },
-              },
-              ...(serviceIds &&
-                serviceIds.length > 0 && {
-                  vendorService: {
-                    some: {
-                      serviceId: {
-                        in: serviceIds,
-                      },
-                    },
-                  },
-                }),
+              // userAddress: {
+              //   some: {
+              //     cityId: customerCity.customer.userAddress[0].cityId,
+              //     isDeleted: false,
+              //   },
+              // },
+              // ...(serviceIds &&
+              //   serviceIds.length > 0 && {
+              //     vendorService: {
+              //       some: {
+              //         serviceId: {
+              //           in: serviceIds,
+              //         },
+              //       },
+              //     },
+              //   }),
 
-              companySchedule: {
-                some: {
-                  day: dayObj.currentDay,
-                  ...(vendorStatus === VendorStatus.OPEN && {
-                    startTime: {
-                      gte: dayObj.currentTime,
-                    },
-                    endTime: {
-                      lt: dayObj.currentTime,
-                    },
-                  }),
-                  ...(vendorStatus === VendorStatus.CLOSED && {
-                    OR: [
-                      {
-                        startTime: {
-                          lt: dayObj.currentTime,
-                        },
-                        endTime: {
-                          gte: dayObj.currentTime,
-                        },
-                      },
-                    ],
-                  }),
-                },
-              },
-              ...(vendorStatus === VendorStatus.BUSY && {
-                isBusy: true,
-              }),
+              // companySchedule: {
+              //   some: {
+              //     day: dayObj.currentDay,
+              //     ...(vendorStatus === VendorStatus.OPEN && {
+              //       startTime: {
+              //         gte: dayObj.currentTime,
+              //       },
+              //       endTime: {
+              //         lt: dayObj.currentTime,
+              //       },
+              //     }),
+              //     ...(vendorStatus === VendorStatus.CLOSED && {
+              //       OR: [
+              //         {
+              //           startTime: {
+              //             lt: dayObj.currentTime,
+              //           },
+              //           endTime: {
+              //             gte: dayObj.currentTime,
+              //           },
+              //         },
+              //       ],
+              //     }),
+              //   },
+              // },
+              // ...(vendorStatus === VendorStatus.BUSY && {
+              //   isBusy: true,
+              // }),
               ...(search && {
                 companyName: {
                   contains: search,
@@ -629,6 +629,7 @@ export class CustomerRepository {
           page,
           take,
           totalCount,
+          customerCity,
         };
       }
     } catch (error) {
