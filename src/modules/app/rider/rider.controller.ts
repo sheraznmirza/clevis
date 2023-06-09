@@ -23,7 +23,11 @@ import {
   UpdateRequestDto,
   UpdateRiderScheduleDto,
 } from './dto';
-import { RiderListingParams, VendorRiderByIdParams } from 'src/core/dto';
+import {
+  GetUserType,
+  RiderListingParams,
+  VendorRiderByIdParams,
+} from 'src/core/dto';
 import { RiderService } from './rider.service';
 
 @UseGuards(JwtGuard, RolesGuard)
@@ -33,7 +37,7 @@ export class RiderController {
   constructor(private riderService: RiderService) {}
   @Authorized(UserType.RIDER)
   @Get('me')
-  getMe(@GetUser() user, @Query() query: VendorRiderByIdParams) {
+  getMe(@GetUser() user: GetUserType, @Query() query: VendorRiderByIdParams) {
     return this.riderService.getRiderById(user.userMasterId, query);
   }
 
@@ -45,7 +49,7 @@ export class RiderController {
 
   @Authorized(UserType.VENDOR)
   @Post('/reqeust-update')
-  requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user) {
+  requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user: GetUserType) {
     return this.riderService.requestUpdate(dto, user.userTypeId);
   }
 
@@ -62,7 +66,7 @@ export class RiderController {
   @Authorized(UserType.RIDER)
   @HttpCode(HttpStatus.OK)
   @Patch('/me')
-  updateMe(@GetUser() user, @Body() dto: RiderUpdateDto) {
+  updateMe(@GetUser() user: GetUserType, @Body() dto: RiderUpdateDto) {
     return this.riderService.updateRider(user.userMasterId, dto);
   }
 
@@ -79,7 +83,10 @@ export class RiderController {
   @Authorized(UserType.RIDER)
   @HttpCode(HttpStatus.OK)
   @Patch('/schedule')
-  updateRiderSchedule(@GetUser() user, @Body() dto: UpdateRiderScheduleDto) {
+  updateRiderSchedule(
+    @GetUser() user: GetUserType,
+    @Body() dto: UpdateRiderScheduleDto,
+  ) {
     return this.riderService.updateRiderSchedule(user.userTypeId, dto);
   }
 

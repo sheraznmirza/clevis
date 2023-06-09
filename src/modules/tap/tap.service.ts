@@ -61,11 +61,7 @@ export class TapService {
     return result;
   }
 
-  tapPaymentApi(
-    payload: any,
-    url: string,
-    isMarket: boolean = false,
-  ): Promise<any> {
+  tapPaymentApi(payload: any, url: string, isMarket = false): Promise<any> {
     return this.httpService
       .post(
         AppConfig.TAP.BASE_URL.concat(url),

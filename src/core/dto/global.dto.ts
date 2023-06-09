@@ -4,9 +4,11 @@ import { ServiceType, Status, UserType } from '@prisma/client';
 
 export type GetUserType = {
   userMasterId: number;
-  userType: UserType;
   email: string;
+  fullName: string;
+  userType: UserType;
   userTypeId: number;
+  serviceType?: ServiceType;
 };
 
 enum OrderOf {

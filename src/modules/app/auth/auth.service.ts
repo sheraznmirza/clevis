@@ -148,6 +148,7 @@ export class AuthService {
       const response = await this.signToken(
         user.userMasterId,
         user.email,
+        user.customer.fullName,
         user.userType,
         user.customer.customerId,
       );
@@ -559,6 +560,7 @@ export class AuthService {
     const response = await this.signToken(
       user.userMasterId,
       user.email,
+      user.admin.fullName,
       user.userType,
       user.admin.id,
     );
@@ -633,6 +635,7 @@ export class AuthService {
     const response = await this.signToken(
       user.userMasterId,
       user.email,
+      user.customer.fullName,
       user.userType,
       user.customer.customerId,
     );
@@ -723,6 +726,7 @@ export class AuthService {
     const response = await this.signToken(
       user.userMasterId,
       user.email,
+      user.vendor.fullName,
       user.userType,
       user.vendor.vendorId,
       user.vendor.serviceType,
@@ -820,6 +824,7 @@ export class AuthService {
     const response = await this.signToken(
       user.userMasterId,
       user.email,
+      user.rider.fullName,
       user.userType,
       user.rider.riderId,
     );
@@ -872,6 +877,10 @@ export class AuthService {
       const tokens = await this.signToken(
         previousRefreshToken.userMasterId,
         user.email,
+        (user && user.vendor && user.vendor.fullName) ||
+          (user && user.admin && user.admin.fullName) ||
+          (user && user.customer && user.customer.fullName) ||
+          (user && user.rider && user.rider.fullName),
         user.userType,
         (user && user.vendor && user.vendor.vendorId) ||
           (user && user.admin && user.admin.id) ||
@@ -1160,6 +1169,7 @@ export class AuthService {
   async signToken(
     userId: number,
     email: string,
+    fullName: string,
     userType: UserType,
     userTypeId: number,
     serviceType?: ServiceType,
@@ -1167,6 +1177,7 @@ export class AuthService {
     const payload = {
       sub: userId,
       email,
+      fullName,
       userType,
       userTypeId,
       ...(serviceType && { serviceType }),
@@ -1213,7 +1224,7 @@ export class AuthService {
   async updatePassword(userId: number, password: string) {
     const hash = await argon.hash(password);
 
-    const user = await this.prisma.userMaster.update({
+    await this.prisma.userMaster.update({
       where: {
         userMasterId: userId,
       },

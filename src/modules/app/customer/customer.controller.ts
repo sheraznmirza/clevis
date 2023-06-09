@@ -17,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   CustomerListingParams,
   CustomerVendorListingParams,
+  GetUserType,
 } from '../../../core/dto';
 import { CustomerService } from './customer.service';
 import { RolesGuard } from '../../../core/guards';
@@ -36,7 +37,7 @@ export class CustomerController {
   constructor(private customerService: CustomerService) {}
   @Authorized(UserType.CUSTOMER)
   @Get('me')
-  getMe(@GetUser() user) {
+  getMe(@GetUser() user: GetUserType) {
     return this.customerService.getCustomerById(user.userMasterId);
   }
 
@@ -57,14 +58,14 @@ export class CustomerController {
 
   @Authorized(UserType.CUSTOMER)
   @Patch('me')
-  updateMe(@GetUser() user, @Body() dto: UpdateCustomerDto) {
+  updateMe(@GetUser() user: GetUserType, @Body() dto: UpdateCustomerDto) {
     return this.customerService.updateCustomer(user.userMasterId, dto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Authorized(UserType.CUSTOMER)
   @Post('vendors')
-  getVendors(@GetUser() user, @Body() dto: VendorLocationDto) {
+  getVendors(@GetUser() user: GetUserType, @Body() dto: VendorLocationDto) {
     return this.customerService.getVendorsByLocation(user.userMasterId, dto);
   }
 

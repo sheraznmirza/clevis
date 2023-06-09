@@ -53,7 +53,7 @@ export interface createTokenForSavedCardResponse {
   object: string;
   live_mode: boolean;
   type: string;
-  used: Boolean;
+  used: boolean;
   card: {
     id: string;
     object: string;
@@ -102,7 +102,7 @@ export interface createCustomerResponse {
   id: string;
   first_name: string;
   middle_name?: string;
-  last_name?: String;
+  last_name?: string;
   email: string;
   phone?: {
     country_code: string;
@@ -116,7 +116,7 @@ export interface createAuthorizedRequestInterface {
   threeDSecure: boolean;
   save_card?: boolean;
   statement_descriptor?: string;
-  reference: {
+  reference?: {
     transaction: string;
     order: string;
   };
@@ -125,11 +125,12 @@ export interface createAuthorizedRequestInterface {
     sms?: boolean;
   };
   customer?: {
-    first_name: string;
-    middle_name: string;
-    last_name: string;
-    email: string;
-    phone: {
+    id: string;
+    first_name?: string;
+    middle_name?: string;
+    last_name?: string;
+    email?: string;
+    phone?: {
       country_code: string;
       number: string;
     };
@@ -137,7 +138,7 @@ export interface createAuthorizedRequestInterface {
   source: {
     id: string;
   };
-  auto: {
+  auto?: {
     type: string;
     time: number;
   };

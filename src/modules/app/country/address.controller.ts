@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { ApiTags } from '@nestjs/swagger';
-import { ListingParams } from 'src/core/dto';
+import { GetUserType, ListingParams } from 'src/core/dto';
 import { Authorized } from 'src/core/decorators';
 import { UserType } from '@prisma/client';
 import { GetUser } from '../auth/decorator';
@@ -81,7 +81,7 @@ export class AddressController {
     UserType.RIDER,
   ])
   @Post('userAddress')
-  createAddress(@GetUser() user, @Body() data: addressCreateDto) {
+  createAddress(@GetUser() user: GetUserType, @Body() data: addressCreateDto) {
     return this.addressService.createAddress(data, user);
   }
 
@@ -94,7 +94,7 @@ export class AddressController {
   ])
   @Patch('/:addressId')
   updateAddressByCustomer(
-    @GetUser() user,
+    @GetUser() user: GetUserType,
     @Param('addressId') id: number,
     @Body() data: addressUpdateDto,
   ) {
@@ -108,7 +108,7 @@ export class AddressController {
   @UseGuards(JwtGuard, RolesGuard)
   @Authorized(UserType.CUSTOMER)
   @Patch('activeAddress/:addressId')
-  updateIsActive(@GetUser() user, @Param('addressId') id: number) {
+  updateIsActive(@GetUser() user: GetUserType, @Param('addressId') id: number) {
     return this.addressService.updateIsActive(user, id);
   }
 
@@ -120,7 +120,7 @@ export class AddressController {
     UserType.RIDER,
   ])
   @Delete('/:addressId')
-  deleteAddress(@GetUser() user, @Param('addressId') id: number) {
+  deleteAddress(@GetUser() user: GetUserType, @Param('addressId') id: number) {
     return this.addressService.deleteaddress(id, user);
   }
 }
