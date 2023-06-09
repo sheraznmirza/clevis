@@ -32,6 +32,11 @@ import {
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 import { companySchedule } from 'src/core/constants';
 import { decryptData, encryptData } from 'src/helpers/util.helper';
+import { TapService } from 'src/modules/tap/tap.service';
+import {
+  createBusinessRequestInterface,
+  createMerchantRequestInterface,
+} from 'src/modules/tap/dto/card.dto';
 
 @Injectable()
 export class AuthService {
@@ -40,6 +45,7 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
     private mail: MailService,
+    private tapService: TapService,
   ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
@@ -263,6 +269,22 @@ export class AuthService {
                   cityId: true,
                   longitude: true,
                   latitude: true,
+                  city: {
+                    select: {
+                      State: {
+                        select: {
+                          country: {
+                            select: {
+                              countryCode: true,
+                              countryName: true,
+                              currency: true,
+                              shortName: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
                 },
               },
               fullName: true,
@@ -292,6 +314,28 @@ export class AuthService {
         })),
       });
       this.sendEncryptedDataToMail(user, UserType.VENDOR);
+      const payload: createBusinessRequestInterface = {
+        name: {
+          en: user.vendor.companyName,
+        },
+        type: 'corp',
+        entity: {
+          legal_name: {
+            en: user.vendor.companyName,
+          },
+          is_licensed: true,
+        },
+        brands: [
+          {
+            name: {
+              en: user.vendor.companyName,
+            },
+          },
+        ],
+      };
+
+      const TapBusinessPay = await this.tapService.createBusniess(payload);
+
       // const payload: CreateNotificationDto = {
       //   toUser: 1,
       //   fromUser: user.userMasterId,
@@ -888,9 +932,12 @@ export class AuthService {
 
       if (!user) throw new NotFoundException('Email does not exist.');
       if (
-        (user.userType !== UserType.ADMIN &&
-          (user.userType !== data.userType || !user.isEmailVerified)) ||
-        (data.userType !== UserType.CUSTOMER &&
+        !(
+          data.userType === UserType.ADMIN ||
+          data.userType === UserType.CUSTOMER
+        ) &&
+        (user.userType !== data.userType ||
+          !user.isEmailVerified ||
           user[data.userType.toLowerCase()]?.status !== Status.APPROVED)
       ) {
         throw new BadRequestException(

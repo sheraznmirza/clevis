@@ -6,6 +6,9 @@ import { RolesGuard } from 'src/core/guards';
 import { JwtGuard } from '../auth/guard';
 import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 import { StatisticUserAdminQueryDto } from './dto/statistics.user.dto';
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Statistics')
 @Controller('statistics')
 export class StatisticsController {
   constructor(private StatisticsService: StatisticsService) {}
