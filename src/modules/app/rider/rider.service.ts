@@ -23,6 +23,13 @@ import {
 } from 'src/helpers/alwaysOpen.helper';
 import dayjs from 'dayjs';
 import { ERROR_MESSAGE } from 'src/core/constants';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { PrismaService } from 'src/modules/prisma/prisma.service';
+import {
+  createBusinessRequestInterface,
+  createMerchantRequestInterface,
+} from 'src/modules/tap/dto/card.dto';
+import { TapService } from 'src/modules/tap/tap.service';
 
 @Injectable()
 export class RiderService {
@@ -30,12 +37,141 @@ export class RiderService {
     private repository: RiderRepository,
     private mail: MailService,
     private config: ConfigService,
+    private prisma: PrismaService,
+    private tapService: TapService,
+    private notification: NotificationService,
   ) {}
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
       const rider = await this.repository.approveRider(id, dto);
+      const user = await this.prisma.userMaster.findFirst({
+        where: {
+          rider: {
+            riderId: id,
+          },
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          phone: true,
+          userType: true,
+          rider: {
+            select: {
+              userAddress: {
+                select: {
+                  userAddressId: true,
+                  fullAddress: true,
+                  cityId: true,
+                  longitude: true,
+                  latitude: true,
+                  city: {
+                    select: {
+                      cityName: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          country: {
+                            select: {
+                              countryCode: true,
+                              countryName: true,
+                              currency: true,
+                              shortName: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              fullName: true,
+              riderId: true,
+              companyEmail: true,
+              companyName: true,
+              logo: true,
+              description: true,
+            },
+          },
+        },
+      });
 
+      const payload: createBusinessRequestInterface = {
+        name: {
+          en: user.rider.companyName,
+        },
+        type: 'corp',
+        entity: {
+          legal_name: {
+            en: user.rider.companyName,
+          },
+          is_licensed: false,
+          country: user.rider.userAddress[0].city.State.country.shortName,
+          billing_address: {
+            recipient_name: user.rider.fullName,
+            address_1: user.rider.userAddress[0].fullAddress,
+            city: user.rider.userAddress[0].city.cityName,
+            state: user.rider.userAddress[0].city.State.stateName,
+            country: user.rider.userAddress[0].city.State.country.shortName,
+          },
+        },
+        contact_person: {
+          name: {
+            first: user.rider.fullName.split(' ')[0],
+            last: user.rider.fullName.split(' ')[1],
+          },
+
+          contact_info: {
+            primary: {
+              email: user.email,
+              phone: {
+                country_code:
+                  user.rider.userAddress[0].city.State.country.countryCode,
+                number: user.phone.replace('+', ''),
+              },
+            },
+          },
+          authorization: {
+            name: {
+              first: user.rider.fullName.split(' ')[0],
+              last: user.rider.fullName.split(' ')[1],
+            },
+          },
+        },
+        brands: [
+          {
+            name: {
+              en: user.rider.companyName,
+            },
+          },
+        ],
+      };
+      const tapbusiness = await this.tapService.createBusniess(payload);
+
+      const merchantPayload: createMerchantRequestInterface = {
+        display_name: user.rider.fullName,
+        branch_id: tapbusiness.entity.branches[0].id,
+        brand_id: tapbusiness.brands[0].id,
+        business_entity_id: tapbusiness.entity.id,
+        business_id: tapbusiness.id,
+      };
+
+      const merchantTap = await this.tapService.createMerchant(merchantPayload);
+      await this.prisma.rider.update({
+        where: {
+          riderId: user.rider.riderId,
+        },
+        data: {
+          tapBusinessId: tapbusiness.id,
+          tapBranchId: tapbusiness.entity.branches[0].id,
+          tapBrandId: tapbusiness.brands[0].id,
+          tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
+          tapBusinessEntityId: tapbusiness.entity.id,
+          tapMerchantId: merchantTap.id,
+          tapWalletId: merchantTap.wallets.id,
+        },
+      });
       const context = {
         app_name: this.config.get('APP_NAME'),
         app_url: `${this.config.get(dynamicUrl(rider.userType))}`,
@@ -46,6 +182,7 @@ export class RiderService {
             : 'Your account has been rejected. Please contact our support for further information.',
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
+      // await this.notification.HandleNotifications()
       await this.mail.sendEmail(
         rider.email,
         this.config.get('MAIL_ADMIN'),
