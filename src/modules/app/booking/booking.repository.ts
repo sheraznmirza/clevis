@@ -989,24 +989,6 @@ export class BookingRepository {
         },
       });
 
-      if (!customer.tapCustomerId) {
-        const payload: createCustomerRequestInterface = {
-          email: user.email,
-          first_name: user.fullName,
-          currency: 'AED',
-        };
-        const tapCustomer = await this.tapService.createCustomer(payload);
-
-        await this.prisma.customer.update({
-          where: {
-            customerId: user.userTypeId,
-          },
-          data: {
-            tapCustomerId: tapCustomer.id,
-          },
-        });
-      }
-
       const payload = {
         amount:
           dto.totalPrice +
