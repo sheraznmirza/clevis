@@ -35,6 +35,7 @@ import { decryptData, encryptData } from 'src/helpers/util.helper';
 import { TapService } from 'src/modules/tap/tap.service';
 import {
   createBusinessRequestInterface,
+  createCustomerRequestInterface,
   createMerchantRequestInterface,
 } from 'src/modules/tap/dto/card.dto';
 
@@ -154,6 +155,23 @@ export class AuthService {
       );
       await this.updateRt(user.userMasterId, response.refreshToken);
       this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
+
+      const payload: createCustomerRequestInterface = {
+        email: user.email,
+        first_name: user.customer.fullName,
+        currency: 'AED',
+      };
+      const tapCustomer = await this.tapService.createCustomer(payload);
+
+      await this.prisma.customer.update({
+        where: {
+          customerId: user.customer.customerId,
+        },
+        data: {
+          tapCustomerId: tapCustomer.id,
+        },
+      });
+
       return {
         tokens: response,
         ...user,
@@ -334,7 +352,7 @@ export class AuthService {
         ],
       };
 
-      const TapBusinessPay = await this.tapService.createBusniess(payload);
+      // const TapBusinessPay = await this.tapService.createBusniess(payload);
 
       // const payload: CreateNotificationDto = {
       //   toUser: 1,
