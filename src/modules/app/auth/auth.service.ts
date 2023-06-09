@@ -2,21 +2,22 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   RequestTimeoutException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ServiceType, Status, UserType } from '@prisma/client';
 import * as argon from 'argon2';
-import { createCipheriv, createDecipheriv } from 'crypto';
 import dayjs from 'dayjs';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../../modules/mail/mail.service';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-// import { CreateNotificationDto } from '../notification/dto';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import {
   ChangePasswordDto,
   CustomerSignUpDto,
@@ -36,7 +37,6 @@ import { TapService } from 'src/modules/tap/tap.service';
 import {
   createBusinessRequestInterface,
   createCustomerRequestInterface,
-  createMerchantRequestInterface,
 } from 'src/modules/tap/dto/card.dto';
 
 @Injectable()
@@ -47,6 +47,8 @@ export class AuthService {
     private config: ConfigService,
     private mail: MailService,
     private tapService: TapService,
+    @Inject(forwardRef(() => NotificationService))
+    private notificationService: NotificationService,
   ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {

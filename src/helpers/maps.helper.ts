@@ -14,8 +14,6 @@ export const mapsDistanceData = async (
   config: ConfigService,
   httpService: HttpService,
 ) => {
-  console.log('from: ', from);
-  console.log('to: ', to);
   const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
   const params = {
     units: 'metric',
