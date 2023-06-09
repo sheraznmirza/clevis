@@ -316,6 +316,7 @@ export class AuthService {
         })),
       });
       this.sendEncryptedDataToMail(user, UserType.VENDOR);
+
       const payload: createBusinessRequestInterface = {
         name: {
           en: user.vendor.companyName,
