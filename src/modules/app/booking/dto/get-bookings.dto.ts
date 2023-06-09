@@ -12,7 +12,31 @@ import { ListingParams } from 'src/core/dto';
 import { ServiceNames } from '../../customer/dto';
 import { Type } from 'class-transformer';
 
-export class CustomerGetBookingsDto extends ListingParams {
+export class CustomerGetBookingsDto {
+  @ApiProperty({
+    required: false,
+    description: 'Listing parameters Page Number',
+  })
+  @IsOptional()
+  @IsNumber()
+  page?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Listing parameters Per Page Limit',
+  })
+  @IsOptional()
+  @IsNumber()
+  take?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Search by name, title or code',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
   @ApiProperty({
     required: false,
     description: 'Select the respective service type.',

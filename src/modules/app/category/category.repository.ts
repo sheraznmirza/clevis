@@ -143,7 +143,7 @@ export class CategoryRepository {
         },
       });
 
-      if (!remove.isDeleted) {
+      if (!remove?.isDeleted) {
         await this.prisma.category.update({
           where: {
             categoryId: id,
@@ -154,15 +154,14 @@ export class CategoryRepository {
         });
         return successResponse(200, 'Customer deleted successfully.');
       } else {
-        throw new BadRequestException('Customer is already deleted.');
+        return unknowError(404, {}, '');
       }
     } catch (error) {
-      // return unknowError(
-      //   417,
-      //   error,
-      //   'The request was well-formed but was unable to be followed due to semantic errors ',
-      // );
-      throw error;
+      return unknowError(
+        417,
+        error,
+        'The request was well-formed but was unable to be followed due to semantic errors ',
+      );
     }
   }
 }

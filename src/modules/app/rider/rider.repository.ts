@@ -161,6 +161,9 @@ export class RiderRepository {
                 },
               },
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {

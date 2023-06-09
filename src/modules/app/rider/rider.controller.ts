@@ -48,7 +48,7 @@ export class RiderController {
   }
 
   @Authorized(UserType.VENDOR)
-  @Post('/reqeust-update')
+  @Post('/request-update')
   requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user: GetUserType) {
     return this.riderService.requestUpdate(dto, user.userTypeId);
   }
