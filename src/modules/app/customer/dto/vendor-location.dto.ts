@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -10,7 +11,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ServiceType } from '@prisma/client';
 
-enum Status {
+export enum VendorStatus {
   BUSY = 'BUSY',
   OPEN = 'OPEN',
   CLOSED = 'CLOSED',
@@ -79,11 +80,11 @@ export class VendorLocationDto {
   @ApiProperty({
     required: false,
     description: 'Status for vendor.',
-    enum: Status,
+    enum: VendorStatus,
   })
-  @IsEnum(Status)
+  @IsEnum(VendorStatus)
   @IsOptional()
-  status: Status;
+  status: VendorStatus;
 
   @ApiProperty({
     required: false,
@@ -115,6 +116,6 @@ export class VendorLocationDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsString()
+  @IsDateString()
   currentDay: string;
 }

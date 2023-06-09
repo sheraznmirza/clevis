@@ -42,12 +42,12 @@ import {
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(forwardRef(() => NotificationService))
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
     private mail: MailService,
     private tapService: TapService,
+    @Inject(forwardRef(() => NotificationService))
     private notificationService: NotificationService,
   ) {}
 
