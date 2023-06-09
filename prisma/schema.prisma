@@ -228,6 +228,8 @@ model Rider {
   tapBranchId         String?
   tapBrandId          String?
   tapMerchantId       String?
+  tapPrimaryWalletId  String?
+  tapWalletId         String?
   userAddress         UserAddress[]
   status              Status            @default(PENDING)
   businessLicense     BusinessLicense[]

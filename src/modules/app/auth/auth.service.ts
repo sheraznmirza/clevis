@@ -37,17 +37,18 @@ import { TapService } from 'src/modules/tap/tap.service';
 import {
   createBusinessRequestInterface,
   createCustomerRequestInterface,
+  createMerchantRequestInterface,
 } from 'src/modules/tap/dto/card.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(forwardRef(() => NotificationService))
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
     private mail: MailService,
     private tapService: TapService,
+    @Inject(forwardRef(() => NotificationService))
     private notificationService: NotificationService,
   ) {}
 
@@ -337,81 +338,81 @@ export class AuthService {
       });
       this.sendEncryptedDataToMail(user, UserType.VENDOR);
 
-      const payload: createBusinessRequestInterface = {
-        name: {
-          en: user.vendor.companyName,
-        },
-        type: 'corp',
-        entity: {
-          legal_name: {
-            en: user.vendor.companyName,
-          },
-          is_licensed: false,
-          country: user.vendor.userAddress[0].city.State.country.shortName,
-          billing_address: {
-            recipient_name: user.vendor.fullName,
-            address_1: user.vendor.userAddress[0].fullAddress,
-            city: user.vendor.userAddress[0].city.cityName,
-            state: user.vendor.userAddress[0].city.State.stateName,
-            country: user.vendor.userAddress[0].city.State.country.shortName,
-          },
-        },
-        contact_person: {
-          name: {
-            first: user.vendor.fullName.split(' ')[0],
-            last: user.vendor.fullName.split(' ')[1],
-          },
+      // const payload: createBusinessRequestInterface = {
+      //   name: {
+      //     en: user.vendor.companyName,
+      //   },
+      //   type: 'corp',
+      //   entity: {
+      //     legal_name: {
+      //       en: user.vendor.companyName,
+      //     },
+      //     is_licensed: false,
+      //     country: user.vendor.userAddress[0].city.State.country.shortName,
+      //     billing_address: {
+      //       recipient_name: user.vendor.fullName,
+      //       address_1: user.vendor.userAddress[0].fullAddress,
+      //       city: user.vendor.userAddress[0].city.cityName,
+      //       state: user.vendor.userAddress[0].city.State.stateName,
+      //       country: user.vendor.userAddress[0].city.State.country.shortName,
+      //     },
+      //   },
+      //   contact_person: {
+      //     name: {
+      //       first: user.vendor.fullName.split(' ')[0],
+      //       last: user.vendor.fullName.split(' ')[1],
+      //     },
 
-          contact_info: {
-            primary: {
-              email: user.email,
-              phone: {
-                country_code:
-                  user.vendor.userAddress[0].city.State.country.countryCode,
-                number: user.phone.replace('+', ''),
-              },
-            },
-          },
-          authorization: {
-            name: {
-              first: user.vendor.fullName.split(' ')[0],
-              last: user.vendor.fullName.split(' ')[1],
-            },
-          },
-        },
-        brands: [
-          {
-            name: {
-              en: user.vendor.companyName,
-            },
-          },
-        ],
-      };
-      const tapbusiness = await this.tapService.createBusniess(payload);
+      //     contact_info: {
+      //       primary: {
+      //         email: user.email,
+      //         phone: {
+      //           country_code:
+      //             user.vendor.userAddress[0].city.State.country.countryCode,
+      //           number: user.phone.replace('+', ''),
+      //         },
+      //       },
+      //     },
+      //     authorization: {
+      //       name: {
+      //         first: user.vendor.fullName.split(' ')[0],
+      //         last: user.vendor.fullName.split(' ')[1],
+      //       },
+      //     },
+      //   },
+      //   brands: [
+      //     {
+      //       name: {
+      //         en: user.vendor.companyName,
+      //       },
+      //     },
+      //   ],
+      // };
+      // const tapbusiness = await this.tapService.createBusniess(payload);
 
-      const merchantPayload: createMerchantRequestInterface = {
-        display_name: user.vendor.fullName,
-        branch_id: tapbusiness.entity.branches[0].id,
-        brand_id: tapbusiness.brands[0].id,
-        business_entity_id: tapbusiness.entity.id,
-        business_id: tapbusiness.id,
-      };
+      // const merchantPayload: createMerchantRequestInterface = {
+      //   display_name: user.vendor.fullName,
+      //   branch_id: tapbusiness.entity.branches[0].id,
+      //   brand_id: tapbusiness.brands[0].id,
+      //   business_entity_id: tapbusiness.entity.id,
+      //   business_id: tapbusiness.id,
+      // };
 
-      const merchantTap = await this.tapService.createMerchant(merchantPayload);
-      await this.prisma.vendor.update({
-        where: {
-          vendorId: user.vendor.vendorId,
-        },
-        data: {
-          tapBusinessId: tapbusiness.id,
-          tapBranchId: tapbusiness.entity.branches[0].id,
-          tapBrandId: tapbusiness.brands[0].id,
-          tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
-          tapBusinessEntityId: tapbusiness.entity.id,
-          tapMerchantId: merchantTap.id,
-          tapWalletId: merchantTap.wallets.id,
-        },
-      });
+      // const merchantTap = await this.tapService.createMerchant(merchantPayload);
+      // await this.prisma.vendor.update({
+      //   where: {
+      //     vendorId: user.vendor.vendorId,
+      //   },
+      //   data: {
+      //     tapBusinessId: tapbusiness.id,
+      //     tapBranchId: tapbusiness.entity.branches[0].id,
+      //     tapBrandId: tapbusiness.brands[0].id,
+      //     tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
+      //     tapBusinessEntityId: tapbusiness.entity.id,
+      //     tapMerchantId: merchantTap.id,
+      //     tapWalletId: merchantTap.wallets.id,
+      //   },
+      // });
 
       // const TapBusinessPay = await this.tapService.createBusniess(payload);
 
