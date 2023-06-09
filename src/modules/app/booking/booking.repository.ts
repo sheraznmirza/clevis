@@ -13,7 +13,7 @@ import {
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
-import { UserAddress } from '@prisma/client';
+import { ServiceType, UserAddress } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
@@ -890,6 +890,7 @@ export class BookingRepository {
           vendorId: dto.vendorId,
         },
         select: {
+          serviceType: true,
           userAddress: {
             where: {
               isDeleted: false,
@@ -955,30 +956,31 @@ export class BookingRepository {
         dto.dropoffLocation.latitude = dropoffLocation.latitude;
         dto.dropoffLocation.longitude = dropoffLocation.longitude;
       }
-
-      Promise.all([
-        mapsDistanceData(
-          dto.pickupLocation,
-          vendor.userAddress[0],
-          this.config,
-          this.httpService,
-        ),
-        mapsDistanceData(
-          dto.dropoffLocation,
-          vendor.userAddress[0],
-          this.config,
-          this.httpService,
-        ),
-      ])
-        .then((values) => {
-          console.log(values);
-          for (let i = 0; i < values.length; i++) {
-            response.distance = +values[i].distanceValue;
-          }
-        })
-        .catch((error) => {
-          throw error;
-        });
+      if (vendor.serviceType === ServiceType.LAUNDRY) {
+        Promise.all([
+          mapsDistanceData(
+            dto.pickupLocation,
+            vendor.userAddress[0],
+            this.config,
+            this.httpService,
+          ),
+          mapsDistanceData(
+            dto.dropoffLocation,
+            vendor.userAddress[0],
+            this.config,
+            this.httpService,
+          ),
+        ])
+          .then((values) => {
+            console.log(values);
+            for (let i = 0; i < values.length; i++) {
+              response.distance = +values[i].distanceValue;
+            }
+          })
+          .catch((error) => {
+            throw error;
+          });
+      }
 
       const customer = await this.prisma.customer.findUnique({
         where: {
@@ -990,11 +992,14 @@ export class BookingRepository {
       });
 
       const payload = {
-        amount:
-          dto.totalPrice +
-            platformFee?.fee +
-            response?.distance *
-              (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
+        amount: dto.totalPrice + platformFee?.fee,
+        ...(vendor.serviceType === ServiceType.LAUNDRY && {
+          amount:
+            dto.totalPrice +
+              platformFee?.fee +
+              response?.distance *
+                (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
+        }),
         currency: 'AED',
         customer: {
           id: customer.tapCustomerId,
@@ -1003,7 +1008,6 @@ export class BookingRepository {
         threeDSecure: true,
         redirect: { url: 'https://clevis-vendor.appnofy.com' },
       };
-
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 

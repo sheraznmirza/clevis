@@ -18,10 +18,9 @@ export interface AuthorizeResponseInterface {
   source: Source;
   redirect: Redirect;
   auto: Auto;
-  order: Order;
 }
 
-export interface Transaction {
+interface Transaction {
   timezone: string;
   created: string;
   url: string;
@@ -31,41 +30,39 @@ export interface Transaction {
   currency: string;
 }
 
-export interface Expiry {
+interface Expiry {
   period: number;
   type: string;
 }
 
-export interface Response {
+interface Response {
   code: string;
   message: string;
 }
 
-export interface Receipt {
+interface Receipt {
   email: boolean;
   sms: boolean;
 }
 
-export interface Customer {
+interface Customer {
   id: string;
   first_name: string;
   email: string;
 }
 
-export interface Source {
+interface Source {
   object: string;
   id: string;
 }
 
-export interface Redirect {
+interface Redirect {
   status: string;
   url: string;
 }
 
-export interface Auto {
+interface Auto {
   status: string;
   type: string;
   time: number;
 }
-
-export interface Order {}
