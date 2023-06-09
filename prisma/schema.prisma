@@ -108,6 +108,12 @@ enum EntityType {
   BOOKINGMASTER
 }
 
+enum PaymentStatus {
+  UNPAID
+  PARTIAL_PAID
+  FULLY_PAID
+}
+
 model UserMaster {
   userMasterId     Int            @id @default(autoincrement())
   email            String
@@ -128,8 +134,6 @@ model UserMaster {
   refreshToken     RefreshToken[]
   Otp              Otp[]
   role             Role?          @relation(fields: [roleId], references: [id])
-  // ToNotification   Notification[] @relation("ToNotification")
-  // FromNotification Notification[] @relation("FromNotification")
   notifications    Notification[]
   profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
   earnings         Earnings[]
@@ -188,6 +192,11 @@ model Vendor {
   alwaysOpen       Boolean           @default(false)
   logo             Media             @relation(fields: [logoId], references: [id])
   description      String?
+  tapBusinessId    String?
+  tapBusinessEntityId String?
+  tapBranchId      String?
+  tapBrandId       String?
+  tapMerchantId    String?
   userAddress      UserAddress[]
   status           Status            @default(PENDING)
   vendorService    VendorService[]
@@ -212,6 +221,11 @@ model Rider {
   alwaysOpen      Boolean           @default(false)
   logo            Media             @relation(fields: [logoId], references: [id])
   description     String?
+  tapBusinessId    String?
+  tapBusinessEntityId String?
+  tapBranchId      String?
+  tapBrandId       String?
+  tapMerchantId    String?
   userAddress     UserAddress[]
   status          Status            @default(PENDING)
   businessLicense BusinessLicense[]
@@ -548,6 +562,7 @@ model BookingMaster {
   vat                Float?               @default(0)
   totalPrice         Float
   tapAuthId          String
+  tapPaymentStatus   PaymentStatus        @default(UNPAID)
   customer           Customer             @relation(fields: [customerId], references: [customerId])
   vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])
   pickupLocation     UserAddress?         @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])

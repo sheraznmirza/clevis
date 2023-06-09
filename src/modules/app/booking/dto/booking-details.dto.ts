@@ -54,5 +54,5 @@ export class BookingDetailsDto {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
-  productsTotal: number;
+  totalPrice: number;
 }
