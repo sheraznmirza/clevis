@@ -358,6 +358,14 @@ export class BookingRepository {
   async getCustomerBookings(customerId: number, dto: CustomerGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
+      let serviceIds: number[] = [];
+
+      if (dto.services) {
+        serviceIds = dto.services.map((service) => {
+          return service.serviceId;
+        });
+      }
+
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           customerId: customerId,
@@ -369,10 +377,61 @@ export class BookingRepository {
               },
             },
           }),
+
+          ...(dto?.serviceType && {
+            vendor: {
+              serviceType: dto.serviceType,
+            },
+          }),
+
+          ...(dto?.status && {
+            status: dto.status,
+          }),
+
+          ...(serviceIds &&
+            serviceIds.length > 0 && {
+              bookingDetail: {
+                some: {
+                  allocatePrice: {
+                    vendorService: {
+                      serviceId: {
+                        in: serviceIds,
+                      },
+                    },
+                  },
+                },
+              },
+            }),
         },
         take: +take,
         skip: +take * (+page - 1),
         select: {
+          bookingMasterId: true,
+          status: true,
+          bookingDate: true,
+          totalPrice: true,
+          vendor: {
+            select: {
+              companyName: true,
+            },
+          },
+          bookingDetail: {
+            select: {
+              allocatePrice: {
+                select: {
+                  vendorService: {
+                    select: {
+                      service: {
+                        select: {
+                          serviceName: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
           isDeleted: true,
         },
       });

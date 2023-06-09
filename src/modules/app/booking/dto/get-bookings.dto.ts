@@ -1,4 +1,11 @@
-import { IsArray, IsEnum, IsOptional, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { BookingStatus, JobType, ServiceType } from '@prisma/client';
 import { ListingParams } from 'src/core/dto';
@@ -35,7 +42,31 @@ export class CustomerGetBookingsDto extends ListingParams {
   services: ServiceNames[];
 }
 
-export class VendorGetBookingsDto extends ListingParams {
+export class VendorGetBookingsDto {
+  @ApiProperty({
+    required: false,
+    description: 'Listing parameters Page Number',
+  })
+  @IsOptional()
+  @IsNumber()
+  page?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Listing parameters Per Page Limit',
+  })
+  @IsOptional()
+  @IsNumber()
+  take?: number;
+
+  @ApiProperty({
+    required: false,
+    description: 'Search by name, title or code',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
   @ApiProperty({
     required: false,
     description: 'Select the respective service type.',

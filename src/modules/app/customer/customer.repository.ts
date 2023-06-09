@@ -269,7 +269,7 @@ export class CustomerRepository {
       search,
       distance = 10000000000,
       currentDay,
-      status = VendorStatus.OPEN,
+      vendorStatus = VendorStatus.OPEN,
     } = dto;
     try {
       const dayObj = currentDateToVendorFilter(currentDay);
@@ -287,8 +287,7 @@ export class CustomerRepository {
         }`;
 
         const vendorIds = vendors.map((vendor) => vendor.vendorId);
-
-        let serviceIds: number[];
+        let serviceIds: number[] = [];
 
         if (dto.services) {
           serviceIds = dto.services.map((service) => {
@@ -324,7 +323,7 @@ export class CustomerRepository {
               companySchedule: {
                 some: {
                   day: dayObj.currentDay,
-                  ...(status === VendorStatus.OPEN && {
+                  ...(vendorStatus === VendorStatus.OPEN && {
                     startTime: {
                       gte: dayObj.currentTime,
                     },
@@ -332,7 +331,7 @@ export class CustomerRepository {
                       lt: dayObj.currentTime,
                     },
                   }),
-                  ...(status === VendorStatus.CLOSED && {
+                  ...(vendorStatus === VendorStatus.CLOSED && {
                     OR: [
                       {
                         startTime: {
@@ -346,7 +345,7 @@ export class CustomerRepository {
                   }),
                 },
               },
-              ...(status === VendorStatus.BUSY && {
+              ...(vendorStatus === VendorStatus.BUSY && {
                 isBusy: true,
               }),
               // companySchedule: {
@@ -511,7 +510,7 @@ export class CustomerRepository {
               companySchedule: {
                 some: {
                   day: dayObj.currentDay,
-                  ...(status === VendorStatus.OPEN && {
+                  ...(vendorStatus === VendorStatus.OPEN && {
                     startTime: {
                       gte: dayObj.currentTime,
                     },
@@ -519,7 +518,7 @@ export class CustomerRepository {
                       lt: dayObj.currentTime,
                     },
                   }),
-                  ...(status === VendorStatus.CLOSED && {
+                  ...(vendorStatus === VendorStatus.CLOSED && {
                     OR: [
                       {
                         startTime: {
@@ -533,7 +532,7 @@ export class CustomerRepository {
                   }),
                 },
               },
-              ...(status === VendorStatus.BUSY && {
+              ...(vendorStatus === VendorStatus.BUSY && {
                 isBusy: true,
               }),
               ...(search && {

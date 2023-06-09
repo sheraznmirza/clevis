@@ -84,7 +84,7 @@ export class VendorLocationDto {
   })
   @IsEnum(VendorStatus)
   @IsOptional()
-  status: VendorStatus;
+  vendorStatus: VendorStatus;
 
   @ApiProperty({
     required: false,
