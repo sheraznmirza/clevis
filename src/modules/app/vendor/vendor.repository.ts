@@ -1264,6 +1264,7 @@ export class VendorRepository {
         where: {
           serviceId: dto.serviceId,
           vendorId: vendor.vendorId,
+          isDeleted: false,
         },
       });
 
@@ -1357,6 +1358,7 @@ export class VendorRepository {
 
         await this.prisma.allocatePrice.updateMany({
           where: {
+            vendorServiceId: vendorService.vendorServiceId,
             id: {
               notIn: unRemovedAllocatePriceIds,
             },

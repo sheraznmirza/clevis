@@ -18,6 +18,10 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
 import { mapsDistanceData } from 'src/helpers/maps.helper';
+import { GetUserType } from 'src/core/dto';
+import { TapService } from 'src/modules/tap/tap.service';
+import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
+import { AuthorizeResponseInterface } from './entity';
 
 @Injectable()
 export class BookingRepository {
@@ -25,6 +29,7 @@ export class BookingRepository {
     private prisma: PrismaService,
     private config: ConfigService,
     private httpService: HttpService,
+    private tapService: TapService,
   ) {}
 
   // async bookingPayment(dto) {
@@ -104,6 +109,18 @@ export class BookingRepository {
           vendorId: dto.vendorId,
         },
         select: {
+          userAddress: {
+            where: {
+              isDeleted: false,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
           deliverySchedule: {
             select: {
               kilometerFare: true,
@@ -113,10 +130,8 @@ export class BookingRepository {
       });
       if (pickupLocation && dropoffLocation) {
         response = await mapsDistanceData(
-          {
-            dropoffLocation,
-            pickupLocation,
-          },
+          pickupLocation,
+          vendor.userAddress[0],
           this.config,
           this.httpService,
         );
@@ -153,6 +168,7 @@ export class BookingRepository {
         data: {
           customerId,
           vendorId: dto.vendorId,
+          tapAuthId: dto.tapAuthId,
           deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
@@ -282,6 +298,7 @@ export class BookingRepository {
         data: {
           customerId,
           vendorId: dto.vendorId,
+          tapAuthId: dto.tapAuthId,
           deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
@@ -791,6 +808,7 @@ export class BookingRepository {
         skip: +take * (+page - 1),
         select: {
           bookingMasterId: true,
+          bookingDate: true,
           customer: {
             select: {
               fullName: true,
@@ -855,7 +873,7 @@ export class BookingRepository {
     }
   }
 
-  async getBookingDetails(dto: BookingDetailsDto) {
+  async getBookingDetails(user: GetUserType, dto: BookingDetailsDto) {
     // const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
     // const params = {
     //   units: 'metric',
@@ -864,11 +882,26 @@ export class BookingRepository {
     //   key: this.config.get('GOOGLE_MAPS_API_KEY'),
     // };
     try {
+      const response = {
+        distance: 0,
+      };
       const vendor = await this.prisma.vendor.findUnique({
         where: {
           vendorId: dto.vendorId,
         },
         select: {
+          userAddress: {
+            where: {
+              isDeleted: false,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
           deliverySchedule: {
             select: {
               kilometerFare: true,
@@ -923,22 +956,95 @@ export class BookingRepository {
         dto.dropoffLocation.longitude = dropoffLocation.longitude;
       }
 
-      const response = await mapsDistanceData(
-        dto,
-        this.config,
-        this.httpService,
-      );
+      Promise.all([
+        mapsDistanceData(
+          dto.pickupLocation,
+          vendor.userAddress[0],
+          this.config,
+          this.httpService,
+        ),
+        mapsDistanceData(
+          dto.dropoffLocation,
+          vendor.userAddress[0],
+          this.config,
+          this.httpService,
+        ),
+      ])
+        .then((values) => {
+          console.log(values);
+          for (let i = 0; i < values.length; i++) {
+            response.distance = +values[i].distanceValue;
+          }
+        })
+        .catch((error) => {
+          throw error;
+        });
+
+      const customer = await this.prisma.customer.findUnique({
+        where: {
+          customerId: user.userTypeId,
+        },
+        select: {
+          tapCustomerId: true,
+        },
+      });
+
+      if (!customer.tapCustomerId) {
+        const payload: createCustomerRequestInterface = {
+          email: user.email,
+          first_name: user.fullName,
+          currency: 'AED',
+        };
+        const tapCustomer = await this.tapService.createCustomer(payload);
+
+        await this.prisma.customer.update({
+          where: {
+            customerId: user.userTypeId,
+          },
+          data: {
+            tapCustomerId: tapCustomer.id,
+          },
+        });
+      }
+
+      const payload = {
+        amount: 1000,
+        currency: 'AED',
+        customer: {
+          id: customer.tapCustomerId,
+        },
+        source: { id: 'src_card' },
+        threeDSecure: true,
+        redirect: { url: 'https://clevis-vendor.appnofy.com' },
+      };
+
+      const url: AuthorizeResponseInterface =
+        await this.tapService.createAuthorize(payload);
+
+      // const response = await mapsDistanceData(
+      //   dto.pickupLocation,
+      //   vendor.userAddress[0],
+      //   this.config,
+      //   this.httpService,
+      // );
+
+      // const response = await mapsDistanceData(
+      //   dto.pickupLocation,
+      //   vendor.userAddress[0],
+      //   this.config,
+      //   this.httpService,
+      // );
 
       return {
-        distance: response?.distance,
+        distance: `${response?.distance} km`,
         deliveryCharges:
-          response?.distanceValue *
-          (vendor?.deliverySchedule?.kilometerFare || 8.5),
+          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 8.5),
         platformFee: platformFee?.fee,
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
         serviceDurationMin: vendor?.deliverySchedule?.serviceDurationMin,
         serviceDurationMax: vendor?.deliverySchedule?.serviceDurationMax,
+        tapUrl: url.transaction.url,
       };
       // return response.rows[0].elements[0].distance.value / 1000;
     } catch (error) {
@@ -959,6 +1065,8 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          carNumberPlate: true,
+          deliveryCharges: true,
           customer: {
             select: {
               fullName: true,

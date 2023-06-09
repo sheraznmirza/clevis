@@ -3,15 +3,22 @@ import { ConfigService } from '@nestjs/config';
 import { map } from 'rxjs';
 
 export const mapsDistanceData = async (
-  dto: any,
+  to: {
+    latitude?: number;
+    longitude?: number;
+  },
+  from: {
+    latitude: number;
+    longitude: number;
+  },
   config: ConfigService,
   httpService: HttpService,
 ) => {
   const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
   const params = {
     units: 'metric',
-    origins: `${dto.pickupLocation.latitude},${dto.pickupLocation.longitude}`,
-    destinations: `${dto.dropoffLocation.latitude},${dto.dropoffLocation.longitude}`,
+    origins: `${from.latitude},${from.longitude}`,
+    destinations: `${to.latitude},${to.longitude}`,
     key: config.get('GOOGLE_MAPS_API_KEY'),
   };
 

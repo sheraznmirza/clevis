@@ -10,6 +10,7 @@ import {
   UpdateBookingStatusParam,
   VendorGetBookingsDto,
 } from './dto';
+import { GetUserType } from 'src/core/dto';
 
 @Injectable()
 export class BookingService {
@@ -108,9 +109,9 @@ export class BookingService {
     }
   }
 
-  async getBookingDetails(dto: BookingDetailsDto) {
+  async getBookingDetails(user: GetUserType, dto: BookingDetailsDto) {
     try {
-      return await this.repository.getBookingDetails(dto);
+      return await this.repository.getBookingDetails(user, dto);
     } catch (error) {
       throw error;
     }
