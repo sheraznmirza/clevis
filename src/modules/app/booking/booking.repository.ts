@@ -1008,7 +1008,11 @@ export class BookingRepository {
       }
 
       const payload = {
-        amount: 1000,
+        amount:
+          dto.totalPrice +
+            platformFee?.fee +
+            response?.distance *
+              (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
         currency: 'AED',
         customer: {
           id: customer.tapCustomerId,
@@ -1038,7 +1042,7 @@ export class BookingRepository {
       return {
         distance: `${response?.distance} km`,
         deliveryCharges:
-          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 8.5),
+          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1),
         platformFee: platformFee?.fee,
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
