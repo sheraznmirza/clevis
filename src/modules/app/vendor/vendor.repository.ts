@@ -23,7 +23,6 @@ import {
   vendorServiceByIdMappedLaundry,
 } from './vendor.mapper';
 import { ERROR_MESSAGE } from 'src/core/constants';
-import { SocketGateway } from 'src/modules/notification-socket/socket.gateway';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -116,14 +115,6 @@ export class VendorRepository {
         where: { vendor: { vendorId: vendor.vendorId } },
         select: { userType: true, email: true },
       });
-
-      SocketGateway.emitEvent(
-        'notification',
-        {
-          message: `Vendor ${dto.status.toLocaleLowerCase()}`,
-        },
-        '1',
-      );
 
       return { ...user, ...vendor };
     } catch (error) {
@@ -1273,6 +1264,7 @@ export class VendorRepository {
         where: {
           serviceId: dto.serviceId,
           vendorId: vendor.vendorId,
+          isDeleted: false,
         },
       });
 
@@ -1366,6 +1358,7 @@ export class VendorRepository {
 
         await this.prisma.allocatePrice.updateMany({
           where: {
+            vendorServiceId: vendorService.vendorServiceId,
             id: {
               notIn: unRemovedAllocatePriceIds,
             },

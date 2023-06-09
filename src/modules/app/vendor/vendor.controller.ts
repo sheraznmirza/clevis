@@ -29,6 +29,7 @@ import {
 } from './dto';
 import { VendorService } from './vendor.service';
 import {
+  GetUserType,
   VendorListingParams,
   VendorRiderByIdParams,
   VendorServiceListingParams,
@@ -41,7 +42,7 @@ export class VendorController {
   constructor(private vendorService: VendorService) {}
   @Authorized([UserType.VENDOR])
   @Get('me')
-  getMe(@GetUser() user, @Query() query: VendorRiderByIdParams) {
+  getMe(@GetUser() user: GetUserType, @Query() query: VendorRiderByIdParams) {
     return this.vendorService.getVendorById(user.userMasterId, query);
   }
 
@@ -53,13 +54,16 @@ export class VendorController {
 
   @Authorized(UserType.VENDOR)
   @Post('/service')
-  createVendorService(@Body() dto: VendorCreateServiceDto, @GetUser() user) {
+  createVendorService(
+    @Body() dto: VendorCreateServiceDto,
+    @GetUser() user: GetUserType,
+  ) {
     return this.vendorService.createVendorService(dto, user.userMasterId);
   }
 
   @Authorized(UserType.VENDOR)
   @Post('/reqeust-update')
-  requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user) {
+  requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user: GetUserType) {
     return this.vendorService.requestUpdate(dto, user.userTypeId);
   }
 
@@ -68,7 +72,7 @@ export class VendorController {
   updateVendorService(
     @Param('vendorServiceId') vendorServiceId: number,
     @Body() dto: VendorUpdateServiceDto,
-    @GetUser() user,
+    @GetUser() user: GetUserType,
   ) {
     return this.vendorService.updateVendorService(
       dto,
@@ -90,14 +94,17 @@ export class VendorController {
   @Authorized(UserType.ADMIN)
   @HttpCode(HttpStatus.OK)
   @Patch('/busy/:vendorId')
-  busyStatusVendor(@GetUser() user, @Body() dto: VendorUpdateBusyStatusDto) {
+  busyStatusVendor(
+    @GetUser() user: GetUserType,
+    @Body() dto: VendorUpdateBusyStatusDto,
+  ) {
     return this.vendorService.updateBusyStatusVendor(user.userTypeId, dto);
   }
 
   @Authorized([UserType.VENDOR])
   @HttpCode(HttpStatus.OK)
   @Patch('/me')
-  updateMe(@GetUser() user, @Body() dto: UpdateVendorDto) {
+  updateMe(@GetUser() user: GetUserType, @Body() dto: UpdateVendorDto) {
     return this.vendorService.updateVendor(user.userMasterId, dto);
   }
 
@@ -114,7 +121,10 @@ export class VendorController {
   @Authorized(UserType.VENDOR)
   @HttpCode(HttpStatus.OK)
   @Patch('/schedule')
-  updateVendorSchedule(@GetUser() user, @Body() dto: UpdateVendorScheduleDto) {
+  updateVendorSchedule(
+    @GetUser() user: GetUserType,
+    @Body() dto: UpdateVendorScheduleDto,
+  ) {
     return this.vendorService.updateVendorSchedule(user.userTypeId, dto);
   }
 
@@ -127,7 +137,7 @@ export class VendorController {
   @Authorized([UserType.VENDOR, UserType.CUSTOMER])
   @Get('/services')
   getAllVendorService(
-    @GetUser() user,
+    @GetUser() user: GetUserType,
     @Query() listingParams: VendorServiceListingParams,
   ) {
     return this.vendorService.getVendorAllService(
@@ -138,7 +148,7 @@ export class VendorController {
 
   @Authorized([UserType.VENDOR, UserType.ADMIN])
   @Get('/service-names')
-  getVendorServices(@GetUser() user) {
+  getVendorServices(@GetUser() user: GetUserType) {
     return this.vendorService.getVendorServices(user.userTypeId);
   }
 
@@ -164,7 +174,7 @@ export class VendorController {
   @Post('/delivery-schedule')
   createDeliverySchedule(
     @Body() dto: CreateAndUpdateDeliverySchedule,
-    @GetUser() user,
+    @GetUser() user: GetUserType,
   ) {
     return this.vendorService.createDeliverySchedule(dto, user.userTypeId);
   }
@@ -183,7 +193,7 @@ export class VendorController {
   @HttpCode(HttpStatus.OK)
   @Patch('/delivery')
   deliveryScheduleVendorUpdate(
-    @GetUser() user,
+    @GetUser() user: GetUserType,
     @Body() dto: CreateAndUpdateDeliverySchedule,
   ) {
     return this.vendorService.deliveryScheduleUpdate(user.userTypeId, dto);
@@ -191,7 +201,7 @@ export class VendorController {
 
   // @Authorized(UserType.VENDOR)
   // @Get('/deliverySchedule/:vendorId')
-  // getVendorDeliverySchedule(@GetUser() user) {
+  // getVendorDeliverySchedule(@GetUser() user : GetUserType) {
   //   return this.vendorService.getDeliverySchedule(user.userTypeId);
   // }
 

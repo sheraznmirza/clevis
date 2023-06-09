@@ -27,6 +27,9 @@ import {
   setAlwaysOpen,
 } from 'src/helpers/alwaysOpen.helper';
 import dayjs from 'dayjs';
+import { SocketGateway } from 'src/modules/notification-socket/socket.gateway';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
 
 @Injectable()
 export class VendorService {
@@ -34,6 +37,7 @@ export class VendorService {
     private repository: VendorRepository,
     private mail: MailService,
     private config: ConfigService,
+    private notificationService: NotificationService,
   ) {}
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
@@ -104,6 +108,24 @@ export class VendorService {
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );
+
+      // const payload : SQSSendNotificationArgs = {
+      //   type:  {
+
+      //   },
+      //   ['1'],
+
+      // }
+
+      // SocketGateway.emitEvent(
+      //   'notification',
+      //   {
+      //     message: `Vendor ${dto.status.toLocaleLowerCase()}`,
+      //   },
+      //   '1',
+      // );
+
+      // await this.notificationService.HandleNotifications
 
       return successResponse(
         200,

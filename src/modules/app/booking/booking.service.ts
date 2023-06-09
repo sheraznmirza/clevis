@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BookingRepository } from './booking.repository';
+import { TapService } from 'src/modules/tap/tap.service';
 import {
   AdminGetBookingsDto,
   BookingDetailsDto,
@@ -9,10 +10,14 @@ import {
   UpdateBookingStatusParam,
   VendorGetBookingsDto,
 } from './dto';
+import { GetUserType } from 'src/core/dto';
 
 @Injectable()
 export class BookingService {
-  constructor(private repository: BookingRepository) {}
+  constructor(
+    private repository: BookingRepository,
+    private tapService: TapService,
+  ) {}
 
   async createBooking(customerId: number, dto: CreateBookingDto) {
     try {
@@ -104,9 +109,9 @@ export class BookingService {
     }
   }
 
-  async getBookingDetails(dto: BookingDetailsDto) {
+  async getBookingDetails(user: GetUserType, dto: BookingDetailsDto) {
     try {
-      return await this.repository.getBookingDetails(dto);
+      return await this.repository.getBookingDetails(user, dto);
     } catch (error) {
       throw error;
     }

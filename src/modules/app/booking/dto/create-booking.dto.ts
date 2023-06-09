@@ -120,4 +120,9 @@ export class CreateBookingDto {
   @IsString()
   @IsOptional()
   carNumberPlate: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  tapAuthId: string;
 }

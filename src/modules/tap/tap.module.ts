@@ -10,5 +10,6 @@ import { HttpModule } from '@nestjs/axios';
     }),
   ],
   providers: [TapService],
+  exports: [TapService],
 })
 export class TapModule {}
