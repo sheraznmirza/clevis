@@ -147,21 +147,23 @@ export interface createAuthorizedRequestInterface {
 export interface createBusinessRequestInterface {
   name: {
     en: string;
+    ar?: string;
   };
   type: string;
   entity: {
     legal_name: {
       en: string;
     };
-    country: string;
+    country?: string;
+    is_licensed: boolean;
   };
-  contact_person: {
+  contact_person?: {
     name: {
       title: string;
       first: string;
       last: string;
     };
-    contact_info: {
+    contact_info?: {
       primary: {
         email: string;
         phone: {
@@ -170,13 +172,13 @@ export interface createBusinessRequestInterface {
         };
       };
     };
-    is_authorized: boolean;
-    authorization: {
+    is_authorized?: boolean;
+    authorization?: {
       name: {
         title: string;
       };
     };
-    identification: [
+    identification?: [
       {
         name: {
           title: string;
@@ -189,7 +191,7 @@ export interface createBusinessRequestInterface {
     {
       name: {
         en: string;
-        ar: string;
+        ar?: string;
       };
     },
   ];

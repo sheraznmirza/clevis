@@ -312,10 +312,13 @@ export class AddressService {
 
   async updateIsActive(user: GetUserType, id: number) {
     try {
-      const usertap = user.userType.toLowerCase() + 'Id';
+      console.log('user: ', user);
+      // const usertap = user.userType.toLowerCase() + 'Id';
+      // const userId = {};
+      // userId[usertap] = user.userTypeId;
       await this.prisma.userAddress.updateMany({
         where: {
-          [usertap]: user.userTypeId,
+          customerId: user.userTypeId,
           isActive: true,
         },
         data: {

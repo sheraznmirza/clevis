@@ -105,6 +105,8 @@ export class AddressController {
     );
   }
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Authorized(UserType.CUSTOMER)
   @Patch('activeAddress/:addressId')
   updateIsActive(@GetUser() user: GetUserType, @Param('addressId') id: number) {
     return this.addressService.updateIsActive(user, id);
