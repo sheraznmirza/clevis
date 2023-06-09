@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 // import DatabaseService from 'database/database.service';
 import { SQSSendNotificationArgs } from '../queue-aws/types';
 // import { OneSignalService } from './one_signal.service';
@@ -7,8 +7,6 @@ import { NotificationData } from './types';
 import { NotificationReadStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { OneSignalService } from './one-signal.service';
-import { NotificationType, SocketEventNames } from 'src/constants';
-import { getUserDeviceRoom } from 'src/helpers/util.helper';
 import { SocketGateway } from './socket.gateway';
 import { ListingParams } from 'src/core/dto';
 import { successResponse } from 'src/helpers/response.helper';

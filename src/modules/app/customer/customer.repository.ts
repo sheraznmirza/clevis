@@ -10,9 +10,11 @@ import {
   UpdateCustomerDto,
   VendorLocationDto,
   VendorServiceParams,
+  VendorStatus,
 } from './dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { subcategories } from './entities/subcategoriesType';
+import { currentDateToVendorFilter } from 'src/helpers/date.helper';
 
 @Injectable()
 export class CustomerRepository {
@@ -261,8 +263,16 @@ export class CustomerRepository {
   }
 
   async getVendorsByLocation(userMasterId: number, dto: VendorLocationDto) {
-    const { page = 1, take = 10, search, distance = 10000000000 } = dto;
+    const {
+      page = 1,
+      take = 10,
+      search,
+      distance = 10000000000,
+      currentDay,
+      status = VendorStatus.OPEN,
+    } = dto;
     try {
+      const dayObj = currentDateToVendorFilter(currentDay);
       if (dto.latitude && dto.longitude) {
         const vendors: Array<{ vendorId: number }> = await this.prisma
           .$queryRaw`select "public"."Vendor"."vendorId" from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
@@ -297,7 +307,7 @@ export class CustomerRepository {
                   },
                 },
                 { serviceType: dto.serviceType },
-                { isBusy: dto.isBusy ? dto.isBusy : false },
+                // { isBusy: dto.isBusy ? dto.isBusy : false },
                 {
                   ...(serviceIds &&
                     serviceIds.length > 0 && {
@@ -311,7 +321,34 @@ export class CustomerRepository {
                     }),
                 },
               ],
-
+              companySchedule: {
+                some: {
+                  day: dayObj.currentDay,
+                  ...(status === VendorStatus.OPEN && {
+                    startTime: {
+                      gte: dayObj.currentTime,
+                    },
+                    endTime: {
+                      lt: dayObj.currentTime,
+                    },
+                  }),
+                  ...(status === VendorStatus.CLOSED && {
+                    OR: [
+                      {
+                        startTime: {
+                          lt: dayObj.currentTime,
+                        },
+                        endTime: {
+                          gte: dayObj.currentTime,
+                        },
+                      },
+                    ],
+                  }),
+                },
+              },
+              ...(status === VendorStatus.BUSY && {
+                isBusy: true,
+              }),
               // companySchedule: {
               // every: {
               //   startTime: {
@@ -365,6 +402,7 @@ export class CustomerRepository {
                 fullName: true,
                 companyName: true,
                 serviceType: true,
+                isBusy: true,
                 userAddress: {
                   select: {
                     city: {
@@ -470,6 +508,34 @@ export class CustomerRepository {
                   },
                 }),
 
+              companySchedule: {
+                some: {
+                  day: dayObj.currentDay,
+                  ...(status === VendorStatus.OPEN && {
+                    startTime: {
+                      gte: dayObj.currentTime,
+                    },
+                    endTime: {
+                      lt: dayObj.currentTime,
+                    },
+                  }),
+                  ...(status === VendorStatus.CLOSED && {
+                    OR: [
+                      {
+                        startTime: {
+                          lt: dayObj.currentTime,
+                        },
+                        endTime: {
+                          gte: dayObj.currentTime,
+                        },
+                      },
+                    ],
+                  }),
+                },
+              },
+              ...(status === VendorStatus.BUSY && {
+                isBusy: true,
+              }),
               ...(search && {
                 companyName: {
                   contains: search,
@@ -511,6 +577,7 @@ export class CustomerRepository {
                 fullName: true,
                 companyName: true,
                 serviceType: true,
+                isBusy: true,
                 userAddress: {
                   select: {
                     city: {
