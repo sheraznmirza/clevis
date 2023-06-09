@@ -2,16 +2,19 @@ import {
   IsArray,
   IsEnum,
   IsNumber,
-  IsBoolean,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { Days, ServiceType } from '@prisma/client';
-import { ListingParams } from 'src/core/dto';
+import { ServiceType } from '@prisma/client';
 
+enum Status {
+  BUSY = 'BUSY',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+}
 export class ServiceNames {
   @ApiProperty()
   @IsNumber()
@@ -75,11 +78,12 @@ export class VendorLocationDto {
 
   @ApiProperty({
     required: false,
-    description: 'Boolean for vendor busy status.',
+    description: 'Status for vendor.',
+    enum: Status,
   })
-  @IsBoolean()
+  @IsEnum(Status)
   @IsOptional()
-  isBusy: boolean;
+  status: Status;
 
   @ApiProperty({
     required: false,

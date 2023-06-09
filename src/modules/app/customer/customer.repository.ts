@@ -297,7 +297,7 @@ export class CustomerRepository {
                   },
                 },
                 { serviceType: dto.serviceType },
-                { isBusy: dto.isBusy ? dto.isBusy : false },
+                // { isBusy: dto.isBusy ? dto.isBusy : false },
                 {
                   ...(serviceIds &&
                     serviceIds.length > 0 && {

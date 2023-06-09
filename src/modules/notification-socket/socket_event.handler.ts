@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, forwardRef, Inject } from '@nestjs/common';
 import { Socket } from 'socket.io';
 // import { AuthService } from "src/users/auth/auth.service";
 import { AuthService } from '../app/auth/auth.service';
 
 @Injectable()
 export class SocketEventHandler {
-  constructor(private authService: AuthService) {}
+  constructor(
+    @Inject(forwardRef(() => AuthService))
+    private authService: AuthService,
+  ) {}
 
   sendNotif(server, userId, eventType) {
     server.to(userId).emit(eventType, '');

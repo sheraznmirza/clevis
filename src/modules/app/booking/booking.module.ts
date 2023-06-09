@@ -8,10 +8,9 @@ import { TapModule } from 'src/modules/tap/tap.module';
 @Module({
   imports: [
     HttpModule.register({
-      timeout: 10000,
+      timeout: 30000,
       maxRedirects: 5,
     }),
-    HttpModule,
     TapModule,
   ],
   providers: [BookingService, BookingRepository],
