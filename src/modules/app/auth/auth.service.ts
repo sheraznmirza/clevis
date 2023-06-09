@@ -271,8 +271,10 @@ export class AuthService {
                   latitude: true,
                   city: {
                     select: {
+                      cityName: true,
                       State: {
                         select: {
+                          stateName: true,
                           country: {
                             select: {
                               countryCode: true,
@@ -323,7 +325,36 @@ export class AuthService {
           legal_name: {
             en: user.vendor.companyName,
           },
-          is_licensed: true,
+          is_licensed: false,
+          country: user.vendor.userAddress[0].city.State.country.shortName,
+          billing_address: {
+            recipient_name: user.vendor.fullName,
+            address_1: user.vendor.userAddress[0].fullAddress,
+            city: user.vendor.userAddress[0].city.cityName,
+            state: user.vendor.userAddress[0].city.State.stateName,
+            country: user.vendor.userAddress[0].city.State.country.shortName,
+          },
+        },
+        contact_person: {
+          name: {
+            first: user.vendor.fullName,
+          },
+
+          contact_info: {
+            primary: {
+              email: user.email,
+              phone: {
+                country_code:
+                  user.vendor.userAddress[0].city.State.country.countryCode,
+                number: user.phone,
+              },
+            },
+          },
+          authorization: {
+            name: {
+              first: user.vendor.fullName,
+            },
+          },
         },
         brands: [
           {

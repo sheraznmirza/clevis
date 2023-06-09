@@ -145,6 +145,58 @@ export interface createAuthorizedRequestInterface {
 }
 
 export interface createBusinessRequestInterface {
+  //   name: {
+  //     en: string;
+  //     ar?: string;
+  //   };
+  //   type: string;
+  //   entity: {
+  //     legal_name: {
+  //       en: string;
+  //     };
+  //     country?: string;
+  //     is_licensed: boolean;
+  //   };
+  //   contact_person?: {
+  //     name: {
+  //       title: string;
+  //       first: string;
+  //       last: string;
+  //     };
+  //     contact_info?: {
+  //       primary: {
+  //         email: string;
+  //         phone: {
+  //           country_code: string;
+  //           number: string;
+  //         };
+  //       };
+  //     };
+  //     is_authorized?: boolean;
+  //     authorization?: {
+  //       name: {
+  //         title: string;
+  //       };
+  //     };
+  //     identification?: [
+  //       {
+  //         name: {
+  //           title: string;
+  //         };
+  //         files?: any;
+  //       },
+  //     ];
+  //   };
+  //   brands: [
+  //     {
+  //       name: {
+  //         en: string;
+  //         ar?: string;
+  //       };
+  //     },
+  //   ];
+  // }
+
   name: {
     en: string;
     ar?: string;
@@ -153,17 +205,24 @@ export interface createBusinessRequestInterface {
   entity: {
     legal_name: {
       en: string;
+      ar?: string;
     };
-    country?: string;
     is_licensed: boolean;
-  };
-  contact_person?: {
-    name: {
-      title: string;
-      first: string;
-      last: string;
+    country: string;
+    billing_address: {
+      recipient_name: string;
+      address_1: string;
+      city: string;
+      state: string;
+      country: string;
     };
-    contact_info?: {
+  };
+  contact_person: {
+    name: {
+      first: string;
+      last?: string;
+    };
+    contact_info: {
       primary: {
         email: string;
         phone: {
@@ -172,31 +231,21 @@ export interface createBusinessRequestInterface {
         };
       };
     };
-    is_authorized?: boolean;
-    authorization?: {
+    authorization: {
       name: {
-        title: string;
+        first: string;
+        last?: string;
       };
     };
-    identification?: [
-      {
-        name: {
-          title: string;
-        };
-        files?: any;
-      },
-    ];
   };
   brands: [
     {
       name: {
         en: string;
-        ar?: string;
       };
     },
   ];
 }
-
 export interface createBusniessResponse {
   id: string;
   status: string;
