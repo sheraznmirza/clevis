@@ -803,6 +803,11 @@ export class BookingRepository {
                 lte: dto.dateTill,
               },
             }),
+          ...(dto?.serviceType && {
+            vendor: {
+              serviceType: dto.serviceType,
+            },
+          }),
         },
         take: +take,
         skip: +take * (+page - 1),
