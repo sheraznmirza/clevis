@@ -43,7 +43,11 @@ export class VendorController {
   @Authorized([UserType.VENDOR])
   @Get('me')
   getMe(@GetUser() user: GetUserType, @Query() query: VendorRiderByIdParams) {
-    return this.vendorService.getVendorById(user.userMasterId, query);
+    return this.vendorService.getVendorById(
+      user.userMasterId,
+      query,
+      user.userTypeId,
+    );
   }
 
   @Authorized(UserType.ADMIN)
