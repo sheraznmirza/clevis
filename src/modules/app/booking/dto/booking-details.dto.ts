@@ -57,8 +57,8 @@ export class BookingDetailsDto {
   @IsNotEmpty()
   totalPrice: number;
 
-  // @ApiProperty()
-  // @IsBoolean()
-  // @IsNotEmpty()
-  // isWithDelivery: boolean;
+  @ApiProperty()
+  @IsBoolean()
+  @IsNotEmpty()
+  isWithDelivery: boolean;
 }

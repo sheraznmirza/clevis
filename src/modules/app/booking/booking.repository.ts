@@ -82,46 +82,48 @@ export class BookingRepository {
         });
       }
 
-      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
-        pickupLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.pickupLocation.latitude,
-            longitude: dto.pickupLocation.longitude,
-            cityId: dto.pickupLocation.cityId,
-            customerId,
-            fullAddress: dto.pickupLocation.fullAddress,
-          },
-        });
-        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
-      }
+      if (dto.isWithDelivery) {
+        if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
+          pickupLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.pickupLocation.latitude,
+              longitude: dto.pickupLocation.longitude,
+              cityId: dto.pickupLocation.cityId,
+              customerId,
+              fullAddress: dto.pickupLocation.fullAddress,
+            },
+          });
+          dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+        }
 
-      if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
-        dropoffLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.dropoffLocation.latitude,
-            longitude: dto.dropoffLocation.longitude,
-            cityId: dto.dropoffLocation.cityId,
-            customerId,
-            fullAddress: dto.dropoffLocation.fullAddress,
-          },
-        });
-        dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
-      }
+        if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
+          dropoffLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.dropoffLocation.latitude,
+              longitude: dto.dropoffLocation.longitude,
+              cityId: dto.dropoffLocation.cityId,
+              customerId,
+              fullAddress: dto.dropoffLocation.fullAddress,
+            },
+          });
+          dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
+        }
 
-      if (dto?.dropoffLocation?.userAddressId) {
-        dropoffLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.dropoffLocation.userAddressId,
-          },
-        });
-      }
+        if (dto?.dropoffLocation?.userAddressId) {
+          dropoffLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.dropoffLocation.userAddressId,
+            },
+          });
+        }
 
-      if (dto?.pickupLocation?.userAddressId) {
-        pickupLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.pickupLocation.userAddressId,
-          },
-        });
+        if (dto?.pickupLocation?.userAddressId) {
+          pickupLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.pickupLocation.userAddressId,
+            },
+          });
+        }
       }
 
       const vendor = await this.prisma.vendor.findUnique({
@@ -196,7 +198,8 @@ export class BookingRepository {
           }),
           ...(dto.instructions && { instructions: dto.instructions }),
           totalPrice: totalPrice,
-          ...(dto?.pickupLocation?.timeFrom &&
+          ...(dto.isWithDelivery &&
+            dto?.pickupLocation?.timeFrom &&
             dto?.pickupLocation?.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
@@ -207,6 +210,7 @@ export class BookingRepository {
                 .format(),
               dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
+          isWithDelivery: dto.isWithDelivery,
         },
         // select: {
 
@@ -286,17 +290,19 @@ export class BookingRepository {
         });
       }
 
-      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
-        pickupLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.pickupLocation.latitude,
-            longitude: dto.pickupLocation.longitude,
-            cityId: dto.pickupLocation.cityId,
-            customerId,
-            fullAddress: dto.pickupLocation.fullAddress,
-          },
-        });
-        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+      if (dto.isWithDelivery) {
+        if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
+          pickupLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.pickupLocation.latitude,
+              longitude: dto.pickupLocation.longitude,
+              cityId: dto.pickupLocation.cityId,
+              customerId,
+              fullAddress: dto.pickupLocation.fullAddress,
+            },
+          });
+          dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+        }
       }
 
       const vendor = await this.prisma.vendor.findUnique({
@@ -1156,61 +1162,62 @@ export class BookingRepository {
         },
       });
 
-      if (dto?.pickupLocation?.userAddressId) {
-        const pickupLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.pickupLocation.userAddressId,
-          },
-          select: {
-            latitude: true,
-            longitude: true,
-          },
-        });
-
-        dto.pickupLocation.latitude = pickupLocation.latitude;
-        dto.pickupLocation.longitude = pickupLocation.longitude;
-      }
-
-      if (dto?.dropoffLocation?.userAddressId) {
-        const dropoffLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.dropoffLocation.userAddressId,
-          },
-          select: {
-            latitude: true,
-            longitude: true,
-          },
-        });
-
-        dto.dropoffLocation.latitude = dropoffLocation.latitude;
-        dto.dropoffLocation.longitude = dropoffLocation.longitude;
-      }
-      if (vendor.serviceType === ServiceType.LAUNDRY) {
-        Promise.all([
-          mapsDistanceData(
-            dto.pickupLocation,
-            vendor.userAddress[0],
-            this.config,
-            this.httpService,
-          ),
-          mapsDistanceData(
-            dto.dropoffLocation,
-            vendor.userAddress[0],
-            this.config,
-            this.httpService,
-          ),
-        ])
-          .then((values) => {
-            console.log(values);
-            for (let i = 0; i < values.length; i++) {
-              response.distance = +values[i].distanceValue;
-            }
-          })
-          .catch((error) => {
-            throw error;
+      if (dto.isWithDelivery) {
+        if (dto?.pickupLocation?.userAddressId) {
+          const pickupLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.pickupLocation.userAddressId,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
           });
-      }
 
+          dto.pickupLocation.latitude = pickupLocation.latitude;
+          dto.pickupLocation.longitude = pickupLocation.longitude;
+        }
+
+        if (dto?.dropoffLocation?.userAddressId) {
+          const dropoffLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.dropoffLocation.userAddressId,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
+          });
+
+          dto.dropoffLocation.latitude = dropoffLocation.latitude;
+          dto.dropoffLocation.longitude = dropoffLocation.longitude;
+        }
+        if (vendor.serviceType === ServiceType.LAUNDRY) {
+          Promise.all([
+            mapsDistanceData(
+              dto.pickupLocation,
+              vendor.userAddress[0],
+              this.config,
+              this.httpService,
+            ),
+            mapsDistanceData(
+              dto.dropoffLocation,
+              vendor.userAddress[0],
+              this.config,
+              this.httpService,
+            ),
+          ])
+            .then((values) => {
+              console.log(values);
+              for (let i = 0; i < values.length; i++) {
+                response.distance = +values[i].distanceValue;
+              }
+            })
+            .catch((error) => {
+              throw error;
+            });
+        }
+      }
       const customer = await this.prisma.customer.findUnique({
         where: {
           customerId: user.userTypeId,
@@ -1261,9 +1268,10 @@ export class BookingRepository {
       // );
 
       return {
-        distance: `${response?.distance} km`,
+        distance: `${response?.distance || 0} km`,
         deliveryCharges:
-          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1),
+          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
+          0,
         platformFee: platformFee?.fee,
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
