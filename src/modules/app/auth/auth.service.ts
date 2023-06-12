@@ -228,13 +228,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.VENDOR,
           roleId: roleId,
-          ...(dto.playerId && {
-            device: {
-              create: {
-                playerId: dto.playerId,
-              },
-            },
-          }),
+          // ...(dto.playerId && {
+          //   device: {
+          //     create: {
+          //       playerId: dto.playerId,
+          //     },
+          //   },
+          // }),
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -478,13 +478,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.RIDER,
           roleId: roleId,
-          ...(dto.playerId && {
-            device: {
-              create: {
-                playerId: dto.playerId,
-              },
-            },
-          }),
+          // ...(dto.playerId && {
+          //   device: {
+          //     create: {
+          //       playerId: dto.playerId,
+          //     },
+          //   },
+          // }),
           rider: {
             create: {
               fullName: dto.fullName,
