@@ -49,6 +49,7 @@ enum MediaType {
 enum NotificationType {
   VendorCreated
   RiderCreated
+  BookingStatus
 }
 
 enum MediaStatus {

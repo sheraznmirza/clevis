@@ -58,7 +58,7 @@ export class VendorController {
     @Body() dto: VendorCreateServiceDto,
     @GetUser() user: GetUserType,
   ) {
-    return this.vendorService.createVendorService(dto, user.userMasterId);
+    return this.vendorService.createVendorService(dto, user);
   }
 
   @Authorized(UserType.VENDOR)

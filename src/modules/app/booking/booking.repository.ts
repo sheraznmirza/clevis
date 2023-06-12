@@ -13,7 +13,13 @@ import {
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
-import { ServiceType, UserAddress } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  ServiceType,
+  UserAddress,
+  UserType,
+} from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
@@ -22,6 +28,11 @@ import { GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
 import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { AuthorizeResponseInterface } from './entity';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationSocketType, NotificationTitle } from 'src/constants';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody } from 'src/constants';
 
 @Injectable()
 export class BookingRepository {
@@ -30,6 +41,7 @@ export class BookingRepository {
     private config: ConfigService,
     private httpService: HttpService,
     private tapService: TapService,
+    private notificationService: NotificationService,
   ) {}
 
   // async bookingPayment(dto) {
@@ -345,6 +357,28 @@ export class BookingRepository {
           })),
         });
       }
+
+      // const payload: SQSSendNotificationArgs<NotificationData> = {
+      //   type: NotificationType.BookingStatus,
+      //   userId: [bookingMaster.vendorId],
+      //   data: {
+      //     title:
+      //       dto.bookingStatus === 'Confirmed'
+      //         ? NotificationTitle.BOOKING_APPROVED
+      //         : NotificationTitle.BOOKING_REJECTED,
+      //     body:
+      //       dto.bookingStatus === 'Confirmed'
+      //         ? NotificationBody.BOOKING_APPROVED
+      //         : NotificationBody.BOOKING_REJECTED,
+      //     type: NotificationType.BookingStatus,
+      //     entityType: EntityType.BOOKINGMASTER,
+      //     entityId: booking.bookingMasterId,
+      //   },
+      // };
+      // await this.notificationService.HandleNotifications(
+      //   payload,
+      //   UserType.CUSTOMER,
+      // );
 
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {
@@ -862,7 +896,7 @@ export class BookingRepository {
     dto: UpdateBookingStatusParam,
   ) {
     try {
-      await this.prisma.bookingMaster.update({
+      const booking = await this.prisma.bookingMaster.update({
         where: {
           bookingMasterId,
         },
@@ -870,6 +904,28 @@ export class BookingRepository {
           status: dto.bookingStatus,
         },
       });
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingStatus,
+        userId: [booking.customerId],
+        data: {
+          title:
+            dto.bookingStatus === 'Confirmed'
+              ? NotificationTitle.BOOKING_APPROVED
+              : NotificationTitle.BOOKING_REJECTED,
+          body:
+            dto.bookingStatus === 'Confirmed'
+              ? NotificationBody.BOOKING_APPROVED
+              : NotificationBody.BOOKING_REJECTED,
+          type: NotificationType.BookingStatus,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: booking.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.CUSTOMER,
+      );
       return successResponse(
         200,
         `Booking status changed to ${dto.bookingStatus}`,

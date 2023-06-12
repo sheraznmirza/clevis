@@ -1264,6 +1264,7 @@ export class VendorRepository {
         where: {
           serviceId: dto.serviceId,
           vendorId: vendor.vendorId,
+          service: { serviceType: vendor.serviceType },
           isDeleted: false,
         },
       });

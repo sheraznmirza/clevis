@@ -12,9 +12,10 @@ import {
 } from './dto';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
-import { Status, Vendor } from '@prisma/client';
+import { ServiceType, Status, Vendor } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import {
+  GetUserType,
   ListingParams,
   RiderVendorTabs,
   VendorListingParams,
@@ -48,11 +49,22 @@ export class VendorService {
     private notificationService: NotificationService,
   ) {}
 
-  async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
+  async createVendorService(dto: VendorCreateServiceDto, user: GetUserType) {
     try {
+      if (
+        user.serviceType === ServiceType.CAR_WASH &&
+        dto.allocatePrice.some((obj) =>
+          // [undefined, null].includes(obj?.subcategoryId),
+          obj.hasOwnProperty('subcategoryId'),
+        )
+      ) {
+        throw new BadRequestException(
+          'Subcategory is Not Allowed for Car Wash Booking',
+        );
+      }
       const vendorService = await this.repository.createVendorService(
         dto,
-        userMasterId,
+        user.userMasterId,
       );
       if (!vendorService) {
         throw new BadRequestException('Unable to create this vendor service');

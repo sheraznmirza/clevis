@@ -4,6 +4,7 @@ import { BookingRepository } from './booking.repository';
 import { BookingController } from './booking.controller';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { TapModule } from 'src/modules/tap/tap.module';
+import { NotificationModule } from 'src/modules/notification-socket/notification.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { TapModule } from 'src/modules/tap/tap.module';
       maxRedirects: 5,
     }),
     TapModule,
+    NotificationModule,
   ],
   providers: [BookingService, BookingRepository],
   controllers: [BookingController],
