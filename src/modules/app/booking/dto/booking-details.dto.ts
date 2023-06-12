@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -55,4 +56,9 @@ export class BookingDetailsDto {
   @IsNumber()
   @IsNotEmpty()
   totalPrice: number;
+
+  // @ApiProperty()
+  // @IsBoolean()
+  // @IsNotEmpty()
+  // isWithDelivery: boolean;
 }

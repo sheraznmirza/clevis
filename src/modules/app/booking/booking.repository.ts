@@ -62,6 +62,14 @@ export class BookingRepository {
 
       const attachments = [];
 
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
+
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
           const result = await this.prisma.media.create({
@@ -241,6 +249,14 @@ export class BookingRepository {
       let response: any;
 
       const attachments = [];
+
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
 
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
@@ -660,6 +676,14 @@ export class BookingRepository {
   async getVendorBookings(vendorId: number, dto: VendorGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId,
+        },
+        select: {
+          isBusy: true,
+        },
+      });
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           vendorId: vendorId,
@@ -799,7 +823,13 @@ export class BookingRepository {
         },
       });
 
-      return { data: bookings, page: +page, take: +take, totalCount };
+      return {
+        data: bookings,
+        isBusy: vendor.isBusy,
+        page: +page,
+        take: +take,
+        totalCount,
+      };
     } catch (error) {
       return unknowError(
         417,
@@ -1181,22 +1211,28 @@ export class BookingRepository {
       });
 
       const payload = {
-        amount: dto.totalPrice + platformFee?.fee,
+        amount: dto.totalPrice + (platformFee?.fee || 1),
         ...(vendor.serviceType === ServiceType.LAUNDRY && {
           amount:
             dto.totalPrice +
-              platformFee?.fee +
+              (platformFee?.fee || 1) +
               response?.distance *
                 (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
         }),
         currency: 'AED',
         customer: {
           id: customer.tapCustomerId,
+          // id: 'cus_TS02A1920231303Mk200706641',
         },
         source: { id: 'src_card' },
         threeDSecure: true,
         redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        auto: {
+          type: 'VOID',
+          time: 1,
+        },
       };
+      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
