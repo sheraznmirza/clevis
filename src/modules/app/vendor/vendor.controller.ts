@@ -62,7 +62,7 @@ export class VendorController {
   }
 
   @Authorized(UserType.VENDOR)
-  @Post('/reqeust-update')
+  @Post('/request-update')
   requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user: GetUserType) {
     return this.vendorService.requestUpdate(dto, user.userTypeId);
   }
@@ -91,7 +91,7 @@ export class VendorController {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
-  @Authorized(UserType.ADMIN)
+  @Authorized(UserType.VENDOR)
   @HttpCode(HttpStatus.OK)
   @Patch('/busy/:vendorId')
   busyStatusVendor(
