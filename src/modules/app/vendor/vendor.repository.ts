@@ -1490,7 +1490,7 @@ export class VendorRepository {
     }
   }
 
-  async getDeliverySchedule(userMasterId: number) {
+  async getDeliverySchedule(vendorId: number) {
     try {
       // const delivery = await this.prisma.deliverySchedule.findUnique({
       //   where: { vendorId: vendorId },
@@ -1505,26 +1505,18 @@ export class VendorRepository {
       //   },
       // });
 
-      const delivery = await this.prisma.userMaster.findUnique({
+      const delivery = await this.prisma.deliverySchedule.findUnique({
         where: {
-          userMasterId,
+          vendorId,
         },
         select: {
-          vendor: {
-            select: {
-              deliverySchedule: {
-                select: {
-                  deliveryDurationMax: true,
-                  deliveryDurationMin: true,
-                  serviceDurationMax: true,
-                  serviceDurationMin: true,
-                  deliveryItemMax: true,
-                  deliveryItemMin: true,
-                  kilometerFare: true,
-                },
-              },
-            },
-          },
+          deliveryDurationMax: true,
+          deliveryDurationMin: true,
+          serviceDurationMax: true,
+          serviceDurationMin: true,
+          deliveryItemMax: true,
+          deliveryItemMin: true,
+          kilometerFare: true,
         },
       });
       return delivery;
