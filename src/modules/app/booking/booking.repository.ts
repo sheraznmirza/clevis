@@ -493,6 +493,37 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          carNumberPlate: true,
+          deliveryCharges: true,
+          tapPaymentStatus: true,
+          vat: true,
+          vendor: {
+            select: {
+              companyName: true,
+              fullName: true,
+              logo: {
+                select: {
+                  name: true,
+                  key: true,
+                  location: true,
+                },
+              },
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                select: {
+                  fullAddress: true,
+                },
+              },
+              userMaster: {
+                select: {
+                  email: true,
+                  phone: true,
+                },
+              },
+            },
+          },
           bookingDetail: {
             select: {
               quantity: true,

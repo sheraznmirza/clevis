@@ -566,6 +566,7 @@ model BookingMaster {
   vat                Float?               @default(0)
   totalPrice         Float
   tapAuthId          String
+  isWithDelivery     Boolean              @default(false)
   tapPaymentStatus   PaymentStatus        @default(UNPAID)
   customer           Customer             @relation(fields: [customerId], references: [customerId])
   vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])
