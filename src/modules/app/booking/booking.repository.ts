@@ -13,7 +13,13 @@ import {
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
-import { ServiceType, UserAddress } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  ServiceType,
+  UserAddress,
+  UserType,
+} from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
@@ -22,6 +28,11 @@ import { GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
 import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { AuthorizeResponseInterface } from './entity';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationSocketType, NotificationTitle } from 'src/constants';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody } from 'src/constants';
 
 @Injectable()
 export class BookingRepository {
@@ -30,6 +41,7 @@ export class BookingRepository {
     private config: ConfigService,
     private httpService: HttpService,
     private tapService: TapService,
+    private notificationService: NotificationService,
   ) {}
 
   // async bookingPayment(dto) {
@@ -49,6 +61,14 @@ export class BookingRepository {
       let response: any;
 
       const attachments = [];
+
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
 
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
@@ -214,6 +234,22 @@ export class BookingRepository {
         });
       }
 
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.vendorId],
+        data: {
+          title: NotificationTitle.BOOKING_CREATED,
+          body: NotificationBody.BOOKING_CREATED,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.VENDOR,
+      );
+
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {
       if (error?.code === 'P2025') {
@@ -229,6 +265,14 @@ export class BookingRepository {
       let response: any;
 
       const attachments = [];
+
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
 
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
@@ -345,6 +389,22 @@ export class BookingRepository {
           })),
         });
       }
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.vendorId],
+        data: {
+          title: NotificationTitle.BOOKING_CREATED,
+          body: NotificationBody.BOOKING_CREATED,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.VENDOR,
+      );
 
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {
@@ -626,6 +686,14 @@ export class BookingRepository {
   async getVendorBookings(vendorId: number, dto: VendorGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId,
+        },
+        select: {
+          isBusy: true,
+        },
+      });
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           vendorId: vendorId,
@@ -765,7 +833,13 @@ export class BookingRepository {
         },
       });
 
-      return { data: bookings, page: +page, take: +take, totalCount };
+      return {
+        data: bookings,
+        isBusy: vendor.isBusy,
+        page: +page,
+        take: +take,
+        totalCount,
+      };
     } catch (error) {
       return unknowError(
         417,
@@ -875,7 +949,7 @@ export class BookingRepository {
     dto: UpdateBookingStatusParam,
   ) {
     try {
-      await this.prisma.bookingMaster.update({
+      const booking = await this.prisma.bookingMaster.update({
         where: {
           bookingMasterId,
         },
@@ -883,6 +957,28 @@ export class BookingRepository {
           status: dto.bookingStatus,
         },
       });
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingStatus,
+        userId: [booking.customerId],
+        data: {
+          title:
+            dto.bookingStatus === 'Confirmed'
+              ? NotificationTitle.BOOKING_APPROVED
+              : NotificationTitle.BOOKING_REJECTED,
+          body:
+            dto.bookingStatus === 'Confirmed'
+              ? NotificationBody.BOOKING_APPROVED
+              : NotificationBody.BOOKING_REJECTED,
+          type: NotificationType.BookingStatus,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: booking.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.CUSTOMER,
+      );
       return successResponse(
         200,
         `Booking status changed to ${dto.bookingStatus}`,
@@ -1125,22 +1221,28 @@ export class BookingRepository {
       });
 
       const payload = {
-        amount: dto.totalPrice + platformFee?.fee,
+        amount: dto.totalPrice + (platformFee?.fee || 1),
         ...(vendor.serviceType === ServiceType.LAUNDRY && {
           amount:
             dto.totalPrice +
-              platformFee?.fee +
+              (platformFee?.fee || 1) +
               response?.distance *
                 (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
         }),
         currency: 'AED',
         customer: {
           id: customer.tapCustomerId,
+          // id: 'cus_TS02A1920231303Mk200706641',
         },
         source: { id: 'src_card' },
         threeDSecure: true,
         redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        auto: {
+          type: 'VOID',
+          time: 1,
+        },
       };
+      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 

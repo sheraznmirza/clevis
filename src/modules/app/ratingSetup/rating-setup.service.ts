@@ -25,8 +25,10 @@ export class RatingSetupService {
       });
 
       return {
-        carWashRating: ratings[0].rating,
-        laundryRating: ratings[1].rating,
+        carWashRating:
+          (ratings && ratings.length > 1 && ratings[0].rating) || 50,
+        laundryRating:
+          (ratings && ratings.length > 1 && ratings[1].rating) || 50,
       };
     } catch (error) {
       throw error;

@@ -48,6 +48,13 @@ export class TapService {
     return result;
   }
 
+  async retrieveAuthorize(authorizeId: string) {
+    const result = await this.tapGetPaymentApi(
+      'authorize/'.concat(authorizeId),
+    );
+    return result;
+  }
+
   async createBusniess(
     business: createBusinessRequestInterface,
   ): Promise<createBusinessRequestResponseInterface> {
@@ -73,6 +80,22 @@ export class TapService {
         .post(
           AppConfig.TAP.BASE_URL.concat(url),
           payload,
+          isMarket
+            ? AppConfig.TAP.AUTH_TOKEN_MARKETPLACE
+            : AppConfig.TAP.AUTH_TOKEN,
+        )
+        .pipe(map((response: AxiosResponse<any>) => response.data))
+        .toPromise();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  tapGetPaymentApi(url: string, isMarket = false): Promise<any> {
+    try {
+      return this.httpService
+        .get(
+          AppConfig.TAP.BASE_URL.concat(url),
           isMarket
             ? AppConfig.TAP.AUTH_TOKEN_MARKETPLACE
             : AppConfig.TAP.AUTH_TOKEN,
