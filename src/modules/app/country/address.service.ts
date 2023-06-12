@@ -287,7 +287,11 @@ export class AddressService {
           },
         },
       });
-      if (userMasterId !== userAdd.customer.userMasterId) {
+
+      if (!userAdd) {
+        throw new NotFoundException('Address not found');
+      }
+      if (userMasterId !== userAdd?.customer?.userMasterId) {
         throw new ForbiddenException(
           'You are not authorized to update this address',
         );
@@ -301,12 +305,9 @@ export class AddressService {
         },
       });
 
-      if (!address) {
-        throw new NotFoundException('Address not found');
-      }
       return address;
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw error;
     }
   }
 
@@ -376,10 +377,22 @@ export class AddressService {
   }
 
   async deleteaddress(id: number, user: GetUserType) {
-    await this.prisma.userAddress.update({
-      where: { userAddressId: id },
-      data: { isDeleted: true },
+    const result = await this.prisma.userAddress.findUnique({
+      where: {
+        userAddressId: id,
+      },
+      select: {
+        isDeleted: true,
+      },
     });
-    return successResponse(200, 'Address Successfully deleted');
+    if (!result?.isDeleted) {
+      await this.prisma.userAddress.update({
+        where: { userAddressId: id },
+        data: { isDeleted: true },
+      });
+      return successResponse(200, 'Address Successfully deleted');
+    } else {
+      return successResponse(200, 'Address Already Deleted');
+    }
   }
 }

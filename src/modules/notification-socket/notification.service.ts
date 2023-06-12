@@ -4,7 +4,7 @@ import { SQSSendNotificationArgs } from '../queue-aws/types';
 // import { OneSignalService } from './one_signal.service';
 import { NotificationData } from './types';
 // import SocketGateway from 'modules/socket/socket.gateway';
-import { NotificationReadStatus } from '@prisma/client';
+import { NotificationReadStatus, UserType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { OneSignalService } from './one-signal.service';
 import { SocketGateway } from './socket.gateway';
@@ -23,6 +23,7 @@ export class NotificationService {
 
   private async _sendNotification(
     sQSSendNotificationArgs: SQSSendNotificationArgs<NotificationData>,
+    userType?: UserType,
   ) {
     const { data, userId } = sQSSendNotificationArgs;
     const { entityId, entityType, title, body, type } = data;
@@ -35,10 +36,8 @@ export class NotificationService {
           title,
           body,
           userMasterId: elem,
-          data: {
-            lassan: 'dwada',
-          },
-          notificationType: 'RiderCreated',
+          // data: data,
+          notificationType: type,
           //   data: {
           //     subscribedUserId: subscribedUser.id,
           //   },
@@ -54,21 +53,23 @@ export class NotificationService {
         },
         elem.toString(),
       );
-      const userDevices = await this._dbService.device.findMany({
-        where: {
-          userMasterId: elem,
-          playerId: {
-            not: null,
-          },
-        },
-        select: {
-          playerId: true,
-        },
-      });
-      const playerIds = userDevices.map((device) => device.playerId);
-      if (playerIds.length > 0) {
-        await this._oneSignalService.sendNotification(playerIds, title, body);
-      }
+      // if (userType === UserType.CUSTOMER) {
+      //   const userDevices = await this._dbService.device.findMany({
+      //     where: {
+      //       userMasterId: elem,
+      //       playerId: {
+      //         not: null,
+      //       },
+      //     },
+      //     select: {
+      //       playerId: true,
+      //     },
+      //   });
+      //   const playerIds = userDevices.map((device) => device.playerId);
+      //   if (playerIds.length > 0) {
+      //     await this._oneSignalService.sendNotification(playerIds, title, body);
+      //   }
+      // }
 
       // const unReadNotificationCount = await this._dbService.notification.count({
       //   where: {
@@ -144,7 +145,8 @@ export class NotificationService {
 
   async HandleNotifications(
     notificationArgs: SQSSendNotificationArgs<NotificationData>,
+    userType?: UserType,
   ) {
-    await this._sendNotification(notificationArgs);
+    await this._sendNotification(notificationArgs, userType);
   }
 }
