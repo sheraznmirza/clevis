@@ -32,11 +32,10 @@ export class PlatformSetupService {
 
   async getAllPlatform() {
     try {
-      return await this.prisma.platformSetup.findMany({
+      return await this.prisma.platformSetup.findFirst({
         where: {
           isDeleted: false,
         },
-
         select: {
           id: true,
           fee: true,

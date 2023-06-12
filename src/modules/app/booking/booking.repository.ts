@@ -496,6 +496,7 @@ export class BookingRepository {
           carNumberPlate: true,
           deliveryCharges: true,
           tapPaymentStatus: true,
+          isWithDelivery: true,
           vat: true,
           vendor: {
             select: {
@@ -530,6 +531,7 @@ export class BookingRepository {
               allocatePrice: {
                 select: {
                   id: true,
+                  price: true,
                   category: {
                     select: {
                       categoryName: true,
@@ -580,7 +582,6 @@ export class BookingRepository {
           dropoffTimeTo: true,
           totalPrice: true,
           instructions: true,
-
           isDeleted: true,
           bookingDate: true,
           status: true,
@@ -598,10 +599,22 @@ export class BookingRepository {
           },
         },
       });
+
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return result;
+      return { ...result, platformFee: platformFee.fee };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
