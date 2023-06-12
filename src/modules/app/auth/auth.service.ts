@@ -11,7 +11,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ServiceType, Status, UserType } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  ServiceType,
+  Status,
+  UserType,
+} from '@prisma/client';
 import * as argon from 'argon2';
 import dayjs from 'dayjs';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
@@ -39,6 +45,9 @@ import {
   createCustomerRequestInterface,
   createMerchantRequestInterface,
 } from 'src/modules/tap/dto/card.dto';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
 
 @Injectable()
 export class AuthService {
@@ -1112,6 +1121,7 @@ export class AuthService {
           userMasterId: masterId,
         },
         select: {
+          userMasterId: true,
           email: true,
           rider: true,
           vendor: true,
@@ -1151,6 +1161,35 @@ export class AuthService {
             context,
           );
         }
+
+        if (user.userType === UserType.RIDER || UserType.VENDOR) {
+          const payload: SQSSendNotificationArgs<NotificationData> = {
+            type:
+              user.userType === UserType.RIDER
+                ? NotificationType.RiderCreated
+                : NotificationType.VendorCreated,
+            userId: [1],
+            data: {
+              title:
+                user.userType === UserType.RIDER
+                  ? NotificationTitle.RIDER_CREATED
+                  : NotificationTitle.VENDOR_CREATED,
+
+              body:
+                user.userType === UserType.RIDER
+                  ? NotificationBody.RIDER_CREATED
+                  : NotificationBody.VENDOR_CREATED,
+              type:
+                user.userType === UserType.RIDER
+                  ? NotificationType.RiderCreated
+                  : NotificationType.VendorCreated,
+              entityType: EntityType.USERMASTER,
+              entityId: user.userMasterId,
+            },
+          };
+          await this.notificationService.HandleNotifications(payload);
+        }
+
         return {
           statusCode: 202,
           message: 'Email successfully verified!',
