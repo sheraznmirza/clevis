@@ -234,6 +234,22 @@ export class BookingRepository {
         });
       }
 
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.vendorId],
+        data: {
+          title: NotificationTitle.BOOKING_CREATED,
+          body: NotificationBody.BOOKING_CREATED,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.VENDOR,
+      );
+
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {
       if (error?.code === 'P2025') {
@@ -374,27 +390,21 @@ export class BookingRepository {
         });
       }
 
-      // const payload: SQSSendNotificationArgs<NotificationData> = {
-      //   type: NotificationType.BookingStatus,
-      //   userId: [bookingMaster.vendorId],
-      //   data: {
-      //     title:
-      //       dto.bookingStatus === 'Confirmed'
-      //         ? NotificationTitle.BOOKING_APPROVED
-      //         : NotificationTitle.BOOKING_REJECTED,
-      //     body:
-      //       dto.bookingStatus === 'Confirmed'
-      //         ? NotificationBody.BOOKING_APPROVED
-      //         : NotificationBody.BOOKING_REJECTED,
-      //     type: NotificationType.BookingStatus,
-      //     entityType: EntityType.BOOKINGMASTER,
-      //     entityId: booking.bookingMasterId,
-      //   },
-      // };
-      // await this.notificationService.HandleNotifications(
-      //   payload,
-      //   UserType.CUSTOMER,
-      // );
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.vendorId],
+        data: {
+          title: NotificationTitle.BOOKING_CREATED,
+          body: NotificationBody.BOOKING_CREATED,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.VENDOR,
+      );
 
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {

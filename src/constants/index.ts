@@ -12,11 +12,17 @@ export enum NotificationSocketType {
 export enum NotificationTitle {
   BOOKING_APPROVED = 'Booking Approved!',
   BOOKING_REJECTED = 'Booking Rejected!',
+  BOOKING_CREATED = 'Booking Created',
+  VENDOR_CREATED = 'Vendor Approvel',
+  RIDER_CREATED = 'Rider Approvel',
 }
 
 export enum NotificationBody {
   BOOKING_APPROVED = 'Booking Approved by vendor',
   BOOKING_REJECTED = 'Booking Rejected by vendor',
+  BOOKING_CREATED = 'Booking Created by Customer',
+  RIDER_CREATED = 'Rider Verified Successfully & Waiting for Approvel',
+  VENDOR_CREATED = 'Vendor Verified Successfully & Waiting for Approvel',
 }
 
 export enum EventType {

@@ -50,6 +50,7 @@ enum NotificationType {
   VendorCreated
   RiderCreated
   BookingStatus
+  BookingCreated
 }
 
 enum MediaStatus {
@@ -107,6 +108,7 @@ enum EntityType {
   RIDER
   CUSTOMER
   BOOKINGMASTER
+  USERMASTER
 }
 
 enum PaymentStatus {
