@@ -1139,7 +1139,7 @@ export class BookingRepository {
         },
         source: { id: 'src_card' },
         threeDSecure: true,
-        redirect: { url: 'https://clevis-vendor.appnofy.com' },
+        redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
       };
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
