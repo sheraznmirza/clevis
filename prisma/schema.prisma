@@ -51,6 +51,8 @@ enum NotificationType {
   RiderCreated
   BookingStatus
   BookingCreated
+  VendorStatus
+  UpdateByAdmin
 }
 
 enum MediaStatus {
@@ -118,29 +120,30 @@ enum PaymentStatus {
 }
 
 model UserMaster {
-  userMasterId     Int            @id @default(autoincrement())
-  email            String
-  isEmailVerified  Boolean        @default(false)
-  password         String
-  roleId           Int
-  profilePictureId Int?           @unique
-  userType         UserType       @default(CUSTOMER)
-  phone            String
-  isActive         Boolean        @default(true)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @default(now()) @updatedAt
-  isDeleted        Boolean        @default(false)
-  customer         Customer?
-  vendor           Vendor?
-  rider            Rider?
-  admin            Admin?
-  refreshToken     RefreshToken[]
-  Otp              Otp[]
-  role             Role?          @relation(fields: [roleId], references: [id])
-  notifications    Notification[]
-  profilePicture   Media?         @relation(fields: [profilePictureId], references: [id])
-  earnings         Earnings[]
-  device           Device[]
+  userMasterId        Int            @id @default(autoincrement())
+  email               String
+  isEmailVerified     Boolean        @default(false)
+  password            String
+  roleId              Int
+  notificationEnabled Boolean        @default(true)
+  profilePictureId    Int?           @unique
+  userType            UserType       @default(CUSTOMER)
+  phone               String
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @default(now()) @updatedAt
+  isDeleted           Boolean        @default(false)
+  customer            Customer?
+  vendor              Vendor?
+  rider               Rider?
+  admin               Admin?
+  refreshToken        RefreshToken[]
+  Otp                 Otp[]
+  role                Role?          @relation(fields: [roleId], references: [id])
+  notifications       Notification[]
+  profilePicture      Media?         @relation(fields: [profilePictureId], references: [id])
+  earnings            Earnings[]
+  device              Device[]
 }
 
 model RefreshToken {
@@ -212,6 +215,7 @@ model Vendor {
   deliverySchedule    DeliverySchedule?
   bookingMaster       BookingMaster[]
   UpdateApproval      UpdateApproval[]
+  Job                 Job[]
 }
 
 model Rider {
@@ -568,7 +572,7 @@ model BookingMaster {
   deliveryCharges    Float?               @default(0)
   vat                Float?               @default(0)
   totalPrice         Float
-  tapAuthId          String
+  tapAuthId          String               @unique
   isWithDelivery     Boolean              @default(false)
   tapPaymentStatus   PaymentStatus        @default(UNPAID)
   customer           Customer             @relation(fields: [customerId], references: [customerId])
@@ -607,9 +611,15 @@ model BookingAttachments {
 model Job {
   id              Int            @id @default(autoincrement())
   bookingMasterId Int            @unique
+  jobDate         DateTime
+  jobTime         DateTime
+  instructions    String?
   riderId         Int?
+  vendorId        Int
   jobType         JobType
+  jobStatus       Status         @default(PENDING)
   rider           Rider?         @relation(fields: [riderId], references: [riderId])
+  vendor          Vendor         @relation(fields: [vendorId], references: [vendorId])
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
 }
 

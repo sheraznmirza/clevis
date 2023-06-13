@@ -14,6 +14,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 import {
+  BookingStatus,
   EntityType,
   NotificationType,
   ServiceType,
@@ -26,13 +27,17 @@ import { map } from 'rxjs';
 import { mapsDistanceData } from 'src/helpers/maps.helper';
 import { GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
-import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
+import {
+  createChargeRequestInterface,
+  createCustomerRequestInterface,
+} from 'src/modules/tap/dto/card.dto';
 import { AuthorizeResponseInterface } from './entity';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationSocketType, NotificationTitle } from 'src/constants';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody } from 'src/constants';
+import { MailService } from 'src/modules/mail/mail.service';
 
 @Injectable()
 export class BookingRepository {
@@ -42,6 +47,7 @@ export class BookingRepository {
     private httpService: HttpService,
     private tapService: TapService,
     private notificationService: NotificationService,
+    private mail: MailService,
   ) {}
 
   // async bookingPayment(dto) {
@@ -212,9 +218,28 @@ export class BookingRepository {
             }),
           isWithDelivery: dto.isWithDelivery,
         },
-        // select: {
-
-        // }
+        select: {
+          bookingMasterId: true,
+          bookingDate: true,
+          totalPrice: true,
+          vendorId: true,
+          vendor: {
+            select: {
+              fullName: true,
+              serviceType: true,
+              userMaster: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+          customer: {
+            select: {
+              fullName: true,
+            },
+          },
+        },
       });
 
       await this.prisma.bookingDetail.createMany({
@@ -237,6 +262,31 @@ export class BookingRepository {
           })),
         });
       }
+
+      const context = {
+        first_paragraph:
+          'You have received a new booking request. Please review the details below and take necessary action:',
+        vendor_name: bookingMaster.vendor.fullName,
+        customer_name: bookingMaster.customer.fullName,
+        booking_id: bookingMaster.bookingMasterId,
+        service_type: bookingMaster.vendor.serviceType,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `${this.config.get('APP_NAME')} - New Booking`,
+        'vendor-accept-booking', // `.hbs` extension is appended automatically
+        context,
+      );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -368,9 +418,24 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          bookingDate: true,
+          totalPrice: true,
+          vendorId: true,
           vendor: {
             select: {
+              fullName: true,
+              serviceType: true,
               userMasterId: true,
+              userMaster: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+          customer: {
+            select: {
+              fullName: true,
             },
           },
         },
@@ -400,6 +465,31 @@ export class BookingRepository {
           })),
         });
       }
+
+      const context = {
+        first_paragraph:
+          'You have received a new booking request. Please review the details below and take necessary action:',
+        vendor_name: bookingMaster.vendor.fullName,
+        customer_name: bookingMaster.customer.fullName,
+        booking_id: bookingMaster.bookingMasterId,
+        service_type: bookingMaster.vendor.serviceType,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `${this.config.get('APP_NAME')} - New Booking`,
+        'vendor-accept-booking', // `.hbs` extension is appended automatically
+        context,
+      );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -946,7 +1036,12 @@ export class BookingRepository {
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return result;
+
+      let totalItems = 0;
+      result.bookingDetail.forEach((item) => {
+        totalItems += item.quantity;
+      });
+      return { ...result, totalItems };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -967,19 +1062,100 @@ export class BookingRepository {
         data: {
           status: dto.bookingStatus,
         },
+        select: {
+          bookingMasterId: true,
+          bookingDate: true,
+          totalPrice: true,
+          customerId: true,
+          vendorId: true,
+          status: true,
+          vendor: {
+            select: {
+              fullName: true,
+              serviceType: true,
+              userMaster: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+          customer: {
+            select: {
+              email: true,
+              fullName: true,
+            },
+          },
+        },
       });
+
+      if (dto.bookingStatus === BookingStatus.Completed) {
+        const chargePayload: createChargeRequestInterface = {
+          amount: booking.totalPrice,
+          currency: 'AED',
+          customer: {
+            first_name: booking.customer.fullName,
+            email: booking.customer.email,
+          },
+          source: { id: 'src_card' },
+          redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        };
+        const createCharge = await this.tapService.createCharge(chargePayload);
+        console.log('createCharge: ', createCharge);
+      }
+
+      const context = {
+        first_paragraph:
+          booking.status === BookingStatus.Confirmed
+            ? `The booking request for ${dayjs(booking.bookingDate)
+                .utc()
+                .format('DD/MM/YYYY')} & ${dayjs(booking.bookingDate)
+                .utc()
+                .format('HH:mm')} has been accepted`
+            : booking.status === BookingStatus.In_Progress
+            ? "The status of the following booking has been changed to 'In Progress':"
+            : booking.status === BookingStatus.Completed
+            ? 'The following booking has been successfully completed:'
+            : '',
+        vendor_name: booking.vendor.fullName,
+        customer_name: booking.customer.fullName,
+        booking_id: booking.bookingMasterId,
+        service_type: booking.vendor.serviceType,
+        booking_date: dayjs(booking.bookingDate).utc().format('DD/MM/YYYY'),
+        booking_time: dayjs(booking.bookingDate).utc().format('HH:mm'),
+        total_amount: booking.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        booking.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `${this.config.get('APP_NAME')} - New Booking`,
+        'vendor-accept-booking', // `.hbs` extension is appended automatically
+        context,
+      );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingStatus,
         userId: [booking.customerId],
         data: {
           title:
-            dto.bookingStatus === 'Confirmed'
+            dto.bookingStatus === 'In_Progress'
+              ? NotificationTitle.BOOKING_IN_PROGRESS
+              : dto.bookingStatus === 'Confirmed'
               ? NotificationTitle.BOOKING_APPROVED
+              : dto.bookingStatus === 'Completed'
+              ? NotificationTitle.BOOKING_COMPLETED
               : NotificationTitle.BOOKING_REJECTED,
           body:
-            dto.bookingStatus === 'Confirmed'
+            dto.bookingStatus === 'In_Progress'
+              ? NotificationBody.BOOKING_IN_PROGRESS
+              : dto.bookingStatus === 'Confirmed'
               ? NotificationBody.BOOKING_APPROVED
+              : dto.bookingStatus === 'Completed'
+              ? NotificationBody.BOOKING_COMPLETED
               : NotificationBody.BOOKING_REJECTED,
           type: NotificationType.BookingStatus,
           entityType: EntityType.BOOKINGMASTER,

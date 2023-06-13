@@ -90,7 +90,7 @@ export class RiderController {
     return this.riderService.updateRiderSchedule(user.userTypeId, dto);
   }
 
-  @Authorized(UserType.ADMIN)
+  @Authorized([UserType.ADMIN, UserType.VENDOR])
   @Get()
   getRiders(@Query() listingParams: RiderListingParams) {
     return this.riderService.getAllRiders(listingParams);
