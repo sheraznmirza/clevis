@@ -35,6 +35,7 @@ export class CustomerRepository {
           isActive: true,
           isEmailVerified: true,
           userType: true,
+          notificationEnabled: true,
           profilePicture: {
             select: {
               id: true,
@@ -77,7 +78,20 @@ export class CustomerRepository {
       });
       if (!customer) throw new BadRequestException('User does not exist');
 
-      return customer;
+      const activeAddress = await this.prisma.userAddress.findFirst({
+        where: {
+          customerId: customer.customer.customerId,
+          isActive: true,
+          fullAddress: {
+            not: null,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return { ...customer, activeAddress };
     } catch (error) {
       throw error;
     }
@@ -209,6 +223,7 @@ export class CustomerRepository {
           isActive: true,
           isEmailVerified: true,
           userType: true,
+          notificationEnabled: true,
           profilePicture: {
             select: {
               id: true,
@@ -249,9 +264,20 @@ export class CustomerRepository {
           },
         },
       });
+      const activeAddress = await this.prisma.userAddress.findFirst({
+        where: {
+          customerId: customer.customer.customerId,
+          isActive: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
       return {
         ...successResponse(200, 'Customer updated successfully.'),
         ...customer,
+        activeAddress,
       };
     } catch (error) {
       return unknowError(
