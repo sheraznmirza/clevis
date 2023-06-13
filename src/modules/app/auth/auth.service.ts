@@ -1047,6 +1047,7 @@ export class AuthService {
       // await this.mail.sendResetPasswordEmail(data, randomOtp); umair
 
       const context = {
+        first_name: user[user.userType.toLowerCase()].fullName,
         app_name: this.config.get('APP_NAME'),
         app_url: this.config.get(dynamicUrl(user.userType)),
         copyright_year: this.config.get('COPYRIGHT_YEAR'),

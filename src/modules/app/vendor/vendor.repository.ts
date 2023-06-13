@@ -15,7 +15,14 @@ import {
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
 } from './dto';
-import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
+import {
+  EntityType,
+  Media,
+  NotificationType,
+  ServiceType,
+  UserType,
+  Vendor,
+} from '@prisma/client';
 import { VendorListingParams, VendorServiceListingParams } from 'src/core/dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import {
@@ -23,11 +30,18 @@ import {
   vendorServiceByIdMappedLaundry,
 } from './vendor.mapper';
 import { ERROR_MESSAGE } from 'src/core/constants';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
 export class VendorRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
     try {
@@ -552,6 +566,22 @@ export class VendorRepository {
           })),
         });
       }
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.UpdateByAdmin,
+        userId: [vendor.userMasterId],
+        data: {
+          title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
+          body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+          type: NotificationType.UpdateByAdmin,
+          entityType: EntityType.VENDOR,
+          entityId: vendor.userMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.VENDOR,
+      );
 
       return {
         ...successResponse(200, 'Vendor updated successfully.'),

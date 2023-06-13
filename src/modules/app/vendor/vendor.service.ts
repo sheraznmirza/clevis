@@ -12,7 +12,14 @@ import {
 } from './dto';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
-import { ServiceType, Status, Vendor } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  ServiceType,
+  Status,
+  UserType,
+  Vendor,
+} from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import {
   GetUserType,
@@ -37,6 +44,8 @@ import {
 } from 'src/modules/tap/dto/card.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { TapService } from 'src/modules/tap/tap.service';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
 
 @Injectable()
 export class VendorService {
@@ -107,7 +116,6 @@ export class VendorService {
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
       const vendor = await this.repository.approveVendor(id, dto);
-      // await this.mail.sendVendorRiderApprovalEmail(vendor);   umair
       const user = await this.prisma.userMaster.findFirst({
         where: {
           vendor: {
@@ -242,8 +250,8 @@ export class VendorService {
         first_name: vendor.fullName,
         message:
           vendor.status === Status.APPROVED
-            ? 'Your account has been approved. You can now log in and start your journey with us!'
-            : 'Your account has been rejected. Please contact our support for further information.',
+            ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin.  '
+            : 'We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.\n Please contact admin if you have any questions regarding this issue ',
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
       await this.mail.sendEmail(
@@ -256,24 +264,27 @@ export class VendorService {
         context, // `.hbs` extension is appended automatically
       );
 
-      // const payload : SQSSendNotificationArgs = {
-      //   type:  {
-
-      //   },
-      //   ['1'],
-
-      // }
-
-      // SocketGateway.emitEvent(
-      //   'notification',
-      //   {
-      //     message: `Vendor ${dto.status.toLocaleLowerCase()}`,
-      //   },
-      //   '1',
-      // );
-
-      // await this.notificationService.HandleNotifications
-
+      const payloads: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.VendorStatus,
+        userId: [user.vendor.vendorId],
+        data: {
+          title:
+            dto.status === 'APPROVED'
+              ? NotificationTitle.ADMIN_APPROVED
+              : NotificationTitle.BOOKING_REJECTED,
+          body:
+            dto.status === 'APPROVED'
+              ? NotificationBody.ADMIN_APPROVED
+              : NotificationBody.ADMIN_REJECTED,
+          type: NotificationType.BookingStatus,
+          entityType: EntityType.VENDOR,
+          entityId: user.vendor.vendorId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payloads,
+        UserType.VENDOR,
+      );
       return successResponse(
         200,
         `Vendor successfully ${vendor.status.toLowerCase()}.`,
