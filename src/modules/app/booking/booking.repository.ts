@@ -27,7 +27,10 @@ import { map } from 'rxjs';
 import { mapsDistanceData } from 'src/helpers/maps.helper';
 import { GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
-import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
+import {
+  createChargeRequestInterface,
+  createCustomerRequestInterface,
+} from 'src/modules/tap/dto/card.dto';
 import { AuthorizeResponseInterface } from './entity';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
@@ -1033,7 +1036,12 @@ export class BookingRepository {
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return result;
+
+      let totalItems = 0;
+      result.bookingDetail.forEach((item) => {
+        totalItems += item.quantity;
+      });
+      return { ...result, totalItems };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -1074,11 +1082,27 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              email: true,
               fullName: true,
             },
           },
         },
       });
+
+      if (dto.bookingStatus === BookingStatus.Completed) {
+        const chargePayload: createChargeRequestInterface = {
+          amount: booking.totalPrice,
+          currency: 'AED',
+          customer: {
+            first_name: booking.customer.fullName,
+            email: booking.customer.email,
+          },
+          source: { id: 'src_card' },
+          redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        };
+        const createCharge = await this.tapService.createCharge(chargePayload);
+        console.log('createCharge: ', createCharge);
+      }
 
       const context = {
         first_paragraph:

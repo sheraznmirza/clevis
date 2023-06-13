@@ -129,9 +129,14 @@ export class NotificationService {
 
   async updateNotification(params: NotificationUpdateParams) {
     try {
-      await this._dbService.notification.update({
+      const notificationsId: number[] = params.notificationId
+        .split(',')
+        .map((item) => parseInt(item));
+      await this._dbService.notification.updateMany({
         where: {
-          id: +params.notificationId,
+          id: {
+            in: notificationsId,
+          },
         },
         data: {
           readStatus: NotificationReadStatus.READ,

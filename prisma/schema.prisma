@@ -215,6 +215,7 @@ model Vendor {
   deliverySchedule    DeliverySchedule?
   bookingMaster       BookingMaster[]
   UpdateApproval      UpdateApproval[]
+  Job                 Job[]
 }
 
 model Rider {
@@ -571,7 +572,7 @@ model BookingMaster {
   deliveryCharges    Float?               @default(0)
   vat                Float?               @default(0)
   totalPrice         Float
-  tapAuthId          String
+  tapAuthId          String               @unique
   isWithDelivery     Boolean              @default(false)
   tapPaymentStatus   PaymentStatus        @default(UNPAID)
   customer           Customer             @relation(fields: [customerId], references: [customerId])
@@ -610,9 +611,15 @@ model BookingAttachments {
 model Job {
   id              Int            @id @default(autoincrement())
   bookingMasterId Int            @unique
+  jobDate         DateTime
+  jobTime         DateTime
+  instructions    String?
   riderId         Int?
+  vendorId        Int
   jobType         JobType
+  jobStatus       Status         @default(PENDING)
   rider           Rider?         @relation(fields: [riderId], references: [riderId])
+  vendor          Vendor         @relation(fields: [vendorId], references: [vendorId])
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
 }
 

@@ -28,8 +28,8 @@ import { NotificationModule } from './modules/notification-socket/notification.m
 import { SocketGateway } from './modules/notification-socket/socket.gateway';
 import { SocketEventHandler } from './modules/notification-socket/socket_event.handler';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { JobModule } from './modules/app/job/job.module';
 import { join } from 'path';
-
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -68,6 +68,7 @@ import { join } from 'path';
     BookingModule,
     S3Module,
     TapModule,
+    JobModule,
     // DatabaseModule,
   ],
   providers: [
