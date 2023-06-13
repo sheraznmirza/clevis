@@ -3,10 +3,12 @@ import { Injectable } from '@nestjs/common';
 import {
   createAuthorizedRequestInterface,
   createBusinessRequestInterface,
+  createBusinessRequestResponseInterface,
   createChargeRequestInterface,
   createCustomerRequestInterface,
   createCustomerResponse,
   createMerchantRequestInterface,
+  createMerchantRequestResponse,
   createNewCardResponse,
   createNewCardTokenInterface,
   createTokenForSavedCardInterface,
@@ -46,12 +48,23 @@ export class TapService {
     return result;
   }
 
-  async createBusniess(business: createBusinessRequestInterface) {
-    const result = await this.tapPaymentApi(business, 'busniess', true);
+  async retrieveAuthorize(authorizeId: string) {
+    const result = await this.tapGetPaymentApi(
+      'authorize/'.concat(authorizeId),
+    );
     return result;
   }
 
-  async createMerchant(merchant: createMerchantRequestInterface) {
+  async createBusniess(
+    business: createBusinessRequestInterface,
+  ): Promise<createBusinessRequestResponseInterface> {
+    const result = await this.tapPaymentApi(business, 'business', true);
+    return result;
+  }
+
+  async createMerchant(
+    merchant: createMerchantRequestInterface,
+  ): Promise<createMerchantRequestResponse> {
     const result = await this.tapPaymentApi(merchant, 'merchant');
     return result;
   }
@@ -62,15 +75,35 @@ export class TapService {
   }
 
   tapPaymentApi(payload: any, url: string, isMarket = false): Promise<any> {
-    return this.httpService
-      .post(
-        AppConfig.TAP.BASE_URL.concat(url),
-        payload,
-        isMarket
-          ? AppConfig.TAP.AUTH_TOKEN_MARKETPLACE
-          : AppConfig.TAP.AUTH_TOKEN,
-      )
-      .pipe(map((response: AxiosResponse<any>) => response.data))
-      .toPromise();
+    try {
+      return this.httpService
+        .post(
+          AppConfig.TAP.BASE_URL.concat(url),
+          payload,
+          isMarket
+            ? AppConfig.TAP.AUTH_TOKEN_MARKETPLACE
+            : AppConfig.TAP.AUTH_TOKEN,
+        )
+        .pipe(map((response: AxiosResponse<any>) => response.data))
+        .toPromise();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  tapGetPaymentApi(url: string, isMarket = false): Promise<any> {
+    try {
+      return this.httpService
+        .get(
+          AppConfig.TAP.BASE_URL.concat(url),
+          isMarket
+            ? AppConfig.TAP.AUTH_TOKEN_MARKETPLACE
+            : AppConfig.TAP.AUTH_TOKEN,
+        )
+        .pipe(map((response: AxiosResponse<any>) => response.data))
+        .toPromise();
+    } catch (error) {
+      throw error;
+    }
   }
 }

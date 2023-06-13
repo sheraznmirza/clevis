@@ -2,14 +2,22 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   RequestTimeoutException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { ServiceType, Status, UserType } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  ServiceType,
+  Status,
+  UserType,
+} from '@prisma/client';
 import * as argon from 'argon2';
 import dayjs from 'dayjs';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
@@ -31,8 +39,16 @@ import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 import { companySchedule } from 'src/core/constants';
 import { decryptData, encryptData } from 'src/helpers/util.helper';
 import { TapService } from 'src/modules/tap/tap.service';
-import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { BullQueueService } from 'src/modules/queue/bull-queue.service';
+import {
+  createBusinessRequestInterface,
+  createCustomerRequestInterface,
+  createMerchantRequestInterface,
+} from 'src/modules/tap/dto/card.dto';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
 
 @Injectable()
 export class AuthService {
@@ -43,6 +59,8 @@ export class AuthService {
     private mail: MailService,
     private tapService: TapService,
     private queue: BullQueueService,
+    @Inject(forwardRef(() => NotificationService))
+    private notificationService: NotificationService,
   ) {}
 
   async signupAsCustomer(dto: CustomerSignUpDto) {
@@ -223,13 +241,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.VENDOR,
           roleId: roleId,
-          ...(dto.playerId && {
-            device: {
-              create: {
-                playerId: dto.playerId,
-              },
-            },
-          }),
+          // ...(dto.playerId && {
+          //   device: {
+          //     create: {
+          //       playerId: dto.playerId,
+          //     },
+          //   },
+          // }),
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -287,8 +305,10 @@ export class AuthService {
                   latitude: true,
                   city: {
                     select: {
+                      cityName: true,
                       State: {
                         select: {
+                          stateName: true,
                           country: {
                             select: {
                               countryCode: true,
@@ -332,36 +352,6 @@ export class AuthService {
       });
 
       this.queue.sendVerificationEmail(user, UserType.VENDOR);
-      // this.sendEncryptedDataToMail(user, UserType.VENDOR);
-      // const payload: createBusinessRequestInterface = {
-      //   name: {
-      //     en: user.vendor.companyName,
-      //   },
-      //   type: 'corp',
-      //   entity: {
-      //     legal_name: {
-      //       en: user.vendor.companyName,
-      //     },
-      //     is_licensed: true,
-      //   },
-      //   brands: [
-      //     {
-      //       name: {
-      //         en: user.vendor.companyName,
-      //       },
-      //     },
-      //   ],
-      // };
-
-      // const TapBusinessPay = await this.tapService.createBusniess(payload);
-
-      // const payload: CreateNotificationDto = {
-      //   toUser: 1,
-      //   fromUser: user.userMasterId,
-      //   message: 'message',
-      //   type: 'VendorCreated',
-      // };
-      // await this.notification.createNotification(payload);
       return successResponse(
         201,
         'Vendor successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -417,13 +407,13 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.RIDER,
           roleId: roleId,
-          ...(dto.playerId && {
-            device: {
-              create: {
-                playerId: dto.playerId,
-              },
-            },
-          }),
+          // ...(dto.playerId && {
+          //   device: {
+          //     create: {
+          //       playerId: dto.playerId,
+          //     },
+          //   },
+          // }),
           rider: {
             create: {
               fullName: dto.fullName,
@@ -1051,6 +1041,7 @@ export class AuthService {
           userMasterId: masterId,
         },
         select: {
+          userMasterId: true,
           email: true,
           rider: true,
           vendor: true,
@@ -1090,6 +1081,35 @@ export class AuthService {
             context,
           );
         }
+
+        if (user.userType === UserType.RIDER || UserType.VENDOR) {
+          const payload: SQSSendNotificationArgs<NotificationData> = {
+            type:
+              user.userType === UserType.RIDER
+                ? NotificationType.RiderCreated
+                : NotificationType.VendorCreated,
+            userId: [1],
+            data: {
+              title:
+                user.userType === UserType.RIDER
+                  ? NotificationTitle.RIDER_CREATED
+                  : NotificationTitle.VENDOR_CREATED,
+
+              body:
+                user.userType === UserType.RIDER
+                  ? NotificationBody.RIDER_CREATED
+                  : NotificationBody.VENDOR_CREATED,
+              type:
+                user.userType === UserType.RIDER
+                  ? NotificationType.RiderCreated
+                  : NotificationType.VendorCreated,
+              entityType: EntityType.USERMASTER,
+              entityId: user.userMasterId,
+            },
+          };
+          await this.notificationService.HandleNotifications(payload);
+        }
+
         return {
           statusCode: 202,
           message: 'Email successfully verified!',

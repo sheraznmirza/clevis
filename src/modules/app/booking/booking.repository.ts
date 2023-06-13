@@ -13,7 +13,13 @@ import {
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
-import { UserAddress } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  ServiceType,
+  UserAddress,
+  UserType,
+} from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
@@ -22,6 +28,11 @@ import { GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
 import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { AuthorizeResponseInterface } from './entity';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationSocketType, NotificationTitle } from 'src/constants';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody } from 'src/constants';
 
 @Injectable()
 export class BookingRepository {
@@ -30,6 +41,7 @@ export class BookingRepository {
     private config: ConfigService,
     private httpService: HttpService,
     private tapService: TapService,
+    private notificationService: NotificationService,
   ) {}
 
   // async bookingPayment(dto) {
@@ -50,6 +62,14 @@ export class BookingRepository {
 
       const attachments = [];
 
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
+
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
           const result = await this.prisma.media.create({
@@ -62,46 +82,48 @@ export class BookingRepository {
         });
       }
 
-      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
-        pickupLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.pickupLocation.latitude,
-            longitude: dto.pickupLocation.longitude,
-            cityId: dto.pickupLocation.cityId,
-            customerId,
-            fullAddress: dto.pickupLocation.fullAddress,
-          },
-        });
-        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
-      }
+      if (dto.isWithDelivery) {
+        if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
+          pickupLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.pickupLocation.latitude,
+              longitude: dto.pickupLocation.longitude,
+              cityId: dto.pickupLocation.cityId,
+              customerId,
+              fullAddress: dto.pickupLocation.fullAddress,
+            },
+          });
+          dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+        }
 
-      if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
-        dropoffLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.dropoffLocation.latitude,
-            longitude: dto.dropoffLocation.longitude,
-            cityId: dto.dropoffLocation.cityId,
-            customerId,
-            fullAddress: dto.dropoffLocation.fullAddress,
-          },
-        });
-        dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
-      }
+        if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
+          dropoffLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.dropoffLocation.latitude,
+              longitude: dto.dropoffLocation.longitude,
+              cityId: dto.dropoffLocation.cityId,
+              customerId,
+              fullAddress: dto.dropoffLocation.fullAddress,
+            },
+          });
+          dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
+        }
 
-      if (dto?.dropoffLocation?.userAddressId) {
-        dropoffLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.dropoffLocation.userAddressId,
-          },
-        });
-      }
+        if (dto?.dropoffLocation?.userAddressId) {
+          dropoffLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.dropoffLocation.userAddressId,
+            },
+          });
+        }
 
-      if (dto?.pickupLocation?.userAddressId) {
-        pickupLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.pickupLocation.userAddressId,
-          },
-        });
+        if (dto?.pickupLocation?.userAddressId) {
+          pickupLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.pickupLocation.userAddressId,
+            },
+          });
+        }
       }
 
       const vendor = await this.prisma.vendor.findUnique({
@@ -176,7 +198,8 @@ export class BookingRepository {
           }),
           ...(dto.instructions && { instructions: dto.instructions }),
           totalPrice: totalPrice,
-          ...(dto?.pickupLocation?.timeFrom &&
+          ...(dto.isWithDelivery &&
+            dto?.pickupLocation?.timeFrom &&
             dto?.pickupLocation?.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
@@ -187,6 +210,7 @@ export class BookingRepository {
                 .format(),
               dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
+          isWithDelivery: dto.isWithDelivery,
         },
         // select: {
 
@@ -214,6 +238,22 @@ export class BookingRepository {
         });
       }
 
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.vendorId],
+        data: {
+          title: NotificationTitle.BOOKING_CREATED,
+          body: NotificationBody.BOOKING_CREATED,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.VENDOR,
+      );
+
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {
       if (error?.code === 'P2025') {
@@ -230,6 +270,14 @@ export class BookingRepository {
 
       const attachments = [];
 
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
+
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
           const result = await this.prisma.media.create({
@@ -242,17 +290,19 @@ export class BookingRepository {
         });
       }
 
-      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
-        pickupLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.pickupLocation.latitude,
-            longitude: dto.pickupLocation.longitude,
-            cityId: dto.pickupLocation.cityId,
-            customerId,
-            fullAddress: dto.pickupLocation.fullAddress,
-          },
-        });
-        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+      if (dto.isWithDelivery) {
+        if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
+          pickupLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.pickupLocation.latitude,
+              longitude: dto.pickupLocation.longitude,
+              cityId: dto.pickupLocation.cityId,
+              customerId,
+              fullAddress: dto.pickupLocation.fullAddress,
+            },
+          });
+          dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+        }
       }
 
       const vendor = await this.prisma.vendor.findUnique({
@@ -346,6 +396,22 @@ export class BookingRepository {
         });
       }
 
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.vendorId],
+        data: {
+          title: NotificationTitle.BOOKING_CREATED,
+          body: NotificationBody.BOOKING_CREATED,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.VENDOR,
+      );
+
       return successResponse(201, 'Booking created successfully.');
     } catch (error) {
       if (error?.code === 'P2025') {
@@ -358,6 +424,14 @@ export class BookingRepository {
   async getCustomerBookings(customerId: number, dto: CustomerGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
+      let serviceIds: number[] = [];
+
+      if (dto.services) {
+        serviceIds = dto.services.map((service) => {
+          return service.serviceId;
+        });
+      }
+
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           customerId: customerId,
@@ -369,10 +443,61 @@ export class BookingRepository {
               },
             },
           }),
+
+          ...(dto?.serviceType && {
+            vendor: {
+              serviceType: dto.serviceType,
+            },
+          }),
+
+          ...(dto?.status && {
+            status: dto.status,
+          }),
+
+          ...(serviceIds &&
+            serviceIds.length > 0 && {
+              bookingDetail: {
+                some: {
+                  allocatePrice: {
+                    vendorService: {
+                      serviceId: {
+                        in: serviceIds,
+                      },
+                    },
+                  },
+                },
+              },
+            }),
         },
         take: +take,
         skip: +take * (+page - 1),
         select: {
+          bookingMasterId: true,
+          status: true,
+          bookingDate: true,
+          totalPrice: true,
+          vendor: {
+            select: {
+              companyName: true,
+            },
+          },
+          bookingDetail: {
+            select: {
+              allocatePrice: {
+                select: {
+                  vendorService: {
+                    select: {
+                      service: {
+                        select: {
+                          serviceName: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
           isDeleted: true,
         },
       });
@@ -388,6 +513,31 @@ export class BookingRepository {
               },
             },
           }),
+
+          ...(dto?.serviceType && {
+            vendor: {
+              serviceType: dto.serviceType,
+            },
+          }),
+
+          ...(dto?.status && {
+            status: dto.status,
+          }),
+
+          ...(serviceIds &&
+            serviceIds.length > 0 && {
+              bookingDetail: {
+                some: {
+                  allocatePrice: {
+                    vendorService: {
+                      serviceId: {
+                        in: serviceIds,
+                      },
+                    },
+                  },
+                },
+              },
+            }),
         },
       });
 
@@ -409,12 +559,45 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          carNumberPlate: true,
+          deliveryCharges: true,
+          tapPaymentStatus: true,
+          isWithDelivery: true,
+          vat: true,
+          vendor: {
+            select: {
+              companyName: true,
+              fullName: true,
+              logo: {
+                select: {
+                  name: true,
+                  key: true,
+                  location: true,
+                },
+              },
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                select: {
+                  fullAddress: true,
+                },
+              },
+              userMaster: {
+                select: {
+                  email: true,
+                  phone: true,
+                },
+              },
+            },
+          },
           bookingDetail: {
             select: {
               quantity: true,
               allocatePrice: {
                 select: {
                   id: true,
+                  price: true,
                   category: {
                     select: {
                       categoryName: true,
@@ -465,7 +648,6 @@ export class BookingRepository {
           dropoffTimeTo: true,
           totalPrice: true,
           instructions: true,
-
           isDeleted: true,
           bookingDate: true,
           status: true,
@@ -483,10 +665,22 @@ export class BookingRepository {
           },
         },
       });
+
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return result;
+      return { ...result, platformFee: platformFee.fee };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -498,6 +692,14 @@ export class BookingRepository {
   async getVendorBookings(vendorId: number, dto: VendorGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId,
+        },
+        select: {
+          isBusy: true,
+        },
+      });
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           vendorId: vendorId,
@@ -637,7 +839,13 @@ export class BookingRepository {
         },
       });
 
-      return { data: bookings, page: +page, take: +take, totalCount };
+      return {
+        data: bookings,
+        isBusy: vendor.isBusy,
+        page: +page,
+        take: +take,
+        totalCount,
+      };
     } catch (error) {
       return unknowError(
         417,
@@ -747,7 +955,7 @@ export class BookingRepository {
     dto: UpdateBookingStatusParam,
   ) {
     try {
-      await this.prisma.bookingMaster.update({
+      const booking = await this.prisma.bookingMaster.update({
         where: {
           bookingMasterId,
         },
@@ -755,6 +963,28 @@ export class BookingRepository {
           status: dto.bookingStatus,
         },
       });
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingStatus,
+        userId: [booking.customerId],
+        data: {
+          title:
+            dto.bookingStatus === 'Confirmed'
+              ? NotificationTitle.BOOKING_APPROVED
+              : NotificationTitle.BOOKING_REJECTED,
+          body:
+            dto.bookingStatus === 'Confirmed'
+              ? NotificationBody.BOOKING_APPROVED
+              : NotificationBody.BOOKING_REJECTED,
+          type: NotificationType.BookingStatus,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: booking.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.CUSTOMER,
+      );
       return successResponse(
         200,
         `Booking status changed to ${dto.bookingStatus}`,
@@ -803,6 +1033,11 @@ export class BookingRepository {
                 lte: dto.dateTill,
               },
             }),
+          ...(dto?.serviceType && {
+            vendor: {
+              serviceType: dto.serviceType,
+            },
+          }),
         },
         take: +take,
         skip: +take * (+page - 1),
@@ -890,6 +1125,7 @@ export class BookingRepository {
           vendorId: dto.vendorId,
         },
         select: {
+          serviceType: true,
           userAddress: {
             where: {
               isDeleted: false,
@@ -926,60 +1162,62 @@ export class BookingRepository {
         },
       });
 
-      if (dto?.pickupLocation?.userAddressId) {
-        const pickupLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.pickupLocation.userAddressId,
-          },
-          select: {
-            latitude: true,
-            longitude: true,
-          },
-        });
+      if (dto.isWithDelivery) {
+        if (dto?.pickupLocation?.userAddressId) {
+          const pickupLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.pickupLocation.userAddressId,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
+          });
 
-        dto.pickupLocation.latitude = pickupLocation.latitude;
-        dto.pickupLocation.longitude = pickupLocation.longitude;
+          dto.pickupLocation.latitude = pickupLocation.latitude;
+          dto.pickupLocation.longitude = pickupLocation.longitude;
+        }
+
+        if (dto?.dropoffLocation?.userAddressId) {
+          const dropoffLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.dropoffLocation.userAddressId,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
+          });
+
+          dto.dropoffLocation.latitude = dropoffLocation.latitude;
+          dto.dropoffLocation.longitude = dropoffLocation.longitude;
+        }
+        if (vendor.serviceType === ServiceType.LAUNDRY) {
+          Promise.all([
+            mapsDistanceData(
+              dto.pickupLocation,
+              vendor.userAddress[0],
+              this.config,
+              this.httpService,
+            ),
+            mapsDistanceData(
+              dto.dropoffLocation,
+              vendor.userAddress[0],
+              this.config,
+              this.httpService,
+            ),
+          ])
+            .then((values) => {
+              console.log(values);
+              for (let i = 0; i < values.length; i++) {
+                response.distance = +values[i].distanceValue;
+              }
+            })
+            .catch((error) => {
+              throw error;
+            });
+        }
       }
-
-      if (dto?.dropoffLocation?.userAddressId) {
-        const dropoffLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.dropoffLocation.userAddressId,
-          },
-          select: {
-            latitude: true,
-            longitude: true,
-          },
-        });
-
-        dto.dropoffLocation.latitude = dropoffLocation.latitude;
-        dto.dropoffLocation.longitude = dropoffLocation.longitude;
-      }
-
-      Promise.all([
-        mapsDistanceData(
-          dto.pickupLocation,
-          vendor.userAddress[0],
-          this.config,
-          this.httpService,
-        ),
-        mapsDistanceData(
-          dto.dropoffLocation,
-          vendor.userAddress[0],
-          this.config,
-          this.httpService,
-        ),
-      ])
-        .then((values) => {
-          console.log(values);
-          for (let i = 0; i < values.length; i++) {
-            response.distance = +values[i].distanceValue;
-          }
-        })
-        .catch((error) => {
-          throw error;
-        });
-
       const customer = await this.prisma.customer.findUnique({
         where: {
           customerId: user.userTypeId,
@@ -990,20 +1228,28 @@ export class BookingRepository {
       });
 
       const payload = {
-        amount:
-          dto.totalPrice +
-            platformFee?.fee +
-            response?.distance *
-              (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
+        amount: dto.totalPrice + (platformFee?.fee || 1),
+        ...(vendor.serviceType === ServiceType.LAUNDRY && {
+          amount:
+            dto.totalPrice +
+              (platformFee?.fee || 1) +
+              response?.distance *
+                (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
+        }),
         currency: 'AED',
         customer: {
           id: customer.tapCustomerId,
+          // id: 'cus_TS02A1920231303Mk200706641',
         },
         source: { id: 'src_card' },
         threeDSecure: true,
-        redirect: { url: 'https://clevis-vendor.appnofy.com' },
+        redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        auto: {
+          type: 'VOID',
+          time: 1,
+        },
       };
-
+      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
@@ -1022,9 +1268,10 @@ export class BookingRepository {
       // );
 
       return {
-        distance: `${response?.distance} km`,
+        distance: `${response?.distance || 0} km`,
         deliveryCharges:
-          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1),
+          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
+          0,
         platformFee: platformFee?.fee,
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,

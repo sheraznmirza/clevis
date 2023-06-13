@@ -27,9 +27,16 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { NotificationModule } from './modules/notification-socket/notification.module';
 import { SocketGateway } from './modules/notification-socket/socket.gateway';
 import { SocketEventHandler } from './modules/notification-socket/socket_event.handler';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+      serveRoot: '/tap-payment',
+      // renderPath: '/tap-api',
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],

@@ -8,6 +8,8 @@ import {
   Min,
   IsEnum,
   IsOptional,
+  IsPhoneNumber,
+  Matches,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { DeviceType } from '@prisma/client';
@@ -26,6 +28,8 @@ export class CustomerSignUpDto {
   password: string;
 
   @ApiProperty()
+  // @Matches(/^\+?[1-9]\d{1,14}$/)
+  // @IsPhoneNumber()
   @IsString()
   @IsNotEmpty()
   phone: string;

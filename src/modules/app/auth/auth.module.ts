@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { MailModule } from '../../../modules/mail/mail.module';
 import { AuthController } from './auth.controller';

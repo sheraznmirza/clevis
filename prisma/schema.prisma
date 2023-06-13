@@ -49,6 +49,8 @@ enum MediaType {
 enum NotificationType {
   VendorCreated
   RiderCreated
+  BookingStatus
+  BookingCreated
 }
 
 enum MediaStatus {
@@ -106,6 +108,7 @@ enum EntityType {
   RIDER
   CUSTOMER
   BOOKINGMASTER
+  USERMASTER
 }
 
 enum PaymentStatus {
@@ -180,60 +183,64 @@ model Customer {
 }
 
 model Vendor {
-  vendorId         Int               @id @default(autoincrement())
-  userMasterId     Int               @unique
-  logoId           Int               @unique
-  userMaster       UserMaster        @relation(fields: userMasterId, references: userMasterId)
-  fullName         String
-  serviceType      ServiceType
-  companyName      String
-  companyEmail     String
-  isBusy           Boolean           @default(false)
-  alwaysOpen       Boolean           @default(false)
-  logo             Media             @relation(fields: [logoId], references: [id])
-  description      String?
-  tapBusinessId    String?
+  vendorId            Int               @id @default(autoincrement())
+  userMasterId        Int               @unique
+  logoId              Int               @unique
+  userMaster          UserMaster        @relation(fields: userMasterId, references: userMasterId)
+  fullName            String
+  serviceType         ServiceType
+  companyName         String
+  companyEmail        String
+  isBusy              Boolean           @default(false)
+  alwaysOpen          Boolean           @default(false)
+  logo                Media             @relation(fields: [logoId], references: [id])
+  description         String?
+  tapBusinessId       String?
   tapBusinessEntityId String?
-  tapBranchId      String?
-  tapBrandId       String?
-  tapMerchantId    String?
-  userAddress      UserAddress[]
-  status           Status            @default(PENDING)
-  vendorService    VendorService[]
-  businessLicense  BusinessLicense[]
-  workspaceImages  WorkspaceImages[]
-  banking          Banking[]
-  companySchedule  CompanySchedule[]
-  deliverySchedule DeliverySchedule?
-  bookingMaster    BookingMaster[]
-  UpdateApproval   UpdateApproval[]
+  tapBranchId         String?
+  tapBrandId          String?
+  tapMerchantId       String?
+  tapPrimaryWalletId  String?
+  tapWalletId         String?
+  userAddress         UserAddress[]
+  status              Status            @default(PENDING)
+  vendorService       VendorService[]
+  businessLicense     BusinessLicense[]
+  workspaceImages     WorkspaceImages[]
+  banking             Banking[]
+  companySchedule     CompanySchedule[]
+  deliverySchedule    DeliverySchedule?
+  bookingMaster       BookingMaster[]
+  UpdateApproval      UpdateApproval[]
 }
 
 model Rider {
-  riderId         Int               @id @default(autoincrement())
-  userMasterId    Int               @unique
-  logoId          Int               @unique
-  userMaster      UserMaster        @relation(fields: userMasterId, references: userMasterId)
-  fullName        String
-  companyName     String
-  companyEmail    String
-  isBusy          Boolean           @default(false)
-  alwaysOpen      Boolean           @default(false)
-  logo            Media             @relation(fields: [logoId], references: [id])
-  description     String?
-  tapBusinessId    String?
+  riderId             Int               @id @default(autoincrement())
+  userMasterId        Int               @unique
+  logoId              Int               @unique
+  userMaster          UserMaster        @relation(fields: userMasterId, references: userMasterId)
+  fullName            String
+  companyName         String
+  companyEmail        String
+  isBusy              Boolean           @default(false)
+  alwaysOpen          Boolean           @default(false)
+  logo                Media             @relation(fields: [logoId], references: [id])
+  description         String?
+  tapBusinessId       String?
   tapBusinessEntityId String?
-  tapBranchId      String?
-  tapBrandId       String?
-  tapMerchantId    String?
-  userAddress     UserAddress[]
-  status          Status            @default(PENDING)
-  businessLicense BusinessLicense[]
-  workspaceImages WorkspaceImages[]
-  banking         Banking[]
-  companySchedule CompanySchedule[]
-  Job             Job[]
-  UpdateApproval  UpdateApproval[]
+  tapBranchId         String?
+  tapBrandId          String?
+  tapMerchantId       String?
+  tapPrimaryWalletId  String?
+  tapWalletId         String?
+  userAddress         UserAddress[]
+  status              Status            @default(PENDING)
+  businessLicense     BusinessLicense[]
+  workspaceImages     WorkspaceImages[]
+  banking             Banking[]
+  companySchedule     CompanySchedule[]
+  Job                 Job[]
+  UpdateApproval      UpdateApproval[]
 }
 
 model UserAddress {
@@ -562,6 +569,7 @@ model BookingMaster {
   vat                Float?               @default(0)
   totalPrice         Float
   tapAuthId          String
+  isWithDelivery     Boolean              @default(false)
   tapPaymentStatus   PaymentStatus        @default(UNPAID)
   customer           Customer             @relation(fields: [customerId], references: [customerId])
   vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])

@@ -161,6 +161,9 @@ export class RiderRepository {
                 },
               },
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {
@@ -296,7 +299,12 @@ export class RiderRepository {
               fullName: true,
               companyName: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
+                  isActive: true,
+                  isDeleted: true,
                   city: {
                     select: {
                       cityName: true,
@@ -471,6 +479,9 @@ export class RiderRepository {
               fullName: true,
               companyName: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   city: {
                     select: {
@@ -677,6 +688,7 @@ export class RiderRepository {
           },
           data: {
             isDeleted: true,
+            isActive: false,
           },
         });
       }

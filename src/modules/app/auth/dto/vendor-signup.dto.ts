@@ -111,8 +111,8 @@ export class VendorSignUpDto {
   @IsNotEmpty()
   longitude: number;
 
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  playerId?: string;
+  // @ApiProperty()
+  // @IsString()
+  // @IsOptional()
+  // playerId?: string;
 }
