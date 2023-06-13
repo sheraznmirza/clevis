@@ -35,11 +35,12 @@ export class MailService {
         to: user.email,
         from: data.from,
         subject: data.subject,
-        template: 'user-invitation', // `.hbs` extension is appended automatically
+        template: 'userRegistration', // `.hbs` extension is appended automatically
         context: context,
       });
       console.log(`Email sent to ${user.email}`);
     } catch (error) {
+      console.log(error);
       throw error;
       // throwExceptionErrorUtil(error)
     }

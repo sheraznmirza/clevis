@@ -40,11 +40,7 @@ import { companySchedule } from 'src/core/constants';
 import { decryptData, encryptData } from 'src/helpers/util.helper';
 import { TapService } from 'src/modules/tap/tap.service';
 import { BullQueueService } from 'src/modules/queue/bull-queue.service';
-import {
-  createBusinessRequestInterface,
-  createCustomerRequestInterface,
-  createMerchantRequestInterface,
-} from 'src/modules/tap/dto/card.dto';
+import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
