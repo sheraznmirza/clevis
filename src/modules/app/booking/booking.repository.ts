@@ -333,9 +333,9 @@ export class BookingRepository {
             price: true,
           },
         });
-
+        console.log('allocatePricePrice: ', allocatePricePrice);
         bookingDetailPrice.push(
-          dto.articles[i].quantity * allocatePricePrice.price,
+          dto.articles[i].quantity * allocatePricePrice?.price,
         );
       }
 
@@ -355,7 +355,7 @@ export class BookingRepository {
             carNumberPlate: dto.carNumberPlate,
           }),
           ...(dto.instructions && { instructions: dto.instructions }),
-          totalPrice: totalPrice,
+          totalPrice: totalPrice ? totalPrice : 0,
           ...// dto?.pickupLocation?.timeFrom &&
           // dto?.pickupLocation?.timeTill &&
           {
@@ -366,9 +366,14 @@ export class BookingRepository {
             // dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
           },
         },
-        // select: {
-
-        // }
+        select: {
+          bookingMasterId: true,
+          vendor: {
+            select: {
+              userMasterId: true,
+            },
+          },
+        },
       });
 
       // const bookingDetailPrice = dto.articles.map(async (bookingDetail) => {
@@ -398,7 +403,7 @@ export class BookingRepository {
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
-        userId: [bookingMaster.vendorId],
+        userId: [bookingMaster.vendor.userMasterId],
         data: {
           title: NotificationTitle.BOOKING_CREATED,
           body: NotificationBody.BOOKING_CREATED,
