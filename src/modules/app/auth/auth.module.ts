@@ -5,9 +5,10 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtRefreshStrategy, JwtStrategy } from './strategy';
 import { TapModule } from 'src/modules/tap/tap.module';
+import { BullQueueModule } from 'src/modules/queue/bull-queue.module';
 
 @Module({
-  imports: [JwtModule.register({}), MailModule, TapModule],
+  imports: [JwtModule.register({}), MailModule, TapModule, BullQueueModule],
   controllers: [AuthController],
   exports: [AuthService],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy],

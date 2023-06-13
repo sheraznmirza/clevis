@@ -164,6 +164,14 @@ const AppConfig = {
     IV: process.env.IV,
     ALGORITHM: process.env.ALGORITHM,
   },
+  QUEUE: {
+    NAME: {
+      MAIL: 'email-queue',
+    },
+    JOBS: {
+      SEND_VERIFICATION_EMAIL: 'verify-mail-job',
+    },
+  },
 };
 
 export default AppConfig;
