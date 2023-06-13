@@ -65,6 +65,14 @@ export class BookingRepository {
 
       const attachments = [];
 
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
+
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
           const result = await this.prisma.media.create({
@@ -77,46 +85,48 @@ export class BookingRepository {
         });
       }
 
-      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
-        pickupLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.pickupLocation.latitude,
-            longitude: dto.pickupLocation.longitude,
-            cityId: dto.pickupLocation.cityId,
-            customerId,
-            fullAddress: dto.pickupLocation.fullAddress,
-          },
-        });
-        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
-      }
+      if (dto.isWithDelivery) {
+        if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
+          pickupLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.pickupLocation.latitude,
+              longitude: dto.pickupLocation.longitude,
+              cityId: dto.pickupLocation.cityId,
+              customerId,
+              fullAddress: dto.pickupLocation.fullAddress,
+            },
+          });
+          dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+        }
 
-      if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
-        dropoffLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.dropoffLocation.latitude,
-            longitude: dto.dropoffLocation.longitude,
-            cityId: dto.dropoffLocation.cityId,
-            customerId,
-            fullAddress: dto.dropoffLocation.fullAddress,
-          },
-        });
-        dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
-      }
+        if (dto.dropoffLocation && !dto.dropoffLocation.userAddressId) {
+          dropoffLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.dropoffLocation.latitude,
+              longitude: dto.dropoffLocation.longitude,
+              cityId: dto.dropoffLocation.cityId,
+              customerId,
+              fullAddress: dto.dropoffLocation.fullAddress,
+            },
+          });
+          dto.dropoffLocation.userAddressId = dropoffLocationId.userAddressId;
+        }
 
-      if (dto?.dropoffLocation?.userAddressId) {
-        dropoffLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.dropoffLocation.userAddressId,
-          },
-        });
-      }
+        if (dto?.dropoffLocation?.userAddressId) {
+          dropoffLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.dropoffLocation.userAddressId,
+            },
+          });
+        }
 
-      if (dto?.pickupLocation?.userAddressId) {
-        pickupLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.pickupLocation.userAddressId,
-          },
-        });
+        if (dto?.pickupLocation?.userAddressId) {
+          pickupLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.pickupLocation.userAddressId,
+            },
+          });
+        }
       }
 
       const vendor = await this.prisma.vendor.findUnique({
@@ -191,7 +201,8 @@ export class BookingRepository {
           }),
           ...(dto.instructions && { instructions: dto.instructions }),
           totalPrice: totalPrice,
-          ...(dto?.pickupLocation?.timeFrom &&
+          ...(dto.isWithDelivery &&
+            dto?.pickupLocation?.timeFrom &&
             dto?.pickupLocation?.timeTill && {
               dropffLocationId: dto.dropoffLocation.userAddressId,
               pickupLocationId: dto.pickupLocation.userAddressId,
@@ -202,6 +213,7 @@ export class BookingRepository {
                 .format(),
               dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
+          isWithDelivery: dto.isWithDelivery,
         },
         select: {
           bookingMasterId: true,
@@ -305,6 +317,14 @@ export class BookingRepository {
 
       const attachments = [];
 
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
+
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
           const result = await this.prisma.media.create({
@@ -317,17 +337,19 @@ export class BookingRepository {
         });
       }
 
-      if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
-        pickupLocationId = await this.prisma.userAddress.create({
-          data: {
-            latitude: dto.pickupLocation.latitude,
-            longitude: dto.pickupLocation.longitude,
-            cityId: dto.pickupLocation.cityId,
-            customerId,
-            fullAddress: dto.pickupLocation.fullAddress,
-          },
-        });
-        dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+      if (dto.isWithDelivery) {
+        if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
+          pickupLocationId = await this.prisma.userAddress.create({
+            data: {
+              latitude: dto.pickupLocation.latitude,
+              longitude: dto.pickupLocation.longitude,
+              cityId: dto.pickupLocation.cityId,
+              customerId,
+              fullAddress: dto.pickupLocation.fullAddress,
+            },
+          });
+          dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
+        }
       }
 
       const vendor = await this.prisma.vendor.findUnique({
@@ -358,9 +380,9 @@ export class BookingRepository {
             price: true,
           },
         });
-
+        console.log('allocatePricePrice: ', allocatePricePrice);
         bookingDetailPrice.push(
-          dto.articles[i].quantity * allocatePricePrice.price,
+          dto.articles[i].quantity * allocatePricePrice?.price,
         );
       }
 
@@ -380,7 +402,7 @@ export class BookingRepository {
             carNumberPlate: dto.carNumberPlate,
           }),
           ...(dto.instructions && { instructions: dto.instructions }),
-          totalPrice: totalPrice,
+          totalPrice: totalPrice ? totalPrice : 0,
           ...// dto?.pickupLocation?.timeFrom &&
           // dto?.pickupLocation?.timeTill &&
           {
@@ -400,6 +422,7 @@ export class BookingRepository {
             select: {
               fullName: true,
               serviceType: true,
+              userMasterId: true,
               userMaster: {
                 select: {
                   email: true,
@@ -467,7 +490,7 @@ export class BookingRepository {
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
-        userId: [bookingMaster.vendorId],
+        userId: [bookingMaster.vendor.userMasterId],
         data: {
           title: NotificationTitle.BOOKING_CREATED,
           body: NotificationBody.BOOKING_CREATED,
@@ -631,6 +654,7 @@ export class BookingRepository {
           carNumberPlate: true,
           deliveryCharges: true,
           tapPaymentStatus: true,
+          isWithDelivery: true,
           vat: true,
           vendor: {
             select: {
@@ -665,6 +689,7 @@ export class BookingRepository {
               allocatePrice: {
                 select: {
                   id: true,
+                  price: true,
                   category: {
                     select: {
                       categoryName: true,
@@ -715,7 +740,6 @@ export class BookingRepository {
           dropoffTimeTo: true,
           totalPrice: true,
           instructions: true,
-
           isDeleted: true,
           bookingDate: true,
           status: true,
@@ -733,10 +757,22 @@ export class BookingRepository {
           },
         },
       });
+
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return result;
+      return { ...result, platformFee: platformFee.fee };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -748,6 +784,14 @@ export class BookingRepository {
   async getVendorBookings(vendorId: number, dto: VendorGetBookingsDto) {
     const { page = 1, take = 10, search } = dto;
     try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId,
+        },
+        select: {
+          isBusy: true,
+        },
+      });
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           vendorId: vendorId,
@@ -887,7 +931,13 @@ export class BookingRepository {
         },
       });
 
-      return { data: bookings, page: +page, take: +take, totalCount };
+      return {
+        data: bookings,
+        isBusy: vendor.isBusy,
+        page: +page,
+        take: +take,
+        totalCount,
+      };
     } catch (error) {
       return unknowError(
         417,
@@ -1269,61 +1319,62 @@ export class BookingRepository {
         },
       });
 
-      if (dto?.pickupLocation?.userAddressId) {
-        const pickupLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.pickupLocation.userAddressId,
-          },
-          select: {
-            latitude: true,
-            longitude: true,
-          },
-        });
-
-        dto.pickupLocation.latitude = pickupLocation.latitude;
-        dto.pickupLocation.longitude = pickupLocation.longitude;
-      }
-
-      if (dto?.dropoffLocation?.userAddressId) {
-        const dropoffLocation = await this.prisma.userAddress.findUnique({
-          where: {
-            userAddressId: dto.dropoffLocation.userAddressId,
-          },
-          select: {
-            latitude: true,
-            longitude: true,
-          },
-        });
-
-        dto.dropoffLocation.latitude = dropoffLocation.latitude;
-        dto.dropoffLocation.longitude = dropoffLocation.longitude;
-      }
-      if (vendor.serviceType === ServiceType.LAUNDRY) {
-        Promise.all([
-          mapsDistanceData(
-            dto.pickupLocation,
-            vendor.userAddress[0],
-            this.config,
-            this.httpService,
-          ),
-          mapsDistanceData(
-            dto.dropoffLocation,
-            vendor.userAddress[0],
-            this.config,
-            this.httpService,
-          ),
-        ])
-          .then((values) => {
-            console.log(values);
-            for (let i = 0; i < values.length; i++) {
-              response.distance = +values[i].distanceValue;
-            }
-          })
-          .catch((error) => {
-            throw error;
+      if (dto.isWithDelivery) {
+        if (dto?.pickupLocation?.userAddressId) {
+          const pickupLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.pickupLocation.userAddressId,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
           });
-      }
 
+          dto.pickupLocation.latitude = pickupLocation.latitude;
+          dto.pickupLocation.longitude = pickupLocation.longitude;
+        }
+
+        if (dto?.dropoffLocation?.userAddressId) {
+          const dropoffLocation = await this.prisma.userAddress.findUnique({
+            where: {
+              userAddressId: dto.dropoffLocation.userAddressId,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
+          });
+
+          dto.dropoffLocation.latitude = dropoffLocation.latitude;
+          dto.dropoffLocation.longitude = dropoffLocation.longitude;
+        }
+        if (vendor.serviceType === ServiceType.LAUNDRY) {
+          Promise.all([
+            mapsDistanceData(
+              dto.pickupLocation,
+              vendor.userAddress[0],
+              this.config,
+              this.httpService,
+            ),
+            mapsDistanceData(
+              dto.dropoffLocation,
+              vendor.userAddress[0],
+              this.config,
+              this.httpService,
+            ),
+          ])
+            .then((values) => {
+              console.log(values);
+              for (let i = 0; i < values.length; i++) {
+                response.distance = +values[i].distanceValue;
+              }
+            })
+            .catch((error) => {
+              throw error;
+            });
+        }
+      }
       const customer = await this.prisma.customer.findUnique({
         where: {
           customerId: user.userTypeId,
@@ -1334,22 +1385,28 @@ export class BookingRepository {
       });
 
       const payload = {
-        amount: dto.totalPrice + platformFee?.fee,
+        amount: dto.totalPrice + (platformFee?.fee || 1),
         ...(vendor.serviceType === ServiceType.LAUNDRY && {
           amount:
             dto.totalPrice +
-              platformFee?.fee +
+              (platformFee?.fee || 1) +
               response?.distance *
                 (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
         }),
         currency: 'AED',
         customer: {
           id: customer.tapCustomerId,
+          // id: 'cus_TS02A1920231303Mk200706641',
         },
         source: { id: 'src_card' },
         threeDSecure: true,
-        redirect: { url: 'https://clevis-vendor.appnofy.com' },
+        redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        auto: {
+          type: 'VOID',
+          time: 1,
+        },
       };
+      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
@@ -1368,9 +1425,10 @@ export class BookingRepository {
       // );
 
       return {
-        distance: `${response?.distance} km`,
+        distance: `${response?.distance || 0} km`,
         deliveryCharges:
-          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1),
+          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
+          0,
         platformFee: platformFee?.fee,
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,

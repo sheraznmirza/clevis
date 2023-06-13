@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsNotEmpty,
   IsNumber,
@@ -125,4 +126,9 @@ export class CreateBookingDto {
   @IsString()
   @IsNotEmpty()
   tapAuthId: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsNotEmpty()
+  isWithDelivery: boolean;
 }

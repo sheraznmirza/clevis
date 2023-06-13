@@ -43,7 +43,11 @@ export class VendorController {
   @Authorized([UserType.VENDOR])
   @Get('me')
   getMe(@GetUser() user: GetUserType, @Query() query: VendorRiderByIdParams) {
-    return this.vendorService.getVendorById(user.userMasterId, query);
+    return this.vendorService.getVendorById(
+      user.userMasterId,
+      query,
+      user.userTypeId,
+    );
   }
 
   @Authorized(UserType.ADMIN)
@@ -62,7 +66,7 @@ export class VendorController {
   }
 
   @Authorized(UserType.VENDOR)
-  @Post('/reqeust-update')
+  @Post('/request-update')
   requestUpdate(@Body() dto: UpdateRequestDto, @GetUser() user: GetUserType) {
     return this.vendorService.requestUpdate(dto, user.userTypeId);
   }
@@ -91,7 +95,7 @@ export class VendorController {
     return this.vendorService.approveVendor(vendorId, dto);
   }
 
-  @Authorized(UserType.ADMIN)
+  @Authorized(UserType.VENDOR)
   @HttpCode(HttpStatus.OK)
   @Patch('/busy/:vendorId')
   busyStatusVendor(

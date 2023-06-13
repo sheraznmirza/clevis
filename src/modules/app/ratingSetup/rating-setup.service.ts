@@ -10,9 +10,12 @@ export class RatingSetupService {
 
   async getAllRating() {
     try {
-      return await this.prisma.ratingSetup.findMany({
+      const ratings = await this.prisma.ratingSetup.findMany({
         where: {
           isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
         select: {
           rating: true,
@@ -20,6 +23,13 @@ export class RatingSetupService {
           id: true,
         },
       });
+
+      return {
+        carWashRating:
+          (ratings && ratings.length > 1 && ratings[0].rating) || 50,
+        laundryRating:
+          (ratings && ratings.length > 1 && ratings[1].rating) || 50,
+      };
     } catch (error) {
       throw error;
     }
@@ -27,13 +37,13 @@ export class RatingSetupService {
 
   async updateRating(data: RatingSetupDto) {
     try {
-      await this.prisma.platformSetup.updateMany({
+      await this.prisma.ratingSetup.updateMany({
         data: {
           isDeleted: true,
         },
       });
 
-      return await this.prisma.ratingSetup.createMany({
+      await this.prisma.ratingSetup.createMany({
         data: [
           {
             rating: data.carWashRating,
@@ -45,6 +55,12 @@ export class RatingSetupService {
           },
         ],
       });
+
+      return {
+        ...successResponse(200, 'Rating updated successfully.'),
+        carWashRating: data.carWashRating,
+        laundryRating: data.laundryRating,
+      };
     } catch (error) {
       throw error;
     }

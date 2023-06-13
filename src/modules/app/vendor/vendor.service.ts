@@ -367,7 +367,11 @@ export class VendorService {
     }
   }
 
-  async getVendorById(id: number, query?: VendorRiderByIdParams) {
+  async getVendorById(
+    id: number,
+    query?: VendorRiderByIdParams,
+    vendorId?: number,
+  ) {
     try {
       if (query) {
         switch (query.tabName) {
@@ -380,7 +384,7 @@ export class VendorService {
           case RiderVendorTabs.COMPANY_SCHEDULE:
             return await this.repository.getVendorByIdSchedule(id);
           case RiderVendorTabs.DELIVERY_SCHEDULE:
-            return await this.repository.getDeliverySchedule(id);
+            return await this.repository.getDeliverySchedule(vendorId);
           default:
             return await this.repository.getVendorById(id);
         }
