@@ -271,7 +271,7 @@ export class VendorService {
           title:
             dto.status === 'APPROVED'
               ? NotificationTitle.ADMIN_APPROVED
-              : NotificationTitle.BOOKING_REJECTED,
+              : NotificationTitle.ADMIN_REJECTED,
           body:
             dto.status === 'APPROVED'
               ? NotificationBody.ADMIN_APPROVED
