@@ -116,11 +116,19 @@ export class NotificationService {
         },
       });
 
+      const totalUnreadCount = await this._dbService.notification.count({
+        where: {
+          userMasterId,
+          readStatus: NotificationReadStatus.UNREAD,
+        },
+      });
+
       return {
         data: notifications,
         take: +take,
         page: +page,
         totalCount,
+        totalUnreadCount,
       };
     } catch (error) {
       throw error;
