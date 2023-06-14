@@ -19,7 +19,7 @@ export class GetVendorJobsDto extends ListingParams {
     enum: JobType,
   })
   @IsEnum(JobType)
-  @IsNotEmpty()
+  @IsOptional()
   jobType: JobType;
 
   @ApiProperty({
