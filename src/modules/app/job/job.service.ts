@@ -1,13 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { CreateJobDto, GetRiderJobsDto } from './dto';
+import { CreateJobDto, GetRiderJobsDto, UpdateJobStatusDto } from './dto';
 import { UpdateJobDto } from './dto';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { successResponse } from 'src/helpers/response.helper';
-import { BookingStatus } from '@prisma/client';
 import { GetUserType } from 'src/core/dto';
+import { RiderJobStatus } from '@prisma/client';
+import { createChargeRequestInterface } from 'src/modules/tap/dto/card.dto';
+import { TapService } from 'src/modules/tap/tap.service';
 dayjs.extend(utc);
 
 @Injectable()
@@ -15,6 +17,7 @@ export class JobService {
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
+    private tapService: TapService,
   ) {}
 
   async create(vendorId: number, createJobDto: CreateJobDto) {
@@ -47,13 +50,12 @@ export class JobService {
   }
 
   async getAllRiderJobs(user: GetUserType, listingParams: GetRiderJobsDto) {
-    const { page = 1, take = 10, search, jobType } = listingParams;
+    const { page = 1, take = 10, search, jobType, status } = listingParams;
     try {
       const rider = await this.prisma.userAddress.findFirst({
         where: {
           riderId: user.userTypeId,
           isDeleted: false,
-
           ...(search && {
             OR: [
               {
@@ -101,6 +103,9 @@ export class JobService {
           //   status === listingParams.jobType
           // }
           ...(jobType && { jobType: jobType }),
+          ...(status && {
+            jobStatus: status,
+          }),
           vendor: {
             userAddress: {
               some: {
@@ -208,8 +213,51 @@ export class JobService {
     }
   }
 
-  findAll() {
-    return `This action returns all job`;
+  async updateJobStatus(jobId: number, dto: UpdateJobStatusDto) {
+    try {
+      const booking = await this.prisma.job.findFirst({
+        where: {
+          id: jobId,
+        },
+        select: {
+          bookingMaster: {
+            select: {
+              deliveryCharges: true,
+              customer: {
+                select: {
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (dto.RiderJobStatus === RiderJobStatus.Completed) {
+        const chargePayload: createChargeRequestInterface = {
+          amount: booking.bookingMaster.deliveryCharges,
+          currency: 'AED',
+          customer: {
+            first_name: booking.bookingMaster.customer.fullName,
+            email: booking.bookingMaster.customer.email,
+          },
+          source: { id: 'src_card' },
+          redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        };
+        const createCharge = await this.tapService.createCharge(chargePayload);
+      }
+      await this.prisma.job.update({
+        where: {
+          id: 1,
+        },
+        data: {
+          jobStatus: dto.RiderJobStatus,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 
   findOne(id: number) {
