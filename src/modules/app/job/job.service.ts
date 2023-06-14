@@ -100,12 +100,34 @@ export class JobService {
           // bookingMaster: {
           //   status === listingParams.jobType
           // }
-          jobType: jobType,
+          ...(jobType && { jobType: jobType }),
           vendor: {
             userAddress: {
               some: {
                 cityId: rider.cityId,
               },
+            },
+          },
+        },
+        select: {
+          id: true,
+          jobType: true,
+          jobDate: true,
+          jobTime: true,
+          bookingMaster: {
+            select: {
+              pickupLocation: {
+                select: {
+                  fullAddress: true,
+                },
+              },
+              dropoffLocation: {
+                select: {
+                  fullAddress: true,
+                },
+              },
+              deliveryCharges: true,
+              status: true,
             },
           },
         },
@@ -118,7 +140,7 @@ export class JobService {
           // bookingMaster: {
           //   status === listingParams.jobType
           // }
-          jobType: jobType,
+          ...(jobType && { jobType: jobType }),
           vendor: {
             userAddress: {
               some: {
@@ -126,6 +148,52 @@ export class JobService {
               },
             },
           },
+        },
+      });
+
+      return {
+        data: jobs,
+        page: +page,
+        take: +take,
+        totalCount,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllVendorJobs(user: GetUserType, listingParams: GetRiderJobsDto) {
+    const { page = 1, take = 10, search, jobType } = listingParams;
+    try {
+      const jobs = await this.prisma.job.findMany({
+        where: {
+          ...(jobType && { jobType: jobType }),
+          vendorId: user.userTypeId,
+        },
+        select: {
+          id: true,
+          jobType: true,
+          jobDate: true,
+          jobTime: true,
+          bookingMaster: {
+            select: {
+              customer: {
+                select: {
+                  fullName: true,
+                },
+              },
+              status: true,
+            },
+          },
+        },
+        take: +take,
+        skip: +take * (+page - 1),
+      });
+
+      const totalCount = await this.prisma.job.count({
+        where: {
+          ...(jobType && { jobType: jobType }),
+          vendorId: user.userTypeId,
         },
       });
 

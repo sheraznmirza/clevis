@@ -42,7 +42,6 @@ export class MailService {
     } catch (error) {
       console.log(error);
       throw error;
-      // throwExceptionErrorUtil(error)
     }
   }
 
