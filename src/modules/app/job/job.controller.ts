@@ -52,7 +52,13 @@ export class JobController {
     @GetUser() user: GetUserType,
     @Query() listingParams: GetRiderJobsDto,
   ) {
-    // return this.jobService.getAllVendorJobs(user, listingParams);
+    return this.jobService.getAllVendorJobs(user, listingParams);
+  }
+
+  @Authorized(UserType.RIDER)
+  @Patch('update-status/:jobId')
+  updateJobStatus(@Body() dto) {
+    return 'hey';
   }
 
   // @Get(':id')
