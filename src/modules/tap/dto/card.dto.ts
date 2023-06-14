@@ -500,18 +500,21 @@ export interface createMerchantRequestResponse {
 export interface createChargeRequestInterface {
   amount: number;
   currency: string;
-  customer_initiated: boolean;
-  threeDSecure: boolean;
-  save_card: boolean;
+  customer_initiated?: boolean;
+  threeDSecure?: boolean;
+  save_card?: boolean;
   description?: string;
   reference?: { transaction: string; order: string };
   receipt?: { email: boolean; sms: boolean };
-  customer?: {
-    first_name?: string;
+  customer: {
+    first_name: string;
     middle_name?: string;
     last_name?: string;
-    email?: string;
+    email: string;
     phone?: { country_code: number; number: number };
   };
   source: { id: string };
+  redirect: {
+    url: string;
+  };
 }

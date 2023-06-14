@@ -116,6 +116,7 @@ export class AuthService {
           phone: true,
           userType: true,
           isActive: true,
+          notificationEnabled: true,
           profilePicture: {
             select: {
               id: true,
@@ -185,6 +186,7 @@ export class AuthService {
       return {
         tokens: response,
         ...user,
+        activeAddress: null,
       };
     } catch (error) {
       if (error.code === 'P2002') {
@@ -589,6 +591,7 @@ export class AuthService {
         phone: true,
         userType: true,
         isActive: true,
+        notificationEnabled: true,
         password: true,
         profilePicture: {
           select: {
@@ -637,6 +640,19 @@ export class AuthService {
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
+    const activeAddress = await this.prisma.userAddress.findFirst({
+      where: {
+        customerId: user.customer.customerId,
+        isActive: true,
+        fullAddress: {
+          not: null,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
     const response = await this.signToken(
       user.userMasterId,
       user.email,
@@ -646,7 +662,7 @@ export class AuthService {
     );
     await this.updateRt(user.userMasterId, response.refreshToken);
     delete user.password;
-    return { tokens: response, ...user };
+    return { tokens: response, ...user, activeAddress };
   }
 
   async signinVendor(dto: LoginDto) {
@@ -963,6 +979,7 @@ export class AuthService {
       // await this.mail.sendResetPasswordEmail(data, randomOtp); umair
 
       const context = {
+        first_name: user[user.userType.toLowerCase()].fullName,
         app_name: this.config.get('APP_NAME'),
         app_url: this.config.get(dynamicUrl(user.userType)),
         copyright_year: this.config.get('COPYRIGHT_YEAR'),

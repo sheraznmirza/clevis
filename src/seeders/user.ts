@@ -4,45 +4,53 @@ import { riders, vendors } from './constants';
 import { companySchedule } from 'src/core/constants';
 
 export async function createAdmin(prisma: PrismaClient) {
-  await prisma.userMaster.upsert({
+  const adminCount = await prisma.userMaster.count({
     where: {
-      userMasterId: 1,
-    },
-    update: {
-      email: 'admin@clevis.com',
-      password: await argon.hash('click123'),
       userType: UserType.ADMIN,
-      phone: '123456789',
-      isEmailVerified: true,
-      roleId: 1,
-      admin: {
-        upsert: {
-          update: {
-            email: 'admin@clevis.com',
-            fullName: 'Admin',
+    },
+  });
+
+  if (!adminCount) {
+    await prisma.userMaster.upsert({
+      where: {
+        userMasterId: 1,
+      },
+      update: {
+        email: 'admin@clevis.com',
+        password: await argon.hash('click123'),
+        userType: UserType.ADMIN,
+        phone: '123456789',
+        isEmailVerified: true,
+        roleId: 1,
+        admin: {
+          upsert: {
+            update: {
+              email: 'admin@clevis.com',
+              fullName: 'Admin',
+            },
+            create: {
+              email: 'admin@clevis.com',
+              fullName: 'Admin',
+            },
           },
+        },
+      },
+      create: {
+        email: 'admin@clevis.com',
+        password: await argon.hash('click123'),
+        userType: UserType.ADMIN,
+        phone: '123456789',
+        isEmailVerified: true,
+        roleId: 1,
+        admin: {
           create: {
             email: 'admin@clevis.com',
             fullName: 'Admin',
           },
         },
       },
-    },
-    create: {
-      email: 'admin@clevis.com',
-      password: await argon.hash('click123'),
-      userType: UserType.ADMIN,
-      phone: '123456789',
-      isEmailVerified: true,
-      roleId: 1,
-      admin: {
-        create: {
-          email: 'admin@clevis.com',
-          fullName: 'Admin',
-        },
-      },
-    },
-  });
+    });
+  }
 }
 
 export async function createVendors(prisma: PrismaClient) {

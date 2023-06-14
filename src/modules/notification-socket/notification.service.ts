@@ -10,7 +10,7 @@ import { OneSignalService } from './one-signal.service';
 import { SocketGateway } from './socket.gateway';
 import { ListingParams } from 'src/core/dto';
 import { successResponse } from 'src/helpers/response.helper';
-import { NotificationUpdateParams } from './dto';
+import { NotificationUpdateParams, NotificationUpdateStatus } from './dto';
 // import { getUserDeviceRoom } from 'helpers/util.helper';
 // import { SocketEventNames } from 'constants/socket';
 // import { NotificationType } from '../../constants';
@@ -129,9 +129,14 @@ export class NotificationService {
 
   async updateNotification(params: NotificationUpdateParams) {
     try {
-      await this._dbService.notification.update({
+      const notificationsId: number[] = params.notificationId
+        .split(',')
+        .map((item) => parseInt(item));
+      await this._dbService.notification.updateMany({
         where: {
-          id: +params.notificationId,
+          id: {
+            in: notificationsId,
+          },
         },
         data: {
           readStatus: NotificationReadStatus.READ,
@@ -143,10 +148,46 @@ export class NotificationService {
     }
   }
 
+  async updateNotificationStatus(
+    userMasterId: number,
+    dto: NotificationUpdateStatus,
+  ) {
+    try {
+      await this._dbService.userMaster.update({
+        where: {
+          userMasterId,
+        },
+        data: {
+          notificationEnabled: dto.notificationEnabled,
+        },
+      });
+      return successResponse(
+        200,
+        `Notification status successfully ${
+          dto.notificationEnabled ? 'enabled' : 'disabled'
+        }`,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async HandleNotifications(
     notificationArgs: SQSSendNotificationArgs<NotificationData>,
     userType?: UserType,
   ) {
+    const user = await this._dbService.userMaster.findMany({
+      where: {
+        userMasterId: {
+          in: notificationArgs.userId,
+        },
+        notificationEnabled: true,
+      },
+      select: {
+        userMasterId: true,
+      },
+    });
+    notificationArgs.userId = user.map((item) => item.userMasterId);
     await this._sendNotification(notificationArgs, userType);
   }
 }
