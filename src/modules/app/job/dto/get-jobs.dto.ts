@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { JobType, RiderJobStatus } from '@prisma/client';
 import { ListingParams } from 'src/core/dto';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional } from 'class-validator';
 
 export class GetRiderJobsDto extends ListingParams {
   @ApiProperty({
@@ -9,8 +9,16 @@ export class GetRiderJobsDto extends ListingParams {
     enum: JobType,
   })
   @IsEnum(JobType)
-  @IsNotEmpty()
+  @IsOptional()
   jobType: JobType;
+
+  @ApiProperty({
+    required: true,
+    enum: RiderJobStatus,
+  })
+  @IsEnum(RiderJobStatus)
+  @IsOptional()
+  status: RiderJobStatus;
 }
 
 export class GetVendorJobsDto extends ListingParams {
