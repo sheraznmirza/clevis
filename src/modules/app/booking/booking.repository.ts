@@ -308,6 +308,8 @@ export class BookingRepository {
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('Vendor does not exist');
+      } else if (error?.code === 'P2002') {
+        throw new BadRequestException('tapAuthId already used not exist');
       }
       throw error;
     }

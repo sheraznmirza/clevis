@@ -299,8 +299,13 @@ export class RiderRepository {
               fullName: true,
               companyName: true,
               userAddress: {
+                take: 1,
                 where: {
                   isDeleted: false,
+                  isActive: true,
+                },
+                orderBy: {
+                  createdAt: 'desc',
                 },
                 select: {
                   isActive: true,

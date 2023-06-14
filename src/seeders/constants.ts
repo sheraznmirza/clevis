@@ -266,8 +266,8 @@ export const services = [
 
 export const vendors: VendorSignUpDto[] = [
   {
-    fullName: 'Donovan Justice',
-    email: 'lybaceqis@mailinator.com',
+    fullName: 'Vendor Car Wash',
+    email: 'vendor_carwash@clevis.com',
     password: 'click123',
     serviceType: 'CAR_WASH',
     companyName: 'Brock and Nelson LLC',
@@ -442,11 +442,11 @@ export const vendors: VendorSignUpDto[] = [
   },
 
   {
-    fullName: 'Clevis Vendor',
-    email: 'lybaceqis4@mailinator.com',
+    fullName: 'Vendor Laundry',
+    email: 'vendor_laundry@clevis.com',
     password: 'click123',
     serviceType: 'LAUNDRY',
-    companyName: 'Brock and Nelson LLC',
+    companyName: 'Commercial Laundry',
     companyEmail: 'bawyboxa@mailinator.com',
     phone: '+1 (724) 274-3973',
     fullAddress: 'Jafza One, FZJOB1320 Dubai - Dubai - United Arab Emirates',
