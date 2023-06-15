@@ -20,6 +20,7 @@ export enum NotificationTitle {
   BOOKING_COMPLETED = 'Booking Completed',
   BOOKING_IN_PROGRESS = 'Booking In_progress',
   VENDOR_UPDATE_BY_ADMIN = 'Vender Update by Admin',
+  VENDOR_CREATED_JOB = 'Job Created by Vendor',
 }
 
 export enum NotificationBody {
@@ -33,6 +34,7 @@ export enum NotificationBody {
   BOOKING_COMPLETED = 'The booking {id} has been successfully completed',
   BOOKING_IN_PROGRESS = 'The vendor has marked the booking {id} as In Progress',
   VENDOR_UPDATE_BY_ADMIN = 'Your Profile Information has been updated by the admin.',
+  VENDOR_CREATED_JOB = 'Job Created by Vendor ',
 }
 
 export enum EventType {
