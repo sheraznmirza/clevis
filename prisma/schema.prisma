@@ -53,6 +53,7 @@ enum NotificationType {
   BookingCreated
   VendorStatus
   UpdateByAdmin
+  VendorCreatedJob
 }
 
 enum MediaStatus {

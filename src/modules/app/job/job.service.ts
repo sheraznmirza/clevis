@@ -14,13 +14,19 @@ import { successResponse } from 'src/helpers/response.helper';
 import { GetUserType } from 'src/core/dto';
 import {
   BookingStatus,
+  EntityType,
   JobType,
+  NotificationType,
   RiderJobStatus,
   ServiceType,
+  UserType,
 } from '@prisma/client';
 import { createChargeRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { TapService } from 'src/modules/tap/tap.service';
 import { ConfigService } from '@nestjs/config';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
 dayjs.extend(utc);
 
 @Injectable()
@@ -74,7 +80,7 @@ export class JobService {
         },
       });
 
-      await this.prisma.job.create({
+      const job = await this.prisma.job.create({
         data: {
           jobDate: dayjs(createJobDto.jobDate).utc().format(),
           jobTime: dayjs(createJobDto.jobTime).utc().format(),
@@ -86,9 +92,68 @@ export class JobService {
               ? createJobDto.instructions
               : undefined,
         },
+        select: {
+          vendorId: true,
+          id: true,
+          vendor: {
+            select: {
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                  isActive: true,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
+                select: {
+                  cityId: true,
+                },
+              },
+            },
+          },
+        },
       });
 
-      // Notify all the riders that a new job has been created
+      const rider = await this.prisma.rider.findMany({
+        where: {
+          isBusy: false,
+          userMaster: {
+            isDeleted: false,
+            notificationEnabled: true,
+            isActive: true,
+          },
+          userAddress: {
+            some: {
+              isDeleted: false,
+              isActive: true,
+              cityId: job.vendor.userAddress[0].cityId,
+            },
+          },
+        },
+        select: {
+          userMasterId: true,
+          fullName: true,
+        },
+      });
+
+      const riderIds = rider.map((obj) => obj.userMasterId);
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.VendorCreatedJob,
+        userId: riderIds,
+        data: {
+          title: NotificationTitle.VENDOR_CREATED_JOB,
+          body: NotificationBody.VENDOR_CREATED_JOB,
+          type: NotificationType.VendorCreatedJob,
+          entityType: EntityType.RIDER,
+          entityId: job.id,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.RIDER,
+      );
 
       return successResponse(201, 'Job created successfully.');
     } catch (error) {
@@ -187,7 +252,8 @@ export class JobService {
                   fullAddress: true,
                 },
               },
-              deliveryCharges: true,
+              pickupDeliveryCharges: true,
+              dropoffDeliveryCharges: true,
               status: true,
             },
           },
@@ -277,9 +343,11 @@ export class JobService {
         },
         select: {
           jobStatus: true,
+          jobType: true,
           bookingMaster: {
             select: {
-              deliveryCharges: true,
+              pickupDeliveryCharges: true,
+              dropoffDeliveryCharges: true,
               customer: {
                 select: {
                   fullName: true,
@@ -297,7 +365,10 @@ export class JobService {
 
       if (dto.RiderJobStatus === RiderJobStatus.Completed) {
         const chargePayload: createChargeRequestInterface = {
-          amount: booking.bookingMaster.deliveryCharges,
+          amount:
+            booking.jobType === JobType.PICKUP
+              ? booking.bookingMaster.pickupDeliveryCharges
+              : booking.bookingMaster.dropoffDeliveryCharges,
           currency: 'AED',
           customer: {
             first_name: booking.bookingMaster.customer.fullName,

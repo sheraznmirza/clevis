@@ -66,7 +66,8 @@ export class BookingRepository {
       let dropoffLocationId: UserAddress;
       let dropoffLocation: UserAddress;
       let pickupLocation: UserAddress;
-      let response: any;
+      let pickupResponse: any;
+      let dropoffResponse: any;
 
       const attachments = [];
 
@@ -159,16 +160,28 @@ export class BookingRepository {
         },
       });
       if (pickupLocation && dropoffLocation) {
-        response = await mapsDistanceData(
+        pickupResponse = await mapsDistanceData(
           pickupLocation,
+          vendor.userAddress[0],
+          this.config,
+          this.httpService,
+        );
+
+        dropoffResponse = await mapsDistanceData(
+          dropoffLocation,
           vendor.userAddress[0],
           this.config,
           this.httpService,
         );
       }
 
-      const deliveryCharges = response
-        ? response?.distanceValue *
+      const pickupDeliveryCharges = pickupResponse
+        ? pickupResponse?.distanceValue *
+          (vendor?.deliverySchedule?.kilometerFare || 8.5)
+        : 0;
+
+      const dropoffDeliveryCharges = dropoffResponse
+        ? pickupResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
         : 0;
 
@@ -199,7 +212,8 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           tapAuthId: dto.tapAuthId,
-          deliveryCharges,
+          pickupDeliveryCharges,
+          dropoffDeliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
@@ -387,7 +401,6 @@ export class BookingRepository {
             price: true,
           },
         });
-        console.log('allocatePricePrice: ', allocatePricePrice);
         bookingDetailPrice.push(
           dto.articles[i].quantity * allocatePricePrice?.price,
         );
@@ -403,7 +416,7 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           tapAuthId: dto.tapAuthId,
-          deliveryCharges,
+          pickupDeliveryCharges: deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
@@ -659,7 +672,8 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           carNumberPlate: true,
-          deliveryCharges: true,
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           tapPaymentStatus: true,
           isWithDelivery: true,
           vat: true,
@@ -978,7 +992,8 @@ export class BookingRepository {
             },
           },
           vat: true,
-          deliveryCharges: true,
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           bookingDetail: {
             select: {
               quantity: true,
@@ -1467,10 +1482,9 @@ export class BookingRepository {
           time: 1,
         },
         post: {
-          url: 'https://clevis-vendor.appnofy.com/tap/authorize',
+          url: `${this.config.get('APP_URL')}/tap/authorize`,
         },
       };
-      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
@@ -1520,7 +1534,8 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           carNumberPlate: true,
-          deliveryCharges: true,
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           customer: {
             select: {
               fullName: true,

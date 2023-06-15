@@ -22,7 +22,6 @@ export class SocketGateway
   }
 
   async handleConnection(client) {
-    console.log('Handling');
     this.socketEventHandler.onConnect(client);
   }
 

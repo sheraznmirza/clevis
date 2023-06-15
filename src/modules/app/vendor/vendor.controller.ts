@@ -34,6 +34,7 @@ import {
   VendorRiderByIdParams,
   VendorServiceListingParams,
 } from 'src/core/dto';
+import { User } from '@onesignal/node-onesignal';
 
 @UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Vendor')
@@ -49,6 +50,12 @@ export class VendorController {
       user.userTypeId,
     );
   }
+
+  // @Authorized(UserType.VENDOR)
+  // @Get('/dashboard')
+  // getDashboard(@GetUser() user: GetUserType) {
+  //   return this.vendorService.getDashboard(user);
+  // }
 
   @Authorized(UserType.ADMIN)
   @Get('/byId/:userMasterId')

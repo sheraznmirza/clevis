@@ -23,7 +23,6 @@ import dayjs from 'dayjs';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../../modules/mail/mail.service';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import {
   ChangePasswordDto,
   CustomerSignUpDto,
@@ -40,14 +39,12 @@ import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
 import { companySchedule } from 'src/core/constants';
 import { decryptData, encryptData } from 'src/helpers/util.helper';
 import { TapService } from 'src/modules/tap/tap.service';
-import {
-  createBusinessRequestInterface,
-  createCustomerRequestInterface,
-  createMerchantRequestInterface,
-} from 'src/modules/tap/dto/card.dto';
+import { BullQueueService } from 'src/modules/queue/bull-queue.service';
+import { createCustomerRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
 
 @Injectable()
 export class AuthService {
@@ -57,6 +54,7 @@ export class AuthService {
     private config: ConfigService,
     private mail: MailService,
     private tapService: TapService,
+    private queue: BullQueueService,
     @Inject(forwardRef(() => NotificationService))
     private notificationService: NotificationService,
   ) {}
@@ -166,24 +164,8 @@ export class AuthService {
         user.userType,
         user.customer.customerId,
       );
-      await this.updateRt(user.userMasterId, response.refreshToken);
-      this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
 
-      const payload: createCustomerRequestInterface = {
-        email: user.email,
-        first_name: user.customer.fullName,
-        currency: 'AED',
-      };
-      const tapCustomer = await this.tapService.createCustomer(payload);
-
-      await this.prisma.customer.update({
-        where: {
-          customerId: user.customer.customerId,
-        },
-        data: {
-          tapCustomerId: tapCustomer.id,
-        },
-      });
+      this.queue.createCustomerTapAndMail(response, user);
 
       return {
         tokens: response,
@@ -213,6 +195,7 @@ export class AuthService {
       const roleId = await this.getRoleByType(UserType.VENDOR);
       const businesess = [];
       const workspaces = [];
+
       dto.businessLicense.forEach(async (business) => {
         const result = await this.prisma.media.create({
           data: business,
@@ -232,6 +215,7 @@ export class AuthService {
         });
         workspaces.push(result);
       });
+
       const user = await this.prisma.userMaster.create({
         data: {
           email: dto.email,
@@ -239,13 +223,6 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.VENDOR,
           roleId: roleId,
-          // ...(dto.playerId && {
-          //   device: {
-          //     create: {
-          //       playerId: dto.playerId,
-          //     },
-          //   },
-          // }),
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -287,7 +264,6 @@ export class AuthService {
         },
         select: {
           userMasterId: true,
-          // profileImage: true,
           email: true,
           isEmailVerified: true,
           phone: true,
@@ -334,6 +310,7 @@ export class AuthService {
           },
         },
       });
+
       await this.prisma.businessLicense.createMany({
         data: businesess.map((item) => ({
           vendorVendorId: user.vendor.vendorId,
@@ -347,93 +324,8 @@ export class AuthService {
           mediaId: item.id,
         })),
       });
-      this.sendEncryptedDataToMail(user, UserType.VENDOR);
 
-      // const payload: createBusinessRequestInterface = {
-      //   name: {
-      //     en: user.vendor.companyName,
-      //   },
-      //   type: 'corp',
-      //   entity: {
-      //     legal_name: {
-      //       en: user.vendor.companyName,
-      //     },
-      //     is_licensed: false,
-      //     country: user.vendor.userAddress[0].city.State.country.shortName,
-      //     billing_address: {
-      //       recipient_name: user.vendor.fullName,
-      //       address_1: user.vendor.userAddress[0].fullAddress,
-      //       city: user.vendor.userAddress[0].city.cityName,
-      //       state: user.vendor.userAddress[0].city.State.stateName,
-      //       country: user.vendor.userAddress[0].city.State.country.shortName,
-      //     },
-      //   },
-      //   contact_person: {
-      //     name: {
-      //       first: user.vendor.fullName.split(' ')[0],
-      //       last: user.vendor.fullName.split(' ')[1],
-      //     },
-
-      //     contact_info: {
-      //       primary: {
-      //         email: user.email,
-      //         phone: {
-      //           country_code:
-      //             user.vendor.userAddress[0].city.State.country.countryCode,
-      //           number: user.phone.replace('+', ''),
-      //         },
-      //       },
-      //     },
-      //     authorization: {
-      //       name: {
-      //         first: user.vendor.fullName.split(' ')[0],
-      //         last: user.vendor.fullName.split(' ')[1],
-      //       },
-      //     },
-      //   },
-      //   brands: [
-      //     {
-      //       name: {
-      //         en: user.vendor.companyName,
-      //       },
-      //     },
-      //   ],
-      // };
-      // const tapbusiness = await this.tapService.createBusniess(payload);
-
-      // const merchantPayload: createMerchantRequestInterface = {
-      //   display_name: user.vendor.fullName,
-      //   branch_id: tapbusiness.entity.branches[0].id,
-      //   brand_id: tapbusiness.brands[0].id,
-      //   business_entity_id: tapbusiness.entity.id,
-      //   business_id: tapbusiness.id,
-      // };
-
-      // const merchantTap = await this.tapService.createMerchant(merchantPayload);
-      // await this.prisma.vendor.update({
-      //   where: {
-      //     vendorId: user.vendor.vendorId,
-      //   },
-      //   data: {
-      //     tapBusinessId: tapbusiness.id,
-      //     tapBranchId: tapbusiness.entity.branches[0].id,
-      //     tapBrandId: tapbusiness.brands[0].id,
-      //     tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
-      //     tapBusinessEntityId: tapbusiness.entity.id,
-      //     tapMerchantId: merchantTap.id,
-      //     tapWalletId: merchantTap.wallets.id,
-      //   },
-      // });
-
-      // const TapBusinessPay = await this.tapService.createBusniess(payload);
-
-      // const payload: CreateNotificationDto = {
-      //   toUser: 1,
-      //   fromUser: user.userMasterId,
-      //   message: 'message',
-      //   type: 'VendorCreated',
-      // };
-      // await this.notification.createNotification(payload);
+      this.queue.sendVerificationEmail(user, UserType.VENDOR);
       return successResponse(
         201,
         'Vendor successfully created, you will receive an email when the admin reviews and approves your profile.',
@@ -1492,5 +1384,30 @@ export class AuthService {
       'userRegistration',
       context,
     );
+  }
+
+  async _createTapCustomerAndMail(response, user, userType: UserType) {
+    try {
+      await this.updateRt(user.userMasterId, response.refreshToken);
+
+      const payload: createCustomerRequestInterface = {
+        email: user.email,
+        first_name: user.customer.fullName,
+        currency: 'AED',
+      };
+      const tapCustomer = await this.tapService.createCustomer(payload);
+
+      this.sendEncryptedDataToMail(user, userType);
+      await this.prisma.customer.update({
+        where: {
+          customerId: user.customer.customerId,
+        },
+        data: {
+          tapCustomerId: tapCustomer.id,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 }

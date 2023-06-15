@@ -5,13 +5,11 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseGuards,
   Query,
 } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
-import { UpdateJobDto } from './dto/update-job.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorator';
 import { GetUserType } from 'src/core/dto';
