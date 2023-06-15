@@ -230,6 +230,7 @@ export class VendorService {
       };
 
       const merchantTap = await this.tapService.createMerchant(merchantPayload);
+
       await this.prisma.vendor.update({
         where: {
           vendorId: user.vendor.vendorId,

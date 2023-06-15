@@ -1,10 +1,9 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { Module, LoggerService } from '@nestjs/common';
+import { Module, LoggerService, Global } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailProcessor } from '../queue/jobs/mail.processor';
 
 // @Global() // 👈 global module
 @Module({
@@ -38,7 +37,7 @@ import { MailProcessor } from '../queue/jobs/mail.processor';
       inject: [ConfigService],
     }),
   ],
-  providers: [MailService, MailProcessor],
+  providers: [MailService],
   exports: [MailService],
 })
 export class MailModule {}

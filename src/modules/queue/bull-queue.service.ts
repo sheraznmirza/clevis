@@ -17,7 +17,18 @@ export class BullQueueService {
         user,
         userType,
       },
-      { lifo: true },
+      { lifo: false },
+    );
+  }
+
+  async createCustomerTapAndMail(response: any, user: any) {
+    await this.emailQueue.add(
+      AppConfig.QUEUE.JOBS.CREATE_CUSTOMER_TAP_AND_MAIL,
+      {
+        response,
+        user,
+      },
+      { lifo: false },
     );
   }
 }

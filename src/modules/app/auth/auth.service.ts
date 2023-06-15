@@ -164,24 +164,8 @@ export class AuthService {
         user.userType,
         user.customer.customerId,
       );
-      await this.updateRt(user.userMasterId, response.refreshToken);
-      this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
 
-      const payload: createCustomerRequestInterface = {
-        email: user.email,
-        first_name: user.customer.fullName,
-        currency: 'AED',
-      };
-      const tapCustomer = await this.tapService.createCustomer(payload);
-
-      await this.prisma.customer.update({
-        where: {
-          customerId: user.customer.customerId,
-        },
-        data: {
-          tapCustomerId: tapCustomer.id,
-        },
-      });
+      this.queue.createCustomerTapAndMail(response, user);
 
       return {
         tokens: response,
@@ -239,13 +223,6 @@ export class AuthService {
           phone: dto.phone,
           userType: UserType.VENDOR,
           roleId: roleId,
-          // ...(dto.playerId && {
-          //   device: {
-          //     create: {
-          //       playerId: dto.playerId,
-          //     },
-          //   },
-          // }),
           vendor: {
             create: {
               fullName: dto.fullName,
@@ -287,7 +264,6 @@ export class AuthService {
         },
         select: {
           userMasterId: true,
-          // profileImage: true,
           email: true,
           isEmailVerified: true,
           phone: true,
@@ -1408,5 +1384,30 @@ export class AuthService {
       'userRegistration',
       context,
     );
+  }
+
+  async _createTapCustomerAndMail(response, user, userType: UserType) {
+    try {
+      await this.updateRt(user.userMasterId, response.refreshToken);
+
+      const payload: createCustomerRequestInterface = {
+        email: user.email,
+        first_name: user.customer.fullName,
+        currency: 'AED',
+      };
+      const tapCustomer = await this.tapService.createCustomer(payload);
+
+      this.sendEncryptedDataToMail(user, userType);
+      await this.prisma.customer.update({
+        where: {
+          customerId: user.customer.customerId,
+        },
+        data: {
+          tapCustomerId: tapCustomer.id,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 }

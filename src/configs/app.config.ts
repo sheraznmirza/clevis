@@ -167,9 +167,13 @@ const AppConfig = {
   QUEUE: {
     NAME: {
       MAIL: 'email-queue',
+      NOTIFICATION: 'notification-queue',
+      TAP: 'tap-queue',
     },
     JOBS: {
       SEND_VERIFICATION_EMAIL: 'verify-mail-job',
+      CREATE_CUSTOMER_TAP_AND_MAIL: 'create-customer-tap-and-mail-job',
+      VENDOR_RIDER_APPROVAL: 'vendor-rider-approval-job',
     },
   },
 };

@@ -1,14 +1,13 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { MailModule } from '../../../modules/mail/mail.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtRefreshStrategy, JwtStrategy } from './strategy';
 import { TapModule } from 'src/modules/tap/tap.module';
-import { BullQueueModule } from 'src/modules/queue/bull-queue.module';
+import { MailModule } from 'src/modules/mail/mail.module';
 
 @Module({
-  imports: [JwtModule.register({}), MailModule, TapModule, BullQueueModule],
+  imports: [JwtModule.register({}), TapModule, MailModule],
   controllers: [AuthController],
   exports: [AuthService],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
