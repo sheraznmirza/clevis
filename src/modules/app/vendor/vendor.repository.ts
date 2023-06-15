@@ -23,7 +23,11 @@ import {
   UserType,
   Vendor,
 } from '@prisma/client';
-import { VendorListingParams, VendorServiceListingParams } from 'src/core/dto';
+import {
+  GetUserType,
+  VendorListingParams,
+  VendorServiceListingParams,
+} from 'src/core/dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import {
   vendorServiceByIdMappedCarWash,
@@ -664,6 +668,93 @@ export class VendorRepository {
       throw error;
     }
   }
+
+  // async getDashboard(user: GetUserType) {
+  //   try {
+  //     const result = await this.prisma.vendorService.findMany({
+  //       where: {
+  //         vendorId: user.userTypeId,
+  //       },
+  //       select: {
+  //         vendorServiceId: true,
+  //       },
+  //     });
+  //     const vendorServiceIds = result.map((item) => item.vendorServiceId);
+
+  //     const allocatePrices = await this.prisma.allocatePrice.findMany({
+  //       where: {
+  //         vendorServiceId: {
+  //           in: vendorServiceIds,
+  //         },
+  //       },
+  //       select: {
+  //         bookingDetail: {
+  //           select: {
+  //             allocatePriceId: true,
+  //           },
+  //         },
+  //       },
+  //     });
+  //     const allocatePriceIds = allocatePrices.map((item) =>
+  //       item.bookingDetail.map((obj) => obj.allocatePriceId),
+  //     );
+
+  //     let array = [];
+  //     allocatePriceIds.forEach((arr) => (array = [...array, ...arr]));
+  //     const data = await this.prisma.bookingMaster.findMany({
+  //       where: {
+  //         isDeleted: false,
+  //         vendorId: user.userTypeId,
+  //         bookingDetail: {
+  //           some: {
+  //             allocatePriceId: {
+  //               in: array,
+  //             },
+  //           },
+  //         },
+  //       },
+  //       select: {
+  //         bookingDetail: {
+  //           select: {
+  //             allocatePrice: {
+  //               select: {
+  //                 vendorService: {
+  //                   select: {
+  //                     service: {
+  //                       select: { serviceId: true, serviceName: true },
+  //                     },
+  //                   },
+  //                 },
+  //                 category: {
+  //                   select: { categoryId: true, categoryName: true },
+  //                 },
+  //                 price: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     const services = {};
+
+  //     data.forEach((booking) => {
+  //       booking.bookingDetail.forEach((detail) => {
+  //         const { serviceName } = detail.allocatePrice.vendorService.service;
+  //         const price = detail.allocatePrice.price;
+  //         if (services[serviceName]) {
+  //           services[serviceName] += price;
+  //         } else {
+  //           services[serviceName] = price;
+  //         }
+  //       });
+  //     });
+
+  //     return { services, data };
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   async getVendorServices(vendorId: number) {
     try {

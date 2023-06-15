@@ -46,6 +46,7 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { TapService } from 'src/modules/tap/tap.service';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
+import { BullQueueService } from 'src/modules/queue/bull-queue.service';
 
 @Injectable()
 export class VendorService {
@@ -56,6 +57,7 @@ export class VendorService {
     private prisma: PrismaService,
     private tapService: TapService,
     private notificationService: NotificationService,
+    private queue: BullQueueService,
   ) {}
 
   async createVendorService(dto: VendorCreateServiceDto, user: GetUserType) {
@@ -169,123 +171,125 @@ export class VendorService {
         },
       });
 
-      const payload: createBusinessRequestInterface = {
-        name: {
-          en: user.vendor.companyName,
-        },
-        type: 'corp',
-        entity: {
-          legal_name: {
-            en: user.vendor.companyName,
-          },
-          is_licensed: false,
-          country: user.vendor.userAddress[0].city.State.country.shortName,
-          billing_address: {
-            recipient_name: user.vendor.fullName,
-            address_1: user.vendor.userAddress[0].fullAddress,
-            city: user.vendor.userAddress[0].city.cityName,
-            state: user.vendor.userAddress[0].city.State.stateName,
-            country: user.vendor.userAddress[0].city.State.country.shortName,
-          },
-        },
-        contact_person: {
-          name: {
-            first: user.vendor.fullName.split(' ')[0],
-            last: user.vendor.fullName.split(' ')[1],
-          },
+      // const payload: createBusinessRequestInterface = {
+      //   name: {
+      //     en: user.vendor.companyName,
+      //   },
+      //   type: 'corp',
+      //   entity: {
+      //     legal_name: {
+      //       en: user.vendor.companyName,
+      //     },
+      //     is_licensed: false,
+      //     country: user.vendor.userAddress[0].city.State.country.shortName,
+      //     billing_address: {
+      //       recipient_name: user.vendor.fullName,
+      //       address_1: user.vendor.userAddress[0].fullAddress,
+      //       city: user.vendor.userAddress[0].city.cityName,
+      //       state: user.vendor.userAddress[0].city.State.stateName,
+      //       country: user.vendor.userAddress[0].city.State.country.shortName,
+      //     },
+      //   },
+      //   contact_person: {
+      //     name: {
+      //       first: user.vendor.fullName.split(' ')[0],
+      //       last: user.vendor.fullName.split(' ')[1],
+      //     },
 
-          contact_info: {
-            primary: {
-              email: user.email,
-              phone: {
-                country_code:
-                  user.vendor.userAddress[0].city.State.country.countryCode,
-                number: user.phone.replace('+', ''),
-              },
-            },
-          },
-          authorization: {
-            name: {
-              first: user.vendor.fullName.split(' ')[0],
-              last: user.vendor.fullName.split(' ')[1],
-            },
-          },
-        },
-        brands: [
-          {
-            name: {
-              en: user.vendor.companyName,
-            },
-          },
-        ],
-      };
-      const tapbusiness = await this.tapService.createBusniess(payload);
+      //     contact_info: {
+      //       primary: {
+      //         email: user.email,
+      //         phone: {
+      //           country_code:
+      //             user.vendor.userAddress[0].city.State.country.countryCode,
+      //           number: user.phone.replace('+', ''),
+      //         },
+      //       },
+      //     },
+      //     authorization: {
+      //       name: {
+      //         first: user.vendor.fullName.split(' ')[0],
+      //         last: user.vendor.fullName.split(' ')[1],
+      //       },
+      //     },
+      //   },
+      //   brands: [
+      //     {
+      //       name: {
+      //         en: user.vendor.companyName,
+      //       },
+      //     },
+      //   ],
+      // };
+      // const tapbusiness = await this.tapService.createBusniess(payload);
 
-      const merchantPayload: createMerchantRequestInterface = {
-        display_name: user.vendor.fullName,
-        branch_id: tapbusiness.entity.branches[0].id,
-        brand_id: tapbusiness.brands[0].id,
-        business_entity_id: tapbusiness.entity.id,
-        business_id: tapbusiness.id,
-      };
+      // const merchantPayload: createMerchantRequestInterface = {
+      //   display_name: user.vendor.fullName,
+      //   branch_id: tapbusiness.entity.branches[0].id,
+      //   brand_id: tapbusiness.brands[0].id,
+      //   business_entity_id: tapbusiness.entity.id,
+      //   business_id: tapbusiness.id,
+      // };
 
-      const merchantTap = await this.tapService.createMerchant(merchantPayload);
+      // const merchantTap = await this.tapService.createMerchant(merchantPayload);
 
-      await this.prisma.vendor.update({
-        where: {
-          vendorId: user.vendor.vendorId,
-        },
-        data: {
-          tapBusinessId: tapbusiness.id,
-          tapBranchId: tapbusiness.entity.branches[0].id,
-          tapBrandId: tapbusiness.brands[0].id,
-          tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
-          tapBusinessEntityId: tapbusiness.entity.id,
-          tapMerchantId: merchantTap.id,
-          tapWalletId: merchantTap.wallets.id,
-        },
-      });
-      const context = {
-        app_name: this.config.get('APP_NAME'),
-        app_url: `${this.config.get(dynamicUrl(vendor.userType))}`,
-        first_name: vendor.fullName,
-        message:
-          vendor.status === Status.APPROVED
-            ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin.  '
-            : 'We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.\n Please contact admin if you have any questions regarding this issue ',
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-      };
-      await this.mail.sendEmail(
-        vendor.email,
-        this.config.get('MAIL_NO_REPLY'),
-        `${
-          vendor.userType[0] + vendor.userType.slice(1).toLowerCase()
-        } ${vendor.status.toLowerCase()}`,
-        'vendorApprovedRejected',
-        context, // `.hbs` extension is appended automatically
-      );
+      // await this.prisma.vendor.update({
+      //   where: {
+      //     vendorId: user.vendor.vendorId,
+      //   },
+      //   data: {
+      //     tapBusinessId: tapbusiness.id,
+      //     tapBranchId: tapbusiness.entity.branches[0].id,
+      //     tapBrandId: tapbusiness.brands[0].id,
+      //     tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
+      //     tapBusinessEntityId: tapbusiness.entity.id,
+      //     tapMerchantId: merchantTap.id,
+      //     tapWalletId: merchantTap.wallets.id,
+      //   },
+      // });
+      // const context = {
+      //   app_name: this.config.get('APP_NAME'),
+      //   app_url: `${this.config.get(dynamicUrl(vendor.userType))}`,
+      //   first_name: vendor.fullName,
+      //   message:
+      //     vendor.status === Status.APPROVED
+      //       ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin.  '
+      //       : 'We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.\n Please contact admin if you have any questions regarding this issue ',
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      // };
+      // await this.mail.sendEmail(
+      //   vendor.email,
+      //   this.config.get('MAIL_NO_REPLY'),
+      //   `${
+      //     vendor.userType[0] + vendor.userType.slice(1).toLowerCase()
+      //   } ${vendor.status.toLowerCase()}`,
+      //   'vendorApprovedRejected',
+      //   context, // `.hbs` extension is appended automatically
+      // );
 
-      const payloads: SQSSendNotificationArgs<NotificationData> = {
-        type: NotificationType.VendorStatus,
-        userId: [user.vendor.vendorId],
-        data: {
-          title:
-            dto.status === 'APPROVED'
-              ? NotificationTitle.ADMIN_APPROVED
-              : NotificationTitle.ADMIN_REJECTED,
-          body:
-            dto.status === 'APPROVED'
-              ? NotificationBody.ADMIN_APPROVED
-              : NotificationBody.ADMIN_REJECTED,
-          type: NotificationType.BookingStatus,
-          entityType: EntityType.VENDOR,
-          entityId: user.vendor.vendorId,
-        },
-      };
-      await this.notificationService.HandleNotifications(
-        payloads,
-        UserType.VENDOR,
-      );
+      // const payloads: SQSSendNotificationArgs<NotificationData> = {
+      //   type: NotificationType.VendorStatus,
+      //   userId: [user.vendor.vendorId],
+      //   data: {
+      //     title:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationTitle.ADMIN_APPROVED
+      //         : NotificationTitle.ADMIN_REJECTED,
+      //     body:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationBody.ADMIN_APPROVED
+      //         : NotificationBody.ADMIN_REJECTED,
+      //     type: NotificationType.BookingStatus,
+      //     entityType: EntityType.VENDOR,
+      //     entityId: user.vendor.vendorId,
+      //   },
+      // };
+      // await this.notificationService.HandleNotifications(
+      //   payloads,
+      //   UserType.VENDOR,
+      // );
+
+      this.queue.createBusinessAndMerchantForVendorRider(user, vendor, dto);
       return successResponse(
         200,
         `Vendor successfully ${vendor.status.toLowerCase()}.`,
@@ -356,6 +360,14 @@ export class VendorService {
       throw error;
     }
   }
+
+  // async getDashboard(user: GetUserType) {
+  //   try {
+  //     return await this.repository.getDashboard(user);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   async getVendorAllService(
     id: number,
@@ -464,4 +476,131 @@ export class VendorService {
   //     throw error;
   //   }
   // }
+
+  async _createBusinessMerchantForVendorRider(
+    user,
+    vendor,
+    dto: VendorUpdateStatusDto,
+  ) {
+    try {
+      const payload: createBusinessRequestInterface = {
+        name: {
+          en: user.vendor.companyName,
+        },
+        type: 'corp',
+        entity: {
+          legal_name: {
+            en: user.vendor.companyName,
+          },
+          is_licensed: false,
+          country: user.vendor.userAddress[0].city.State.country.shortName,
+          billing_address: {
+            recipient_name: user.vendor.fullName,
+            address_1: user.vendor.userAddress[0].fullAddress,
+            city: user.vendor.userAddress[0].city.cityName,
+            state: user.vendor.userAddress[0].city.State.stateName,
+            country: user.vendor.userAddress[0].city.State.country.shortName,
+          },
+        },
+        contact_person: {
+          name: {
+            first: user.vendor.fullName.split(' ')[0],
+            last: user.vendor.fullName.split(' ')[1],
+          },
+
+          contact_info: {
+            primary: {
+              email: user.email,
+              phone: {
+                country_code:
+                  user.vendor.userAddress[0].city.State.country.countryCode,
+                number: user.phone.replace('+', ''),
+              },
+            },
+          },
+          authorization: {
+            name: {
+              first: user.vendor.fullName.split(' ')[0],
+              last: user.vendor.fullName.split(' ')[1],
+            },
+          },
+        },
+        brands: [
+          {
+            name: {
+              en: user.vendor.companyName,
+            },
+          },
+        ],
+      };
+      const tapbusiness = await this.tapService.createBusniess(payload);
+
+      const merchantPayload: createMerchantRequestInterface = {
+        display_name: user.vendor.fullName,
+        branch_id: tapbusiness.entity.branches[0].id,
+        brand_id: tapbusiness.brands[0].id,
+        business_entity_id: tapbusiness.entity.id,
+        business_id: tapbusiness.id,
+      };
+
+      const merchantTap = await this.tapService.createMerchant(merchantPayload);
+
+      await this.prisma.vendor.update({
+        where: {
+          vendorId: user.vendor.vendorId,
+        },
+        data: {
+          tapBusinessId: tapbusiness.id,
+          tapBranchId: tapbusiness.entity.branches[0].id,
+          tapBrandId: tapbusiness.brands[0].id,
+          tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
+          tapBusinessEntityId: tapbusiness.entity.id,
+          tapMerchantId: merchantTap.id,
+          tapWalletId: merchantTap.wallets.id,
+        },
+      });
+
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+        app_url: `${this.config.get(dynamicUrl(vendor.userType))}`,
+        first_name: vendor.fullName,
+        message:
+          vendor.status === Status.APPROVED
+            ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin.  '
+            : 'We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.\n Please contact admin if you have any questions regarding this issue ',
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+      await this.mail.sendEmail(
+        vendor.email,
+        this.config.get('MAIL_NO_REPLY'),
+        `${
+          vendor.userType[0] + vendor.userType.slice(1).toLowerCase()
+        } ${vendor.status.toLowerCase()}`,
+        'vendorApprovedRejected',
+        context, // `.hbs` extension is appended automatically
+      );
+
+      const payloads: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.VendorStatus,
+        userId: [user.vendor.vendorId],
+        data: {
+          title:
+            dto.status === 'APPROVED'
+              ? NotificationTitle.ADMIN_APPROVED
+              : NotificationTitle.ADMIN_REJECTED,
+          body:
+            dto.status === 'APPROVED'
+              ? NotificationBody.ADMIN_APPROVED
+              : NotificationBody.ADMIN_REJECTED,
+          type: NotificationType.BookingStatus,
+          entityType: EntityType.VENDOR,
+          entityId: user.vendor.vendorId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payloads,
+        UserType.VENDOR,
+      );
+    } catch (error) {}
+  }
 }
