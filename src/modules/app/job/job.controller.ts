@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
@@ -18,6 +19,7 @@ import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
 import { UserType } from '@prisma/client';
 import { Authorized } from 'src/core/decorators';
+import { GetRiderJobsDto } from './dto';
 
 @ApiTags('Job')
 @UseGuards(JwtGuard, RolesGuard)
@@ -35,10 +37,28 @@ export class JobController {
   // findAll() {
   //   return this.jobService.findAll();
   // }
+  @Authorized(UserType.RIDER)
+  @Get('rider')
+  getAllRiderJobs(
+    @GetUser() user: GetUserType,
+    @Query() listingParams: GetRiderJobsDto,
+  ) {
+    return this.jobService.getAllRiderJobs(user, listingParams);
+  }
 
-  @Get()
-  getAllJobs() {
-    return this.jobService.findAll();
+  @Authorized(UserType.VENDOR)
+  @Get('vendor')
+  getAllVendorJobs(
+    @GetUser() user: GetUserType,
+    @Query() listingParams: GetRiderJobsDto,
+  ) {
+    return this.jobService.getAllVendorJobs(user, listingParams);
+  }
+
+  @Authorized(UserType.RIDER)
+  @Patch('update-status/:jobId')
+  updateJobStatus(@Body() dto) {
+    return 'hey';
   }
 
   // @Get(':id')

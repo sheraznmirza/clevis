@@ -387,6 +387,11 @@ export class CustomerRepository {
                   mode: 'insensitive',
                 },
               }),
+              NOT: {
+                vendorService: {
+                  none: {},
+                },
+              },
               // ...(dto.services && {
               //   vendorService: {
               //     every: {
@@ -465,6 +470,12 @@ export class CustomerRepository {
             userType: UserType.VENDOR,
             vendor: {
               serviceType: dto.serviceType,
+
+              NOT: {
+                vendorService: {
+                  none: {},
+                },
+              },
             },
           },
         });
@@ -567,6 +578,11 @@ export class CustomerRepository {
                   mode: 'insensitive',
                 },
               }),
+              NOT: {
+                vendorService: {
+                  none: {},
+                },
+              },
             },
           },
           orderBy: {
@@ -644,6 +660,12 @@ export class CustomerRepository {
                 some: {
                   cityId: customerCity.customer.userAddress[0].cityId,
                   isDeleted: false,
+                },
+              },
+
+              NOT: {
+                vendorService: {
+                  none: {},
                 },
               },
             },

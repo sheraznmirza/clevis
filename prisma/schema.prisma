@@ -90,6 +90,12 @@ enum BookingStatus {
   In_Progress
 }
 
+enum RiderJobStatus {
+  Completed
+  Pending
+  Accepted
+}
+
 enum DeviceType {
   WEB
   ANDROID
@@ -568,6 +574,8 @@ model BookingMaster {
   pickupTimeTo       DateTime?
   dropoffTimeFrom    DateTime?
   dropoffTimeTo      DateTime?
+  confirmationTime   DateTime?
+  completionTime     DateTime?
   instructions       String?
   carNumberPlate     String?
   deliveryCharges    Float?               @default(0)
@@ -618,10 +626,12 @@ model Job {
   riderId         Int?
   vendorId        Int
   jobType         JobType
-  jobStatus       Status         @default(PENDING)
+  jobStatus       RiderJobStatus @default(Pending)
   rider           Rider?         @relation(fields: [riderId], references: [riderId])
   vendor          Vendor         @relation(fields: [vendorId], references: [vendorId])
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
 }
 
 model UpdateApproval {
