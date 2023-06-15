@@ -58,8 +58,9 @@ export class JobController {
   updateJobStatus(
     @Param('jobId') jobId: number,
     @Body() dto: UpdateJobStatusDto,
+    @GetUser() user: GetUserType,
   ) {
-    return this.jobService.updateJobStatus(jobId, dto);
+    return this.jobService.updateJobStatus(jobId, dto, user);
   }
 
   @Authorized([UserType.VENDOR, UserType.RIDER])
