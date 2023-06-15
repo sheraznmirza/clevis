@@ -17,7 +17,7 @@ import { JwtGuard } from '../app/auth/guard';
 import { RolesGuard } from 'src/core/guards';
 import { NotificationService } from './notification.service';
 import { Authorized } from 'src/core/decorators';
-import { NotificationUpdateParams } from './dto';
+import { NotificationUpdateParams, NotificationUpdateStatus } from './dto';
 
 @ApiTags('Notification')
 @Controller('notification')
@@ -51,6 +51,23 @@ export class NotificationController {
   @Get('read-status')
   updateNotificationReadStatus(@Query() params: NotificationUpdateParams) {
     return this.notificationService.updateNotification(params);
+  }
+
+  @Authorized([
+    UserType.ADMIN,
+    UserType.CUSTOMER,
+    UserType.RIDER,
+    UserType.VENDOR,
+  ])
+  @Patch('notification-status')
+  updateNotificationStatus(
+    @GetUser() user: GetUserType,
+    @Body() dto: NotificationUpdateStatus,
+  ) {
+    return this.notificationService.updateNotificationStatus(
+      user.userMasterId,
+      dto,
+    );
   }
 
   //   @Authorized(UserType.ADMIN)
