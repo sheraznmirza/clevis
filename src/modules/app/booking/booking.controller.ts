@@ -86,8 +86,13 @@ export class BookingController {
   updateVendorBookingStatus(
     @Param('bookingMasterId') bookingMasterId: number,
     @Query() dto: UpdateBookingStatusParam,
+    @GetUser() user: GetUserType,
   ) {
-    return this.bookingService.updateVendorBookingStatus(bookingMasterId, dto);
+    return this.bookingService.updateVendorBookingStatus(
+      bookingMasterId,
+      dto,
+      user,
+    );
   }
 
   @Authorized(UserType.ADMIN)
