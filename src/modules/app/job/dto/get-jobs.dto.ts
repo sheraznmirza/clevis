@@ -3,9 +3,14 @@ import { JobType, RiderJobStatus } from '@prisma/client';
 import { ListingParams } from 'src/core/dto';
 import { IsDateString, IsEnum, IsOptional } from 'class-validator';
 
+enum Order {
+  asc = 'asc',
+  desc = 'desc',
+}
+
 export class GetRiderJobsDto extends ListingParams {
   @ApiProperty({
-    required: true,
+    required: false,
     enum: JobType,
   })
   @IsEnum(JobType)
@@ -13,17 +18,25 @@ export class GetRiderJobsDto extends ListingParams {
   jobType: JobType;
 
   @ApiProperty({
-    required: true,
+    required: false,
     enum: RiderJobStatus,
   })
   @IsEnum(RiderJobStatus)
   @IsOptional()
   status: RiderJobStatus;
+
+  @ApiProperty({
+    required: false,
+    enum: Order,
+  })
+  @IsEnum(Order)
+  @IsOptional()
+  orderBy: Order;
 }
 
 export class GetVendorJobsDto extends ListingParams {
   @ApiProperty({
-    required: true,
+    required: false,
     enum: JobType,
   })
   @IsEnum(JobType)
@@ -31,7 +44,7 @@ export class GetVendorJobsDto extends ListingParams {
   jobType: JobType;
 
   @ApiProperty({
-    required: true,
+    required: false,
     enum: RiderJobStatus,
   })
   @IsEnum(RiderJobStatus)
@@ -47,4 +60,12 @@ export class GetVendorJobsDto extends ListingParams {
   @IsDateString()
   @IsOptional()
   timeTill: string;
+
+  @ApiProperty({
+    required: false,
+    enum: Order,
+  })
+  @IsEnum(Order)
+  @IsOptional()
+  orderBy: Order;
 }

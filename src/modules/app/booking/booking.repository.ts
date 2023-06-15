@@ -70,11 +70,11 @@ export class BookingRepository {
       let dropoffResponse: any;
 
       const attachments = [];
-
+      console.log('dto.tapAuthId: ', dto.tapAuthId);
       const tapAuthorize = await this.tapService.retrieveAuthorize(
         dto.tapAuthId,
       );
-
+      console.log('tapAuthorize: ', tapAuthorize);
       if (tapAuthorize.status === 'FAILED') {
         throw new BadRequestException('Payment is not authorized.');
       }

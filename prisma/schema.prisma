@@ -639,7 +639,7 @@ model Job {
 }
 
 model RiderJob {
-  id      Int            @id @default(autoincrement())
+  id      String         @id @default(uuid())
   riderId Int
   jobId   Int
   rider   Rider          @relation(fields: [riderId], references: [riderId])
