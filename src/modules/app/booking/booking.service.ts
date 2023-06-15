@@ -70,11 +70,13 @@ export class BookingService {
   async updateVendorBookingStatus(
     bookingMasterId: number,
     dto: UpdateBookingStatusParam,
+    user: GetUserType,
   ) {
     try {
       return await this.repository.updateVendorBookingStatus(
         bookingMasterId,
         dto,
+        user,
       );
     } catch (error) {
       throw error;

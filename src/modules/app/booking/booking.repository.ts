@@ -16,7 +16,9 @@ dayjs.extend(utc);
 import {
   BookingStatus,
   EntityType,
+  JobType,
   NotificationType,
+  RiderJobStatus,
   ServiceType,
   UserAddress,
   UserType,
@@ -1055,8 +1057,37 @@ export class BookingRepository {
   async updateVendorBookingStatus(
     bookingMasterId: number,
     dto: UpdateBookingStatusParam,
+    user: GetUserType,
   ) {
     try {
+      const findBooking = await this.prisma.bookingMaster.findUnique({
+        where: {
+          bookingMasterId,
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (
+        dto.bookingStatus === BookingStatus.In_Progress &&
+        findBooking.status === BookingStatus.Confirmed &&
+        user.serviceType === ServiceType.LAUNDRY
+      ) {
+        const job = await this.prisma.job.findFirst({
+          where: {
+            bookingMasterId,
+            jobType: JobType.PICKUP,
+            jobStatus: RiderJobStatus.Completed,
+          },
+        });
+
+        if (!job) {
+          throw new BadRequestException(
+            'You cannot change status to in progress without completing a pickup job first.',
+          );
+        }
+      }
       const booking = await this.prisma.bookingMaster.update({
         where: {
           bookingMasterId,
@@ -1100,7 +1131,11 @@ export class BookingRepository {
             email: booking.customer.email,
           },
           source: { id: 'src_card' },
-          redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+          post: {
+            // url: 'https://clevis-vendor.appnofy.com/tap/charge',
+            url: `${this.config.get('APP_URL')}/tap/charge`,
+          },
         };
         const createCharge = await this.tapService.createCharge(chargePayload);
         console.log('createCharge: ', createCharge);
@@ -1426,10 +1461,13 @@ export class BookingRepository {
         },
         source: { id: 'src_card' },
         threeDSecure: true,
-        redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
         auto: {
           type: 'VOID',
           time: 1,
+        },
+        post: {
+          url: 'https://clevis-vendor.appnofy.com/tap/authorize',
         },
       };
       console.log('payload: ', payload);

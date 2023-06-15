@@ -22,6 +22,22 @@ import { AxiosResponse } from 'axios';
 export class TapService {
   constructor(private httpService: HttpService) {}
 
+  async tapAuthorize(dto) {
+    try {
+      console.log('dto: ', dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async tapCharge(dto) {
+    try {
+      console.log('dto: ', dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getFreshTokenForCardSave(
     card: createNewCardTokenInterface,
   ): Promise<createNewCardResponse> {

@@ -19,7 +19,7 @@ import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
 import { UserType } from '@prisma/client';
 import { Authorized } from 'src/core/decorators';
-import { GetRiderJobsDto } from './dto';
+import { GetRiderJobsDto, UpdateJobStatusDto } from './dto';
 
 @ApiTags('Job')
 @UseGuards(JwtGuard, RolesGuard)
@@ -30,7 +30,7 @@ export class JobController {
   @Authorized(UserType.VENDOR)
   @Post()
   create(@GetUser() user: GetUserType, @Body() createJobDto: CreateJobDto) {
-    return this.jobService.create(user.userTypeId, createJobDto);
+    return this.jobService.create(user, createJobDto);
   }
 
   // @Get()
@@ -57,14 +57,18 @@ export class JobController {
 
   @Authorized(UserType.RIDER)
   @Patch('update-status/:jobId')
-  updateJobStatus(@Body() dto) {
-    return 'hey';
+  updateJobStatus(
+    @Param('jobId') jobId: number,
+    @Body() dto: UpdateJobStatusDto,
+  ) {
+    return this.jobService.updateJobStatus(jobId, dto);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.jobService.findOne(+id);
-  // }
+  @Authorized([UserType.VENDOR, UserType.RIDER])
+  @Get('byId/:jobId')
+  findOne(@Param('jobId') id: number) {
+    return this.jobService.findOne(id);
+  }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
