@@ -1,4 +1,4 @@
-import { BullModule, InjectQueue } from '@nestjs/bull';
+import { BullModule } from '@nestjs/bull';
 import { Global, Module } from '@nestjs/common';
 import AppConfig from 'src/configs/app.config';
 import { BullQueueService } from './bull-queue.service';
