@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateJobDto, GetRiderJobsDto, UpdateJobStatusDto } from './dto';
 import { UpdateJobDto } from './dto';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
@@ -7,9 +12,21 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { successResponse } from 'src/helpers/response.helper';
 import { GetUserType } from 'src/core/dto';
-import { RiderJobStatus } from '@prisma/client';
+import {
+  BookingStatus,
+  EntityType,
+  JobType,
+  NotificationType,
+  RiderJobStatus,
+  ServiceType,
+  UserType,
+} from '@prisma/client';
 import { createChargeRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { TapService } from 'src/modules/tap/tap.service';
+import { ConfigService } from '@nestjs/config';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
 dayjs.extend(utc);
 
 @Injectable()
@@ -18,31 +35,135 @@ export class JobService {
     private prisma: PrismaService,
     private notificationService: NotificationService,
     private tapService: TapService,
+    private config: ConfigService,
   ) {}
 
-  async create(vendorId: number, createJobDto: CreateJobDto) {
+  async create(user: GetUserType, createJobDto: CreateJobDto) {
     try {
-      await this.prisma.job.create({
+      if (user.serviceType === ServiceType.CAR_WASH) {
+        throw new BadRequestException(
+          'Vendor must have a service type of Laundry',
+        );
+      }
+      const booking = await this.prisma.bookingMaster.findUnique({
+        where: {
+          bookingMasterId: createJobDto.bookingMasterId,
+        },
+        select: {
+          status: true,
+        },
+      });
+      if (
+        createJobDto.jobType === JobType.PICKUP &&
+        booking.status !== BookingStatus.Confirmed
+      ) {
+        throw new BadRequestException(
+          'Pickup job can only be created if the booking status is confirmed.',
+        );
+      }
+
+      if (
+        createJobDto.jobType === JobType.DELIVERY &&
+        booking.status !== BookingStatus.In_Progress
+      ) {
+        throw new BadRequestException(
+          'Delivery job can only be created if the booking status is in progress.',
+        );
+      }
+
+      await this.prisma.bookingMaster.update({
+        where: {
+          bookingMasterId: createJobDto.bookingMasterId,
+        },
+        data: {
+          status: BookingStatus.Completed,
+        },
+      });
+
+      const job = await this.prisma.job.create({
         data: {
           jobDate: dayjs(createJobDto.jobDate).utc().format(),
           jobTime: dayjs(createJobDto.jobTime).utc().format(),
           bookingMasterId: createJobDto.bookingMasterId,
           jobType: createJobDto.jobType,
-          vendorId,
+          vendorId: user.userTypeId,
           instructions:
             createJobDto.instructions !== null
               ? createJobDto.instructions
               : undefined,
         },
+        select: {
+          vendorId: true,
+          id: true,
+          vendor: {
+            select: {
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                  isActive: true,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
+                select: {
+                  cityId: true,
+                },
+              },
+            },
+          },
+        },
       });
 
-      // Notify all the riders that a new job has been created
+      const rider = await this.prisma.rider.findMany({
+        where: {
+          isBusy: false,
+          userMaster: {
+            isDeleted: false,
+            notificationEnabled: true,
+            isActive: true,
+          },
+          userAddress: {
+            some: {
+              isDeleted: false,
+              isActive: true,
+              cityId: job.vendor.userAddress[0].cityId,
+            },
+          },
+        },
+        select: {
+          userMasterId: true,
+          fullName: true,
+        },
+      });
+
+      const riderIds = rider.map((obj) => obj.userMasterId);
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.VendorCreatedJob,
+        userId: riderIds,
+        data: {
+          title: NotificationTitle.VENDOR_CREATED_JOB,
+          body: NotificationBody.VENDOR_CREATED_JOB,
+          type: NotificationType.VendorCreatedJob,
+          entityType: EntityType.RIDER,
+          entityId: job.id,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.RIDER,
+      );
 
       return successResponse(201, 'Job created successfully.');
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException(
           'Either bookingMasterId or vendorId does not exist',
+        );
+      } else if (error?.code === 'P2002') {
+        throw new ForbiddenException(
+          'Job with the same BookingId already exists',
         );
       }
       throw error;
@@ -131,7 +252,8 @@ export class JobService {
                   fullAddress: true,
                 },
               },
-              deliveryCharges: true,
+              pickupDeliveryCharges: true,
+              dropoffDeliveryCharges: true,
               status: true,
             },
           },
@@ -220,9 +342,12 @@ export class JobService {
           id: jobId,
         },
         select: {
+          jobStatus: true,
+          jobType: true,
           bookingMaster: {
             select: {
-              deliveryCharges: true,
+              pickupDeliveryCharges: true,
+              dropoffDeliveryCharges: true,
               customer: {
                 select: {
                   fullName: true,
@@ -234,19 +359,36 @@ export class JobService {
         },
       });
 
+      if (booking.jobStatus === dto.RiderJobStatus) {
+        throw new ConflictException(`Job is already ${dto.RiderJobStatus}`);
+      }
+
       if (dto.RiderJobStatus === RiderJobStatus.Completed) {
         const chargePayload: createChargeRequestInterface = {
-          amount: booking.bookingMaster.deliveryCharges,
+          amount:
+            booking.jobType === JobType.PICKUP
+              ? booking.bookingMaster.pickupDeliveryCharges
+              : booking.bookingMaster.dropoffDeliveryCharges,
           currency: 'AED',
           customer: {
             first_name: booking.bookingMaster.customer.fullName,
             email: booking.bookingMaster.customer.email,
           },
           source: { id: 'src_card' },
-          redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+          post: {
+            url: `${this.config.get('APP_URL')}/tap/authorize`,
+          },
         };
         const createCharge = await this.tapService.createCharge(chargePayload);
       }
+
+      // await this.prisma.riderJob.create({
+      //   data: {
+      //     jobId: jobId,
+      //     // riderId
+      //   }
+      // })
       await this.prisma.job.update({
         where: {
           id: 1,
@@ -260,8 +402,94 @@ export class JobService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} job`;
+  async findOne(id: number) {
+    try {
+      const job = await this.prisma.job.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+          jobType: true,
+          jobStatus: true,
+          instructions: true,
+          rider: {
+            select: {
+              companyName: true,
+              companyEmail: true,
+              userMaster: {
+                select: {
+                  phone: true,
+                },
+              },
+            },
+          },
+          vendor: {
+            select: {
+              fullName: true,
+              companyEmail: true,
+              userMaster: {
+                select: {
+                  phone: true,
+                },
+              },
+            },
+          },
+          bookingMaster: {
+            select: {
+              bookingMasterId: true,
+              customer: {
+                select: {
+                  fullName: true,
+                },
+              },
+              pickupLocation: {
+                select: {
+                  fullAddress: true,
+                },
+              },
+              dropoffLocation: {
+                select: {
+                  fullAddress: true,
+                },
+              },
+              bookingDetail: {
+                select: {
+                  quantity: true,
+                  allocatePrice: {
+                    select: {
+                      category: {
+                        select: {
+                          categoryName: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+
+          jobDate: true,
+          jobTime: true,
+        },
+      });
+
+      let totalItems = 0;
+      job.bookingMaster.bookingDetail.forEach((item) => {
+        totalItems += item.quantity;
+      });
+
+      return {
+        ...job,
+        totalItems,
+      };
+    } catch (error) {
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('Job does not exist');
+      }
+      throw error;
+    }
   }
 
   update(id: number, updateJobDto: UpdateJobDto) {
