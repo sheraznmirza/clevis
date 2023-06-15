@@ -59,7 +59,7 @@ export class NotificationController {
     UserType.RIDER,
     UserType.VENDOR,
   ])
-  @Patch('notification-status')
+  @Patch('toggle')
   updateNotificationStatus(
     @GetUser() user: GetUserType,
     @Body() dto: NotificationUpdateStatus,
