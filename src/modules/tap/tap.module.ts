@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { TapService } from './tap.service';
 import { HttpModule } from '@nestjs/axios';
 
+@Global()
 @Module({
   imports: [
     HttpModule.register({
