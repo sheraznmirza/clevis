@@ -30,6 +30,7 @@ import { SocketEventHandler } from './modules/notification-socket/socket_event.h
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { JobModule } from './modules/app/job/job.module';
 import { join } from 'path';
+import { BullQueueModule } from './modules/queue/bull-queue.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -69,6 +70,7 @@ import { join } from 'path';
     S3Module,
     TapModule,
     JobModule,
+    BullQueueModule,
     // DatabaseModule,
   ],
   providers: [

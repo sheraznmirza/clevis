@@ -1,6 +1,9 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { UserType } from '@prisma/client';
+import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
+import { encryptData } from 'src/helpers/util.helper';
 
 @Injectable()
 export class MailService {
@@ -8,6 +11,39 @@ export class MailService {
     private mailerService: MailerService,
     private config: ConfigService,
   ) {}
+
+  async verificationEmail(user: any, userType: UserType) {
+    try {
+      const encrypted = encryptData(user.userMasterId.toString());
+
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        app_url: this.config
+          .get(dynamicUrl(userType))
+          .concat('/auth/verify-email/', encrypted),
+        first_name: user[userType.toLowerCase()].fullName,
+        register_hash: encrypted,
+      };
+
+      const data = {
+        from: this.config.get('MAIL_ADMIN'),
+        subject: `${this.config.get('APP_NAME')} - Complete Your Registration`,
+      };
+
+      await this.mailerService.sendMail({
+        to: user.email,
+        from: data.from,
+        subject: data.subject,
+        template: 'userRegistration', // `.hbs` extension is appended automatically
+        context: context,
+      });
+      console.log(`Email sent to ${user.email}`);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 
   async sendUserInvitation(user) {
     try {
