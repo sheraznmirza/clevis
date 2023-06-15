@@ -7,9 +7,17 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { successResponse } from 'src/helpers/response.helper';
 import { GetUserType } from 'src/core/dto';
-import { RiderJobStatus, UserType } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  RiderJobStatus,
+  UserType,
+} from '@prisma/client';
 import { createChargeRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { TapService } from 'src/modules/tap/tap.service';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
 dayjs.extend(utc);
 
 @Injectable()
