@@ -16,7 +16,9 @@ dayjs.extend(utc);
 import {
   BookingStatus,
   EntityType,
+  JobType,
   NotificationType,
+  RiderJobStatus,
   ServiceType,
   UserAddress,
   UserType,
@@ -64,14 +66,15 @@ export class BookingRepository {
       let dropoffLocationId: UserAddress;
       let dropoffLocation: UserAddress;
       let pickupLocation: UserAddress;
-      let response: any;
+      let pickupResponse: any;
+      let dropoffResponse: any;
 
       const attachments = [];
-
+      console.log('dto.tapAuthId: ', dto.tapAuthId);
       const tapAuthorize = await this.tapService.retrieveAuthorize(
         dto.tapAuthId,
       );
-
+      console.log('tapAuthorize: ', tapAuthorize);
       if (tapAuthorize.status === 'FAILED') {
         throw new BadRequestException('Payment is not authorized.');
       }
@@ -157,16 +160,28 @@ export class BookingRepository {
         },
       });
       if (pickupLocation && dropoffLocation) {
-        response = await mapsDistanceData(
+        pickupResponse = await mapsDistanceData(
           pickupLocation,
+          vendor.userAddress[0],
+          this.config,
+          this.httpService,
+        );
+
+        dropoffResponse = await mapsDistanceData(
+          dropoffLocation,
           vendor.userAddress[0],
           this.config,
           this.httpService,
         );
       }
 
-      const deliveryCharges = response
-        ? response?.distanceValue *
+      const pickupDeliveryCharges = pickupResponse
+        ? pickupResponse?.distanceValue *
+          (vendor?.deliverySchedule?.kilometerFare || 8.5)
+        : 0;
+
+      const dropoffDeliveryCharges = dropoffResponse
+        ? pickupResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
         : 0;
 
@@ -197,7 +212,8 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           tapAuthId: dto.tapAuthId,
-          deliveryCharges,
+          pickupDeliveryCharges,
+          dropoffDeliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
@@ -263,30 +279,30 @@ export class BookingRepository {
         });
       }
 
-      const context = {
-        first_paragraph:
-          'You have received a new booking request. Please review the details below and take necessary action:',
-        vendor_name: bookingMaster.vendor.fullName,
-        customer_name: bookingMaster.customer.fullName,
-        booking_id: bookingMaster.bookingMasterId,
-        service_type: bookingMaster.vendor.serviceType,
-        booking_date: dayjs(bookingMaster.bookingDate)
-          .utc()
-          .format('DD/MM/YYYY'),
-        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
-        total_amount: bookingMaster.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     'You have received a new booking request. Please review the details below and take necessary action:',
+      //   vendor_name: bookingMaster.vendor.fullName,
+      //   customer_name: bookingMaster.customer.fullName,
+      //   booking_id: bookingMaster.bookingMasterId,
+      //   service_type: bookingMaster.vendor.serviceType,
+      //   booking_date: dayjs(bookingMaster.bookingDate)
+      //     .utc()
+      //     .format('DD/MM/YYYY'),
+      //   booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+      //   total_amount: bookingMaster.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   bookingMaster.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -309,7 +325,7 @@ export class BookingRepository {
       if (error?.code === 'P2025') {
         throw new BadRequestException('Vendor does not exist');
       } else if (error?.code === 'P2002') {
-        throw new BadRequestException('tapAuthId already used not exist');
+        throw new BadRequestException('tapAuthId already used.');
       }
       throw error;
     }
@@ -385,7 +401,6 @@ export class BookingRepository {
             price: true,
           },
         });
-        console.log('allocatePricePrice: ', allocatePricePrice);
         bookingDetailPrice.push(
           dto.articles[i].quantity * allocatePricePrice?.price,
         );
@@ -401,7 +416,7 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           tapAuthId: dto.tapAuthId,
-          deliveryCharges,
+          pickupDeliveryCharges: deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
@@ -468,30 +483,30 @@ export class BookingRepository {
         });
       }
 
-      const context = {
-        first_paragraph:
-          'You have received a new booking request. Please review the details below and take necessary action:',
-        vendor_name: bookingMaster.vendor.fullName,
-        customer_name: bookingMaster.customer.fullName,
-        booking_id: bookingMaster.bookingMasterId,
-        service_type: bookingMaster.vendor.serviceType,
-        booking_date: dayjs(bookingMaster.bookingDate)
-          .utc()
-          .format('DD/MM/YYYY'),
-        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
-        total_amount: bookingMaster.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     'You have received a new booking request. Please review the details below and take necessary action:',
+      //   vendor_name: bookingMaster.vendor.fullName,
+      //   customer_name: bookingMaster.customer.fullName,
+      //   booking_id: bookingMaster.bookingMasterId,
+      //   service_type: bookingMaster.vendor.serviceType,
+      //   booking_date: dayjs(bookingMaster.bookingDate)
+      //     .utc()
+      //     .format('DD/MM/YYYY'),
+      //   booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+      //   total_amount: bookingMaster.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   bookingMaster.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -657,7 +672,8 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           carNumberPlate: true,
-          deliveryCharges: true,
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           tapPaymentStatus: true,
           isWithDelivery: true,
           vat: true,
@@ -976,7 +992,8 @@ export class BookingRepository {
             },
           },
           vat: true,
-          deliveryCharges: true,
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           bookingDetail: {
             select: {
               quantity: true,
@@ -1055,8 +1072,37 @@ export class BookingRepository {
   async updateVendorBookingStatus(
     bookingMasterId: number,
     dto: UpdateBookingStatusParam,
+    user: GetUserType,
   ) {
     try {
+      const findBooking = await this.prisma.bookingMaster.findUnique({
+        where: {
+          bookingMasterId,
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (
+        dto.bookingStatus === BookingStatus.In_Progress &&
+        findBooking.status === BookingStatus.Confirmed &&
+        user.serviceType === ServiceType.LAUNDRY
+      ) {
+        const job = await this.prisma.job.findFirst({
+          where: {
+            bookingMasterId,
+            jobType: JobType.PICKUP,
+            jobStatus: RiderJobStatus.Completed,
+          },
+        });
+
+        if (!job) {
+          throw new BadRequestException(
+            'You cannot change status to in progress without completing a pickup job first.',
+          );
+        }
+      }
       const booking = await this.prisma.bookingMaster.update({
         where: {
           bookingMasterId,
@@ -1100,44 +1146,48 @@ export class BookingRepository {
             email: booking.customer.email,
           },
           source: { id: 'src_card' },
-          redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+          post: {
+            // url: 'https://clevis-vendor.appnofy.com/tap/charge',
+            url: `${this.config.get('APP_URL')}/tap/charge`,
+          },
         };
         const createCharge = await this.tapService.createCharge(chargePayload);
         console.log('createCharge: ', createCharge);
       }
 
-      const context = {
-        first_paragraph:
-          booking.status === BookingStatus.Confirmed
-            ? `The booking request for ${dayjs(booking.bookingDate)
-                .utc()
-                .format('DD/MM/YYYY')} & ${dayjs(booking.bookingDate)
-                .utc()
-                .format('HH:mm')} has been accepted`
-            : booking.status === BookingStatus.In_Progress
-            ? "The status of the following booking has been changed to 'In Progress':"
-            : booking.status === BookingStatus.Completed
-            ? 'The following booking has been successfully completed:'
-            : '',
-        vendor_name: booking.vendor.fullName,
-        customer_name: booking.customer.fullName,
-        booking_id: booking.bookingMasterId,
-        service_type: booking.vendor.serviceType,
-        booking_date: dayjs(booking.bookingDate).utc().format('DD/MM/YYYY'),
-        booking_time: dayjs(booking.bookingDate).utc().format('HH:mm'),
-        total_amount: booking.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        booking.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     booking.status === BookingStatus.Confirmed
+      //       ? `The booking request for ${dayjs(booking.bookingDate)
+      //           .utc()
+      //           .format('DD/MM/YYYY')} & ${dayjs(booking.bookingDate)
+      //           .utc()
+      //           .format('HH:mm')} has been accepted`
+      //       : booking.status === BookingStatus.In_Progress
+      //       ? "The status of the following booking has been changed to 'In Progress':"
+      //       : booking.status === BookingStatus.Completed
+      //       ? 'The following booking has been successfully completed:'
+      //       : '',
+      //   vendor_name: booking.vendor.fullName,
+      //   customer_name: booking.customer.fullName,
+      //   booking_id: booking.bookingMasterId,
+      //   service_type: booking.vendor.serviceType,
+      //   booking_date: dayjs(booking.bookingDate).utc().format('DD/MM/YYYY'),
+      //   booking_time: dayjs(booking.bookingDate).utc().format('HH:mm'),
+      //   total_amount: booking.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   booking.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingStatus,
@@ -1426,13 +1476,15 @@ export class BookingRepository {
         },
         source: { id: 'src_card' },
         threeDSecure: true,
-        redirect: { url: 'https://clevis-vendor.appnofy.com/tap-payment' },
+        redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
         auto: {
           type: 'VOID',
           time: 1,
         },
+        post: {
+          url: `${this.config.get('APP_URL')}/tap/authorize`,
+        },
       };
-      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
@@ -1482,7 +1534,8 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           carNumberPlate: true,
-          deliveryCharges: true,
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           customer: {
             select: {
               fullName: true,

@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { TapService } from './tap.service';
 import { HttpModule } from '@nestjs/axios';
+import { TapController } from './tap.controller';
 
 @Global()
 @Module({
@@ -10,6 +11,7 @@ import { HttpModule } from '@nestjs/axios';
       maxRedirects: 5,
     }),
   ],
+  controllers: [TapController],
   providers: [TapService],
   exports: [TapService],
 })

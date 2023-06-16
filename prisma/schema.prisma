@@ -94,6 +94,7 @@ enum RiderJobStatus {
   Completed
   Pending
   Accepted
+  Rejected
 }
 
 enum DeviceType {
@@ -252,6 +253,7 @@ model Rider {
   companySchedule     CompanySchedule[]
   Job                 Job[]
   UpdateApproval      UpdateApproval[]
+  riderJob            RiderJob[]
 }
 
 model UserAddress {
@@ -524,14 +526,23 @@ model WorkspaceImages {
 }
 
 model Earnings {
-  id           Int         @id @default(autoincrement())
-  userMaster   UserMaster  @relation(fields: [userMasterId], references: [userMasterId])
-  userMasterId Int
-  status       Status      @default(PENDING)
-  jobType      JobType
-  serviceType  ServiceType
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @default(now()) @updatedAt
+  id              Int            @id @default(autoincrement())
+  userMasterId    Int
+  userMaster      UserMaster     @relation(fields: [userMasterId], references: [userMasterId])
+  tapAuthId       String?
+  tapChargeId     String?
+  tapMerchantId   String?
+  tapCustomerId   String?
+  amount          Float?
+  bookingMasterId Int?
+  bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+  jobId           Int?
+  job             Job?           @relation(fields: [jobId], references: [id])
+  isRefunded      Boolean        @default(false)
+  jobType         JobType?
+  serviceType     ServiceType?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
 }
 
 model RatingSetup {
@@ -565,37 +576,39 @@ model DeliverySchedule {
 }
 
 model BookingMaster {
-  bookingMasterId    Int                  @id @default(autoincrement())
-  vendorId           Int
-  customerId         Int
-  pickupLocationId   Int?
-  dropffLocationId   Int?
-  pickupTimeFrom     DateTime?
-  pickupTimeTo       DateTime?
-  dropoffTimeFrom    DateTime?
-  dropoffTimeTo      DateTime?
-  confirmationTime   DateTime?
-  completionTime     DateTime?
-  instructions       String?
-  carNumberPlate     String?
-  deliveryCharges    Float?               @default(0)
-  vat                Float?               @default(0)
-  totalPrice         Float
-  tapAuthId          String               @unique
-  isWithDelivery     Boolean              @default(false)
-  tapPaymentStatus   PaymentStatus        @default(UNPAID)
-  customer           Customer             @relation(fields: [customerId], references: [customerId])
-  vendor             Vendor               @relation(fields: [vendorId], references: [vendorId])
-  pickupLocation     UserAddress?         @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
-  dropoffLocation    UserAddress?         @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
-  bookingDate        DateTime             @default(now())
-  isDeleted          Boolean              @default(false)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @default(now()) @updatedAt
-  status             BookingStatus        @default(Pending)
-  job                Job?
-  bookingDetail      BookingDetail[]
-  bookingAttachments BookingAttachments[]
+  bookingMasterId        Int                  @id @default(autoincrement())
+  vendorId               Int
+  customerId             Int
+  pickupLocationId       Int?
+  dropffLocationId       Int?
+  pickupTimeFrom         DateTime?
+  pickupTimeTo           DateTime?
+  dropoffTimeFrom        DateTime?
+  dropoffTimeTo          DateTime?
+  confirmationTime       DateTime?
+  completionTime         DateTime?
+  instructions           String?
+  carNumberPlate         String?
+  pickupDeliveryCharges  Float?               @default(0)
+  dropoffDeliveryCharges Float?               @default(0)
+  vat                    Float?               @default(0)
+  totalPrice             Float
+  tapAuthId              String               @unique
+  isWithDelivery         Boolean              @default(false)
+  tapPaymentStatus       PaymentStatus        @default(UNPAID)
+  customer               Customer             @relation(fields: [customerId], references: [customerId])
+  vendor                 Vendor               @relation(fields: [vendorId], references: [vendorId])
+  pickupLocation         UserAddress?         @relation("PickupLocation", fields: [pickupLocationId], references: [userAddressId])
+  dropoffLocation        UserAddress?         @relation("DropoffLocation", fields: [dropffLocationId], references: [userAddressId])
+  bookingDate            DateTime             @default(now())
+  isDeleted              Boolean              @default(false)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @default(now()) @updatedAt
+  status                 BookingStatus        @default(Pending)
+  job                    Job[]
+  bookingDetail          BookingDetail[]
+  bookingAttachments     BookingAttachments[]
+  earnings               Earnings[]
 }
 
 model BookingDetail {
@@ -619,7 +632,7 @@ model BookingAttachments {
 
 model Job {
   id              Int            @id @default(autoincrement())
-  bookingMasterId Int            @unique
+  bookingMasterId Int
   jobDate         DateTime
   jobTime         DateTime
   instructions    String?
@@ -632,6 +645,17 @@ model Job {
   bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @default(now()) @updatedAt
+  riderJob        RiderJob[]
+  earnings        Earnings[]
+}
+
+model RiderJob {
+  id      String         @id @default(uuid())
+  riderId Int
+  jobId   Int
+  rider   Rider          @relation(fields: [riderId], references: [riderId])
+  job     Job            @relation(fields: [jobId], references: [id])
+  status  RiderJobStatus @default(Pending)
 }
 
 model UpdateApproval {

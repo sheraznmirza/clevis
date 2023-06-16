@@ -142,6 +142,9 @@ export interface createAuthorizedRequestInterface {
     type: string;
     time: number;
   };
+  post: {
+    url: string;
+  };
 }
 
 export interface createBusinessRequestInterface {
@@ -515,6 +518,9 @@ export interface createChargeRequestInterface {
   };
   source: { id: string };
   redirect: {
+    url: string;
+  };
+  post: {
     url: string;
   };
 }

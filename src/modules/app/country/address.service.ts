@@ -227,12 +227,18 @@ export class AddressService {
   async getAddressByCustomer(id: number) {
     try {
       const address = await this.prisma.userAddress.findMany({
-        where: { customerId: id, isDeleted: false },
+        where: {
+          customerId: id,
+          isDeleted: false,
+          cityId: {
+            equals: null,
+          },
+        },
       });
 
-      if (!address) {
-        throw new NotFoundException('Address not found');
-      }
+      // if (!address) {
+      //   throw new NotFoundException('Address not found');
+      // }
       return address;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
