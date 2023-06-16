@@ -4,7 +4,12 @@ import {
   ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
-import { CreateJobDto, GetRiderJobsDto, UpdateJobStatusDto } from './dto';
+import {
+  CreateJobDto,
+  GetRiderJobsDto,
+  GetVendorJobsDto,
+  UpdateJobStatusDto,
+} from './dto';
 import { UpdateJobDto } from './dto';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -366,7 +371,7 @@ export class JobService {
     }
   }
 
-  async getAllVendorJobs(user: GetUserType, listingParams: GetRiderJobsDto) {
+  async getAllVendorJobs(user: GetUserType, listingParams: GetVendorJobsDto) {
     const { page = 1, take = 10, search, jobType } = listingParams;
     try {
       const jobs = await this.prisma.job.findMany({
@@ -386,6 +391,13 @@ export class JobService {
               },
             },
           }),
+          ...(listingParams.timeFrom &&
+            listingParams.timeTill && {
+              jobDate: {
+                gte: listingParams.timeFrom,
+                lte: listingParams.timeTill,
+              },
+            }),
         },
         orderBy: {
           createdAt: listingParams?.orderBy || 'desc',
