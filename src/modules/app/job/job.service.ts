@@ -16,7 +16,7 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { successResponse } from 'src/helpers/response.helper';
-import { GetUserType } from 'src/core/dto';
+import { ChargeEntityTypes, GetUserType } from 'src/core/dto';
 import {
   BookingStatus,
   EntityType,
@@ -81,7 +81,7 @@ export class JobService {
           bookingMasterId: createJobDto.bookingMasterId,
         },
         data: {
-          status: BookingStatus.Completed,
+          status: BookingStatus.In_Progress,
         },
       });
 
@@ -454,6 +454,11 @@ export class JobService {
           jobStatus: true,
           jobType: true,
           riderId: true,
+          rider: {
+            select: {
+              tapMerchantId: true,
+            },
+          },
           riderJob: {
             where: {
               riderId: user.userTypeId,
@@ -466,12 +471,14 @@ export class JobService {
           },
           bookingMaster: {
             select: {
+              tapAuthId: true,
               pickupDeliveryCharges: true,
               dropoffDeliveryCharges: true,
               customer: {
                 select: {
                   fullName: true,
                   email: true,
+                  tapCustomerId: true,
                 },
               },
             },
@@ -511,26 +518,71 @@ export class JobService {
         dto.jobStatus === RiderJobStatus.Completed &&
         booking.riderId === user.userTypeId
       ) {
-        const chargePayload: createChargeRequestInterface = {
+        const platform = await this.prisma.platformSetup.findFirst({
+          orderBy: {
+            createdAt: 'desc',
+          },
+          where: {
+            isDeleted: false,
+          },
+        });
+
+        const admin = await this.prisma.admin.findUnique({
+          where: {
+            userMasterId: 1,
+          },
+          select: {
+            userMasterId: true,
+            tapBranchId: true,
+            tapBrandId: true,
+            tapBusinessEntityId: true,
+            tapBusinessId: true,
+            tapMerchantId: true,
+            tapPrimaryWalletId: true,
+            tapWalletId: true,
+          },
+        });
+
+        const riderChargePayload: createChargeRequestInterface = {
           amount:
             booking.jobType === JobType.PICKUP
               ? booking.bookingMaster.pickupDeliveryCharges
               : booking.bookingMaster.dropoffDeliveryCharges,
           currency: 'AED',
           customer: {
-            first_name: booking.bookingMaster.customer.fullName,
-            email: booking.bookingMaster.customer.email,
+            id: booking.bookingMaster.customer.tapCustomerId,
           },
-          source: { id: 'src_card' },
+          merchant: {
+            id: booking.rider.tapMerchantId,
+          },
+          source: { id: booking.bookingMaster.tapAuthId, type: 'CARD' },
           redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
           post: {
             url: `${this.config.get('APP_URL')}/tap/charge/${
               user.userMasterId
-            }/job/${jobId}`,
+            }/${ChargeEntityTypes.job}/${jobId}`,
           },
         };
-        const createCharge = await this.tapService.createCharge(chargePayload);
-        console.log('createCharge: ', createCharge);
+        await this.tapService.createCharge(riderChargePayload);
+
+        const adminChargePayload: createChargeRequestInterface = {
+          amount: platform.fee,
+          currency: 'AED',
+          customer: {
+            id: booking.bookingMaster.customer.tapCustomerId,
+          },
+          merchant: {
+            id: admin.tapMerchantId,
+          },
+          source: { id: booking.bookingMaster.tapAuthId, type: 'CARD' },
+          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+          post: {
+            url: `${this.config.get('APP_URL')}/tap/charge/${
+              user.userMasterId
+            }/${ChargeEntityTypes.job}/${jobId}`,
+          },
+        };
+        await this.tapService.createCharge(adminChargePayload);
       }
 
       if (
