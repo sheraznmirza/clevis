@@ -17,7 +17,7 @@ import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
 import { UserType } from '@prisma/client';
 import { Authorized } from 'src/core/decorators';
-import { GetRiderJobsDto, UpdateJobStatusDto } from './dto';
+import { GetRiderJobsDto, GetVendorJobsDto, UpdateJobStatusDto } from './dto';
 
 @ApiTags('Job')
 @UseGuards(JwtGuard, RolesGuard)
@@ -48,7 +48,7 @@ export class JobController {
   @Get('vendor')
   getAllVendorJobs(
     @GetUser() user: GetUserType,
-    @Query() listingParams: GetRiderJobsDto,
+    @Query() listingParams: GetVendorJobsDto,
   ) {
     return this.jobService.getAllVendorJobs(user, listingParams);
   }
