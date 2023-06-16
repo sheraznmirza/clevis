@@ -510,13 +510,12 @@ export interface createChargeRequestInterface {
   reference?: { transaction: string; order: string };
   receipt?: { email: boolean; sms: boolean };
   customer: {
-    first_name: string;
-    middle_name?: string;
-    last_name?: string;
-    email: string;
-    phone?: { country_code: number; number: number };
+    id: string;
   };
-  source: { id: string };
+  merchant: {
+    id: string;
+  };
+  source: { id: string; type: string };
   redirect: {
     url: string;
   };

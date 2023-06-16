@@ -99,6 +99,16 @@ export class NotificationService {
   ) {
     const { page = 1, take = 10 } = listingParams;
     try {
+      const userNotificationStatus =
+        await this._dbService.userMaster.findUnique({
+          where: {
+            userMasterId,
+          },
+          select: {
+            notificationEnabled: true,
+          },
+        });
+
       const notifications = await this._dbService.notification.findMany({
         where: {
           userMasterId,
@@ -129,6 +139,7 @@ export class NotificationService {
         page: +page,
         totalCount,
         totalUnreadCount,
+        notificationEnabled: userNotificationStatus.notificationEnabled,
       };
     } catch (error) {
       throw error;

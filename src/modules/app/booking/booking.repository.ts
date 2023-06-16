@@ -27,7 +27,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
 import { mapsDistanceData } from 'src/helpers/maps.helper';
-import { GetUserType } from 'src/core/dto';
+import { ChargeEntityTypes, GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
 import {
   createChargeRequestInterface,
@@ -1117,10 +1117,14 @@ export class BookingRepository {
           customerId: true,
           vendorId: true,
           status: true,
+          tapAuthId: true,
+
           vendor: {
             select: {
               fullName: true,
               serviceType: true,
+              tapMerchantId: true,
+              userMasterId: true,
               userMaster: {
                 select: {
                   email: true,
@@ -1132,6 +1136,7 @@ export class BookingRepository {
             select: {
               email: true,
               fullName: true,
+              tapCustomerId: true,
             },
           },
         },
@@ -1142,18 +1147,65 @@ export class BookingRepository {
           amount: booking.totalPrice,
           currency: 'AED',
           customer: {
-            first_name: booking.customer.fullName,
-            email: booking.customer.email,
+            id: booking.customer.tapCustomerId,
           },
-          source: { id: 'src_card' },
+          merchant: {
+            id: booking.vendor.tapMerchantId,
+          },
+          source: { id: booking.tapAuthId, type: 'CARD' },
           redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
           post: {
-            // url: 'https://clevis-vendor.appnofy.com/tap/charge',
-            url: `${this.config.get('APP_URL')}/tap/charge`,
+            url: `${this.config.get('APP_URL')}/tap/charge/${
+              booking.vendor.userMasterId
+            }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
           },
         };
         const createCharge = await this.tapService.createCharge(chargePayload);
         console.log('createCharge: ', createCharge);
+
+        const platform = await this.prisma.platformSetup.findFirst({
+          orderBy: {
+            createdAt: 'desc',
+          },
+          where: {
+            isDeleted: false,
+          },
+        });
+
+        const admin = await this.prisma.admin.findUnique({
+          where: {
+            userMasterId: 1,
+          },
+          select: {
+            userMasterId: true,
+            tapBranchId: true,
+            tapBrandId: true,
+            tapBusinessEntityId: true,
+            tapBusinessId: true,
+            tapMerchantId: true,
+            tapPrimaryWalletId: true,
+            tapWalletId: true,
+          },
+        });
+
+        const adminChargePayload: createChargeRequestInterface = {
+          amount: platform.fee,
+          currency: 'AED',
+          customer: {
+            id: booking.customer.tapCustomerId,
+          },
+          merchant: {
+            id: admin.tapMerchantId,
+          },
+          source: { id: booking.tapAuthId, type: 'CARD' },
+          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+          post: {
+            url: `${this.config.get('APP_URL')}/tap/charge/${
+              user.userMasterId
+            }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
+          },
+        };
+        await this.tapService.createCharge(adminChargePayload);
       }
 
       // const context = {

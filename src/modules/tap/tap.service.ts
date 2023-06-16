@@ -17,10 +17,16 @@ import {
 import { map } from 'rxjs';
 import AppConfig from 'src/configs/app.config';
 import { AxiosResponse } from 'axios';
+import { ChargeDto, ChargeParams } from './dto/charge.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { ChargeEntityTypes } from 'src/core/dto';
 
 @Injectable()
 export class TapService {
-  constructor(private httpService: HttpService) {}
+  constructor(
+    private httpService: HttpService,
+    private prisma: PrismaService,
+  ) {}
 
   async tapAuthorize(dto) {
     try {
@@ -30,9 +36,25 @@ export class TapService {
     }
   }
 
-  async tapCharge(dto) {
+  async tapCharge(params: ChargeParams, dto: ChargeDto) {
     try {
-      console.log('dto: ', dto);
+      if (dto.status === 'CAPTURED') {
+        await this.prisma.earnings.create({
+          data: {
+            amount: dto.amount,
+            userMasterId: +params.userMasterId,
+            ...(params.entityType === ChargeEntityTypes.booking && {
+              bookingMasterId: +params.entityId,
+            }),
+            ...(params.entityType === ChargeEntityTypes.job && {
+              jobId: +params.entityId,
+            }),
+            tapChargeId: dto.id,
+            tapCustomerId: dto.customer.id,
+            tapAuthId: dto.source.id,
+          },
+        });
+      }
     } catch (error) {
       throw error;
     }
