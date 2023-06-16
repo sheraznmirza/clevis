@@ -512,7 +512,9 @@ export class JobService {
           source: { id: 'src_card' },
           redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
           post: {
-            url: `${this.config.get('APP_URL')}/tap/authorize`,
+            url: `${this.config.get('APP_URL')}/tap/charge/${
+              user.userMasterId
+            }/job/${jobId}`,
           },
         };
         const createCharge = await this.tapService.createCharge(chargePayload);
