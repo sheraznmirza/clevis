@@ -16,6 +16,11 @@ enum OrderOf {
   desc = 'desc',
 }
 
+export enum ChargeEntityTypes {
+  booking = 'booking',
+  job = 'job',
+}
+
 enum CustomerColumns {
   fullName = 'fullName',
   phone = 'phone',
