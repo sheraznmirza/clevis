@@ -279,30 +279,30 @@ export class BookingRepository {
         });
       }
 
-      const context = {
-        first_paragraph:
-          'You have received a new booking request. Please review the details below and take necessary action:',
-        vendor_name: bookingMaster.vendor.fullName,
-        customer_name: bookingMaster.customer.fullName,
-        booking_id: bookingMaster.bookingMasterId,
-        service_type: bookingMaster.vendor.serviceType,
-        booking_date: dayjs(bookingMaster.bookingDate)
-          .utc()
-          .format('DD/MM/YYYY'),
-        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
-        total_amount: bookingMaster.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     'You have received a new booking request. Please review the details below and take necessary action:',
+      //   vendor_name: bookingMaster.vendor.fullName,
+      //   customer_name: bookingMaster.customer.fullName,
+      //   booking_id: bookingMaster.bookingMasterId,
+      //   service_type: bookingMaster.vendor.serviceType,
+      //   booking_date: dayjs(bookingMaster.bookingDate)
+      //     .utc()
+      //     .format('DD/MM/YYYY'),
+      //   booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+      //   total_amount: bookingMaster.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   bookingMaster.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -483,30 +483,30 @@ export class BookingRepository {
         });
       }
 
-      const context = {
-        first_paragraph:
-          'You have received a new booking request. Please review the details below and take necessary action:',
-        vendor_name: bookingMaster.vendor.fullName,
-        customer_name: bookingMaster.customer.fullName,
-        booking_id: bookingMaster.bookingMasterId,
-        service_type: bookingMaster.vendor.serviceType,
-        booking_date: dayjs(bookingMaster.bookingDate)
-          .utc()
-          .format('DD/MM/YYYY'),
-        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
-        total_amount: bookingMaster.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     'You have received a new booking request. Please review the details below and take necessary action:',
+      //   vendor_name: bookingMaster.vendor.fullName,
+      //   customer_name: bookingMaster.customer.fullName,
+      //   booking_id: bookingMaster.bookingMasterId,
+      //   service_type: bookingMaster.vendor.serviceType,
+      //   booking_date: dayjs(bookingMaster.bookingDate)
+      //     .utc()
+      //     .format('DD/MM/YYYY'),
+      //   booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+      //   total_amount: bookingMaster.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   bookingMaster.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
