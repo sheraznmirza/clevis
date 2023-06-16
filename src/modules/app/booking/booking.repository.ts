@@ -1160,29 +1160,52 @@ export class BookingRepository {
             }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
           },
         };
-
-        //   const charge2Payload: createChargeRequestInterface = {
-        //     "amount": 2,
-        //   "currency":"AED", // Optional: Add your custom reference
-        //   "source": {
-        //     "id": "auth_TS01A4620231319u8HO1606619",
-        //     "type": "CARD"
-        // },
-        //     "customer": {
-        //         "id": "cus_TS03A1020232055Ze881506968"
-        //     },
-        //     "post": {
-        //     "url": "https://clevis-stg.appnofy.com/tap/charge"
-        //   },
-        //   "redirect": {
-        //     "url": "https://clevis-stg.appnofy.com/tap-payment"
-        //   },
-        //   "merchant": {
-        //     "id": "merchant_HOKN592316570VUP15Wx5Q383"
-        //   }
-        // }
         const createCharge = await this.tapService.createCharge(chargePayload);
         console.log('createCharge: ', createCharge);
+
+        const platform = await this.prisma.platformSetup.findFirst({
+          orderBy: {
+            createdAt: 'desc',
+          },
+          where: {
+            isDeleted: false,
+          },
+        });
+
+        const admin = await this.prisma.admin.findUnique({
+          where: {
+            userMasterId: 1,
+          },
+          select: {
+            userMasterId: true,
+            tapBranchId: true,
+            tapBrandId: true,
+            tapBusinessEntityId: true,
+            tapBusinessId: true,
+            tapMerchantId: true,
+            tapPrimaryWalletId: true,
+            tapWalletId: true,
+          },
+        });
+
+        const adminChargePayload: createChargeRequestInterface = {
+          amount: platform.fee,
+          currency: 'AED',
+          customer: {
+            id: booking.customer.tapCustomerId,
+          },
+          merchant: {
+            id: admin.tapMerchantId,
+          },
+          source: { id: booking.tapAuthId, type: 'CARD' },
+          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+          post: {
+            url: `${this.config.get('APP_URL')}/tap/charge/${
+              user.userMasterId
+            }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
+          },
+        };
+        await this.tapService.createCharge(adminChargePayload);
       }
 
       // const context = {

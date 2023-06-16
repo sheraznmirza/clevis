@@ -173,11 +173,18 @@ model Otp {
 }
 
 model Admin {
-  id           Int        @id @default(autoincrement())
-  email        String     @unique
-  userMasterId Int        @unique
-  userMaster   UserMaster @relation(fields: userMasterId, references: userMasterId)
-  fullName     String
+  id                  Int        @id @default(autoincrement())
+  email               String     @unique
+  userMasterId        Int        @unique
+  userMaster          UserMaster @relation(fields: userMasterId, references: userMasterId)
+  fullName            String
+  tapBusinessId       String?
+  tapBusinessEntityId String?
+  tapBranchId         String?
+  tapBrandId          String?
+  tapMerchantId       String?
+  tapPrimaryWalletId  String?
+  tapWalletId         String?
 }
 
 model Customer {
