@@ -382,6 +382,8 @@ export class VendorRepository {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
               companyName:
                 dto.companyName !== null ? dto.companyName : undefined,
+              description:
+                dto.description !== null ? dto.description : undefined,
               // companyEmail:
               //   dto.companyEmail !== null ? dto.companyEmail : undefined,
               logoId: logo ? logo.id : undefined,
@@ -545,8 +547,6 @@ export class VendorRepository {
           earnings: {
             select: {
               id: true,
-              jobType: true,
-              serviceType: true,
             },
           },
         },
@@ -1190,8 +1190,6 @@ export class VendorRepository {
           earnings: {
             select: {
               id: true,
-              jobType: true,
-              serviceType: true,
             },
           },
         },

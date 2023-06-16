@@ -27,7 +27,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs';
 import { mapsDistanceData } from 'src/helpers/maps.helper';
-import { GetUserType } from 'src/core/dto';
+import { ChargeEntityTypes, GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
 import {
   createChargeRequestInterface,
@@ -1117,10 +1117,14 @@ export class BookingRepository {
           customerId: true,
           vendorId: true,
           status: true,
+          tapAuthId: true,
+
           vendor: {
             select: {
               fullName: true,
               serviceType: true,
+              tapMerchantId: true,
+              userMasterId: true,
               userMaster: {
                 select: {
                   email: true,
@@ -1132,6 +1136,7 @@ export class BookingRepository {
             select: {
               email: true,
               fullName: true,
+              tapCustomerId: true,
             },
           },
         },
@@ -1142,16 +1147,40 @@ export class BookingRepository {
           amount: booking.totalPrice,
           currency: 'AED',
           customer: {
-            first_name: booking.customer.fullName,
-            email: booking.customer.email,
+            id: booking.customer.tapCustomerId,
           },
-          source: { id: 'src_card' },
+          merchant: {
+            id: booking.vendor.tapMerchantId,
+          },
+          source: { id: booking.tapAuthId, type: 'CARD' },
           redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
           post: {
-            // url: 'https://clevis-vendor.appnofy.com/tap/charge',
-            url: `${this.config.get('APP_URL')}/tap/charge`,
+            url: `${this.config.get('APP_URL')}/tap/charge/${
+              booking.vendor.userMasterId
+            }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
           },
         };
+
+        //   const charge2Payload: createChargeRequestInterface = {
+        //     "amount": 2,
+        //   "currency":"AED", // Optional: Add your custom reference
+        //   "source": {
+        //     "id": "auth_TS01A4620231319u8HO1606619",
+        //     "type": "CARD"
+        // },
+        //     "customer": {
+        //         "id": "cus_TS03A1020232055Ze881506968"
+        //     },
+        //     "post": {
+        //     "url": "https://clevis-stg.appnofy.com/tap/charge"
+        //   },
+        //   "redirect": {
+        //     "url": "https://clevis-stg.appnofy.com/tap-payment"
+        //   },
+        //   "merchant": {
+        //     "id": "merchant_HOKN592316570VUP15Wx5Q383"
+        //   }
+        // }
         const createCharge = await this.tapService.createCharge(chargePayload);
         console.log('createCharge: ', createCharge);
       }

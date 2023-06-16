@@ -539,8 +539,6 @@ model Earnings {
   jobId           Int?
   job             Job?           @relation(fields: [jobId], references: [id])
   isRefunded      Boolean        @default(false)
-  jobType         JobType?
-  serviceType     ServiceType?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @default(now()) @updatedAt
 }
