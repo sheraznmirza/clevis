@@ -976,6 +976,7 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          isWithDelivery: true,
           customer: {
             select: {
               fullName: true,
