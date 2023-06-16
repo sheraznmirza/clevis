@@ -279,30 +279,30 @@ export class BookingRepository {
         });
       }
 
-      const context = {
-        first_paragraph:
-          'You have received a new booking request. Please review the details below and take necessary action:',
-        vendor_name: bookingMaster.vendor.fullName,
-        customer_name: bookingMaster.customer.fullName,
-        booking_id: bookingMaster.bookingMasterId,
-        service_type: bookingMaster.vendor.serviceType,
-        booking_date: dayjs(bookingMaster.bookingDate)
-          .utc()
-          .format('DD/MM/YYYY'),
-        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
-        total_amount: bookingMaster.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     'You have received a new booking request. Please review the details below and take necessary action:',
+      //   vendor_name: bookingMaster.vendor.fullName,
+      //   customer_name: bookingMaster.customer.fullName,
+      //   booking_id: bookingMaster.bookingMasterId,
+      //   service_type: bookingMaster.vendor.serviceType,
+      //   booking_date: dayjs(bookingMaster.bookingDate)
+      //     .utc()
+      //     .format('DD/MM/YYYY'),
+      //   booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+      //   total_amount: bookingMaster.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   bookingMaster.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -325,7 +325,7 @@ export class BookingRepository {
       if (error?.code === 'P2025') {
         throw new BadRequestException('Vendor does not exist');
       } else if (error?.code === 'P2002') {
-        throw new BadRequestException('tapAuthId already used not exist');
+        throw new BadRequestException('tapAuthId already used.');
       }
       throw error;
     }
@@ -483,30 +483,30 @@ export class BookingRepository {
         });
       }
 
-      const context = {
-        first_paragraph:
-          'You have received a new booking request. Please review the details below and take necessary action:',
-        vendor_name: bookingMaster.vendor.fullName,
-        customer_name: bookingMaster.customer.fullName,
-        booking_id: bookingMaster.bookingMasterId,
-        service_type: bookingMaster.vendor.serviceType,
-        booking_date: dayjs(bookingMaster.bookingDate)
-          .utc()
-          .format('DD/MM/YYYY'),
-        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
-        total_amount: bookingMaster.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     'You have received a new booking request. Please review the details below and take necessary action:',
+      //   vendor_name: bookingMaster.vendor.fullName,
+      //   customer_name: bookingMaster.customer.fullName,
+      //   booking_id: bookingMaster.bookingMasterId,
+      //   service_type: bookingMaster.vendor.serviceType,
+      //   booking_date: dayjs(bookingMaster.bookingDate)
+      //     .utc()
+      //     .format('DD/MM/YYYY'),
+      //   booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+      //   total_amount: bookingMaster.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   bookingMaster.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -1156,38 +1156,38 @@ export class BookingRepository {
         console.log('createCharge: ', createCharge);
       }
 
-      const context = {
-        first_paragraph:
-          booking.status === BookingStatus.Confirmed
-            ? `The booking request for ${dayjs(booking.bookingDate)
-                .utc()
-                .format('DD/MM/YYYY')} & ${dayjs(booking.bookingDate)
-                .utc()
-                .format('HH:mm')} has been accepted`
-            : booking.status === BookingStatus.In_Progress
-            ? "The status of the following booking has been changed to 'In Progress':"
-            : booking.status === BookingStatus.Completed
-            ? 'The following booking has been successfully completed:'
-            : '',
-        vendor_name: booking.vendor.fullName,
-        customer_name: booking.customer.fullName,
-        booking_id: booking.bookingMasterId,
-        service_type: booking.vendor.serviceType,
-        booking_date: dayjs(booking.bookingDate).utc().format('DD/MM/YYYY'),
-        booking_time: dayjs(booking.bookingDate).utc().format('HH:mm'),
-        total_amount: booking.totalPrice,
-        app_name: this.config.get('APP_NAME'),
-        // app_url: this.config.get(dynamicUrl(user.userType)),
-        copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        // otp: randomOtp,
-      };
-      await this.mail.sendEmail(
-        booking.vendor.userMaster.email,
-        this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - New Booking`,
-        'vendor-accept-booking', // `.hbs` extension is appended automatically
-        context,
-      );
+      // const context = {
+      //   first_paragraph:
+      //     booking.status === BookingStatus.Confirmed
+      //       ? `The booking request for ${dayjs(booking.bookingDate)
+      //           .utc()
+      //           .format('DD/MM/YYYY')} & ${dayjs(booking.bookingDate)
+      //           .utc()
+      //           .format('HH:mm')} has been accepted`
+      //       : booking.status === BookingStatus.In_Progress
+      //       ? "The status of the following booking has been changed to 'In Progress':"
+      //       : booking.status === BookingStatus.Completed
+      //       ? 'The following booking has been successfully completed:'
+      //       : '',
+      //   vendor_name: booking.vendor.fullName,
+      //   customer_name: booking.customer.fullName,
+      //   booking_id: booking.bookingMasterId,
+      //   service_type: booking.vendor.serviceType,
+      //   booking_date: dayjs(booking.bookingDate).utc().format('DD/MM/YYYY'),
+      //   booking_time: dayjs(booking.bookingDate).utc().format('HH:mm'),
+      //   total_amount: booking.totalPrice,
+      //   app_name: this.config.get('APP_NAME'),
+      //   // app_url: this.config.get(dynamicUrl(user.userType)),
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      //   // otp: randomOtp,
+      // };
+      // await this.mail.sendEmail(
+      //   booking.vendor.userMaster.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - New Booking`,
+      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
+      //   context,
+      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingStatus,
