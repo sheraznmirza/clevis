@@ -168,5 +168,5 @@ export class EarningService {
     });
   }
 
-  async getDetail() {}
+  async getDetail(userType: number, dto: VendorEarning) {}
 }

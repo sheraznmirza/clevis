@@ -29,14 +29,14 @@ export class EarningController {
   }
 
   @Authorized(UserType.RIDER)
-  @Get('rider')
+  @Get('rider/')
   getRiderEarning(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
     return this.earningservice.getRiderEarning(user.userTypeId, dto);
   }
 
-  //   @Authorized(UserType.RIDER)
-  //   @Get('detail')
-  // getDetail(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
-  //     return this.earningservice.getDetail(user.userTypeId, dto);
-  //   }
+  @Authorized(UserType.RIDER)
+  @Get('detail')
+  getDetail(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
+    return this.earningservice.getDetail(user.userTypeId, dto);
+  }
 }
