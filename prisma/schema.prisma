@@ -526,14 +526,23 @@ model WorkspaceImages {
 }
 
 model Earnings {
-  id           Int         @id @default(autoincrement())
-  userMaster   UserMaster  @relation(fields: [userMasterId], references: [userMasterId])
-  userMasterId Int
-  status       Status      @default(PENDING)
-  jobType      JobType
-  serviceType  ServiceType
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @default(now()) @updatedAt
+  id              Int            @id @default(autoincrement())
+  userMasterId    Int
+  userMaster      UserMaster     @relation(fields: [userMasterId], references: [userMasterId])
+  tapAuthId       String?
+  tapChargeId     String?
+  tapMerchantId   String?
+  tapCustomerId   String?
+  amount          Float?
+  bookingMasterId Int?
+  bookingMaster   BookingMaster? @relation(fields: [bookingMasterId], references: [bookingMasterId])
+  jobId           Int?
+  job             Job?           @relation(fields: [jobId], references: [id])
+  isRefunded      Boolean        @default(false)
+  jobType         JobType?
+  serviceType     ServiceType?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
 }
 
 model RatingSetup {
@@ -599,6 +608,7 @@ model BookingMaster {
   job                    Job[]
   bookingDetail          BookingDetail[]
   bookingAttachments     BookingAttachments[]
+  earnings               Earnings[]
 }
 
 model BookingDetail {
@@ -636,6 +646,7 @@ model Job {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @default(now()) @updatedAt
   riderJob        RiderJob[]
+  earnings        Earnings[]
 }
 
 model RiderJob {

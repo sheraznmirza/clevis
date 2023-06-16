@@ -263,6 +263,7 @@ export class JobService {
         select: {
           id: true,
           jobType: true,
+          jobStatus: true,
           jobDate: true,
           jobTime: true,
           bookingMaster: {
@@ -472,9 +473,12 @@ export class JobService {
         );
       }
 
-      if (booking.jobStatus === RiderJobStatus.Completed) {
+      if (
+        booking.jobStatus === RiderJobStatus.Completed ||
+        booking.jobStatus === RiderJobStatus.Rejected
+      ) {
         throw new BadRequestException(
-          'Job is already completed and cannot be changed',
+          `Job is already ${booking.jobStatus.toLowerCase()} and cannot be changed`,
         );
       }
 
