@@ -1069,6 +1069,23 @@ export class AuthService {
             'vendorApprovedRejected',
             context,
           );
+
+          // const context2 = {
+          //   app_name: this.config.get('APP_NAME'),
+          //   app_url: `${this.config.get(dynamicUrl(user.userType))}`,
+          //   first_name: user[user.userType.toLowerCase()].fullName,
+          //   message: `${`${
+          //     user[user.userType.toLowerCase()].fullName
+          //   } has signed up and waiting for approval.`}`,
+          //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+          // };
+          // await this.mail.sendEmail(
+          //   this.config.get(user.email),
+          //   this.config.get('MAIL_NO_REPLY'),
+          //   this.config.get('APP_NAME'),
+          //   'vendorApprovedRejected',
+          //   context,
+          // );
         }
 
         if (user.userType === UserType.RIDER || UserType.VENDOR) {
