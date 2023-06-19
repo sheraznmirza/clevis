@@ -198,6 +198,7 @@ model Customer {
   userAddress   UserAddress[]
   bookingMaster BookingMaster[]
   customerCards CustomerCards[]
+  review        Review[]
 }
 
 model Vendor {
@@ -231,6 +232,7 @@ model Vendor {
   bookingMaster       BookingMaster[]
   UpdateApproval      UpdateApproval[]
   Job                 Job[]
+  review              Review[]
 }
 
 model Rider {
@@ -703,4 +705,17 @@ model CustomerCards {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @default(now()) @updatedAt
   customer       Customer @relation(fields: [customerId], references: [customerId])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  body       String
+  customerId Int
+  vendorId   Int
+  rating     Float
+  customer   Customer @relation(fields: [customerId], references: [customerId])
+  vendor     Vendor   @relation(fields: [vendorId], references: [vendorId])
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }

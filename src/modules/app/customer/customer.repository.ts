@@ -495,6 +495,9 @@ export class CustomerRepository {
             customer: {
               select: {
                 userAddress: {
+                  orderBy: {
+                    createdAt: 'desc',
+                  },
                   where: {
                     cityId: { not: null },
                   },
@@ -527,22 +530,23 @@ export class CustomerRepository {
             vendor: {
               status: Status.APPROVED,
               serviceType: dto.serviceType,
-              // userAddress: {
-              //   some: {
-              //     cityId: customerCity.customer.userAddress[0].cityId,
-              //     isDeleted: false,
-              //   },
-              // },
-              // ...(serviceIds &&
-              //   serviceIds.length > 0 && {
-              //     vendorService: {
-              //       some: {
-              //         serviceId: {
-              //           in: serviceIds,
-              //         },
-              //       },
-              //     },
-              //   }),
+              userAddress: {
+                some: {
+                  // cityId: customerCity.customer.userAddress[0].cityId,
+                  cityId: 32,
+                  isDeleted: false,
+                },
+              },
+              ...(serviceIds &&
+                serviceIds.length > 0 && {
+                  vendorService: {
+                    some: {
+                      serviceId: {
+                        in: serviceIds,
+                      },
+                    },
+                  },
+                }),
 
               // companySchedule: {
               //   some: {
@@ -569,9 +573,9 @@ export class CustomerRepository {
               //     }),
               //   },
               // },
-              // ...(vendorStatus === VendorStatus.BUSY && {
-              //   isBusy: true,
-              // }),
+              ...(vendorStatus === VendorStatus.BUSY && {
+                isBusy: true,
+              }),
               ...(search && {
                 companyName: {
                   contains: search,
