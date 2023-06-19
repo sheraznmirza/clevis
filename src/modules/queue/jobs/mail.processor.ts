@@ -8,6 +8,7 @@ import { AuthService } from 'src/modules/app/auth/auth.service';
 import { UserType } from '@prisma/client';
 import { VendorUpdateStatusDto } from 'src/modules/app/vendor/dto';
 import { VendorService } from 'src/modules/app/vendor/vendor.service';
+import { RiderService } from 'src/modules/app/rider/rider.service';
 
 @Injectable()
 @Processor(AppConfig.QUEUE.NAME.MAIL)
@@ -16,6 +17,7 @@ export class MailProcessor {
     private readonly mailService: MailService,
     private readonly authService: AuthService,
     private readonly vendorService: VendorService,
+    private readonly riderService: RiderService,
   ) {}
 
   @Process(AppConfig.QUEUE.JOBS.SEND_VERIFICATION_EMAIL)
@@ -43,16 +45,22 @@ export class MailProcessor {
   }
 
   @Process(AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL)
-  async createBusinessMerchantForVendorRider(job: Job) {
+  async createBusinessMerchantForVendor(job: Job) {
     const { user, vendor, dto } = job.data;
     try {
-      this.vendorService._createBusinessMerchantForVendorRider(
-        user,
-        vendor,
-        dto,
-      );
+      this.vendorService._createBusinessMerchantForVendor(user, vendor, dto);
     } catch (error) {
-      console.error('Error creating merchant and business:', error);
+      console.error('Error creating in Vendor merchant and business:', error);
     }
   }
+
+  // @Process(AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL)
+  // async createBusinessMerchantForRider(job: Job) {
+  //   const { user, rider, dto } = job.data;
+  //   try {
+  //     this.riderService._createBusinessMerchantForRider(user, rider, dto);
+  //   } catch (error) {
+  //     console.error('Error creating in rider merchant and business:', error);
+  //   }
+  // }
 }
