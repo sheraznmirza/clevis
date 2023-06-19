@@ -150,7 +150,6 @@ export class EarningService {
       select: {
         createdAt: true,
         jobId: true,
-        jobType: true,
         amount: true,
         bookingMaster: {
           select: {
