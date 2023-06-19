@@ -1,13 +1,14 @@
 import { BullModule } from '@nestjs/bull';
 import { Global, Module } from '@nestjs/common';
 import AppConfig from 'src/configs/app.config';
+import { AuthModule } from '../app/auth/auth.module';
+import { RiderModule } from '../app/rider/rider.module';
+import { VendorModule } from '../app/vendor/vendor.module';
+import { VendorRepository } from '../app/vendor/vendor.repository';
+import { VendorService } from '../app/vendor/vendor.service';
+import { MailModule } from '../mail/mail.module';
 import { BullQueueService } from './bull-queue.service';
 import { MailProcessor } from './jobs/mail.processor';
-import { MailModule } from '../mail/mail.module';
-import { AuthModule } from '../app/auth/auth.module';
-import { VendorModule } from '../app/vendor/vendor.module';
-import { VendorService } from '../app/vendor/vendor.service';
-import { VendorRepository } from '../app/vendor/vendor.repository';
 
 @Global()
 @Module({
@@ -22,6 +23,7 @@ import { VendorRepository } from '../app/vendor/vendor.repository';
     MailModule,
     AuthModule,
     VendorModule,
+    RiderModule,
   ],
   providers: [BullQueueService, MailProcessor, VendorService, VendorRepository],
   exports: [BullQueueService],

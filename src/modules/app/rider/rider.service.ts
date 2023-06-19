@@ -30,6 +30,7 @@ import {
   createMerchantRequestInterface,
 } from 'src/modules/tap/dto/card.dto';
 import { TapService } from 'src/modules/tap/tap.service';
+import { BullQueueService } from 'src/modules/queue/bull-queue.service';
 
 @Injectable()
 export class RiderService {
@@ -40,6 +41,7 @@ export class RiderService {
     private prisma: PrismaService,
     private tapService: TapService,
     private notification: NotificationService,
+    private queue: BullQueueService,
   ) {}
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
@@ -97,6 +99,203 @@ export class RiderService {
         },
       });
 
+      // const payload: createBusinessRequestInterface = {
+      //   name: {
+      //     en: user.rider.companyName,
+      //   },
+      //   type: 'corp',
+      //   entity: {
+      //     legal_name: {
+      //       en: user.rider.companyName,
+      //     },
+      //     is_licensed: false,
+      //     country: user.rider.userAddress[0].city.State.country.shortName,
+      //     billing_address: {
+      //       recipient_name: user.rider.fullName,
+      //       address_1: user.rider.userAddress[0].fullAddress,
+      //       city: user.rider.userAddress[0].city.cityName,
+      //       state: user.rider.userAddress[0].city.State.stateName,
+      //       country: user.rider.userAddress[0].city.State.country.shortName,
+      //     },
+      //   },
+      //   contact_person: {
+      //     name: {
+      //       first: user.rider.fullName.split(' ')[0],
+      //       last: user.rider.fullName.split(' ')[1],
+      //     },
+
+      //     contact_info: {
+      //       primary: {
+      //         email: user.email,
+      //         phone: {
+      //           country_code:
+      //             user.rider.userAddress[0].city.State.country.countryCode,
+      //           number: user.phone.replace('+', ''),
+      //         },
+      //       },
+      //     },
+      //     authorization: {
+      //       name: {
+      //         first: user.rider.fullName.split(' ')[0],
+      //         last: user.rider.fullName.split(' ')[1],
+      //       },
+      //     },
+      //   },
+      //   brands: [
+      //     {
+      //       name: {
+      //         en: user.rider.companyName,
+      //       },
+      //     },
+      //   ],
+      // };
+      // const tapbusiness = await this.tapService.createBusniess(payload);
+
+      // const merchantPayload: createMerchantRequestInterface = {
+      //   display_name: user.rider.fullName,
+      //   branch_id: tapbusiness.entity.branches[0].id,
+      //   brand_id: tapbusiness.brands[0].id,
+      //   business_entity_id: tapbusiness.entity.id,
+      //   business_id: tapbusiness.id,
+      // };
+
+      // const merchantTap = await this.tapService.createMerchant(merchantPayload);
+      // await this.prisma.rider.update({
+      //   where: {
+      //     riderId: user.rider.riderId,
+      //   },
+      //   data: {
+      //     tapBusinessId: tapbusiness.id,
+      //     tapBranchId: tapbusiness.entity.branches[0].id,
+      //     tapBrandId: tapbusiness.brands[0].id,
+      //     tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
+      //     tapBusinessEntityId: tapbusiness.entity.id,
+      //     tapMerchantId: merchantTap.id,
+      //     tapWalletId: merchantTap.wallets.id,
+      //   },
+      // });
+      // const context = {
+      //   app_name: this.config.get('APP_NAME'),
+      //   app_url: `${this.config.get(dynamicUrl(rider.userType))}`,
+      //   first_name: rider.fullName,
+      //   message:
+      //     rider.status === Status.APPROVED
+      //       ? 'Your account has been approved. You can now log in and start your journey with us!'
+      //       : 'Your account has been rejected. Please contact our support for further information.',
+      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      // };
+      // // await this.notification.HandleNotifications()
+      // await this.mail.sendEmail(
+      //   rider.email,
+      //   this.config.get('MAIL_ADMIN'),
+      //   `${this.config.get('APP_NAME')} - ${
+      //     rider.userType[0] + rider.userType.slice(1).toLowerCase()
+      //   } ${rider.status.toLowerCase()}`,
+      //   'vendorApprovedRejected',
+      //   context, // `.hbs` extension is appended automatically
+      // );
+
+      this.queue.createBusinessAndMerchantForRider(user, rider, dto);
+      if (!rider) {
+        throw unknowError(404, {}, 'Rider does not exist');
+      } else {
+        return successResponse(
+          200,
+          `Rider successfully ${rider.status.toLowerCase()}.`,
+        );
+      }
+    } catch (error) {
+      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
+    }
+  }
+
+  async requestUpdate(dto: UpdateRequestDto, riderId: number) {
+    try {
+      return await this.repository.requestUpdate(dto, riderId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateRiderSchedule(riderId: number, dto: UpdateRiderScheduleDto) {
+    try {
+      if (dto.alwaysOpen) {
+        dto.companySchedule = setAlwaysOpen(dto.companySchedule);
+      } else {
+        if (dto.companySchedule) {
+          const isValid = dto.companySchedule.every((day) => {
+            return (
+              dayjs(day.endTime).isValid() && dayjs(day.startTime).isValid()
+            );
+          });
+
+          if (!isValid) {
+            throw new BadRequestException(
+              'Please provide valid start and end times for the companySchedule.',
+            );
+          }
+        }
+      }
+      dto.companySchedule = convertDateTimeToTimeString(dto.companySchedule);
+      return await this.repository.updateRiderSchedule(riderId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRiderById(id: number, query?: VendorRiderByIdParams) {
+    try {
+      if (query) {
+        switch (query.tabName) {
+          case RiderVendorTabs.PROFILE:
+            return await this.repository.getRiderByIdProfile(id);
+          case RiderVendorTabs.COMPANY_PROFILE:
+            return await this.repository.getRiderByIdCompany(id);
+          case RiderVendorTabs.ACCOUNT_DETAILS:
+            return await this.repository.getRiderByIdAccount(id);
+          case RiderVendorTabs.COMPANY_SCHEDULE:
+            return await this.repository.getRiderByIdSchedule(id);
+          default:
+            return await this.repository.getRiderById(id);
+        }
+      } else {
+        return await this.repository.getRiderById(id);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateRider(userMasterId: number, dto: RiderUpdateDto) {
+    try {
+      return await this.repository.updateRider(userMasterId, dto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteRider(id: number) {
+    try {
+      return await this.repository.deleteRider(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllRiders(listingParams: RiderListingParams) {
+    try {
+      return await this.repository.getAllRiders(listingParams);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async _createBusinessMerchantForRider(
+    user,
+    rider,
+    dto: RiderUpdateStatusDto,
+  ) {
+    try {
       const payload: createBusinessRequestInterface = {
         name: {
           en: user.rider.companyName,
@@ -192,98 +391,6 @@ export class RiderService {
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );
-
-      if (!rider) {
-        throw unknowError(404, {}, 'Rider does not exist');
-      } else {
-        return successResponse(
-          200,
-          `Rider successfully ${rider.status.toLowerCase()}.`,
-        );
-      }
-    } catch (error) {
-      throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
-    }
-  }
-
-  async requestUpdate(dto: UpdateRequestDto, riderId: number) {
-    try {
-      return await this.repository.requestUpdate(dto, riderId);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async updateRiderSchedule(riderId: number, dto: UpdateRiderScheduleDto) {
-    try {
-      if (dto.alwaysOpen) {
-        dto.companySchedule = setAlwaysOpen(dto.companySchedule);
-      } else {
-        if (dto.companySchedule) {
-          const isValid = dto.companySchedule.every((day) => {
-            return (
-              dayjs(day.endTime).isValid() && dayjs(day.startTime).isValid()
-            );
-          });
-
-          if (!isValid) {
-            throw new BadRequestException(
-              'Please provide valid start and end times for the companySchedule.',
-            );
-          }
-        }
-      }
-      dto.companySchedule = convertDateTimeToTimeString(dto.companySchedule);
-      return await this.repository.updateRiderSchedule(riderId, dto);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getRiderById(id: number, query?: VendorRiderByIdParams) {
-    try {
-      if (query) {
-        switch (query.tabName) {
-          case RiderVendorTabs.PROFILE:
-            return await this.repository.getRiderByIdProfile(id);
-          case RiderVendorTabs.COMPANY_PROFILE:
-            return await this.repository.getRiderByIdCompany(id);
-          case RiderVendorTabs.ACCOUNT_DETAILS:
-            return await this.repository.getRiderByIdAccount(id);
-          case RiderVendorTabs.COMPANY_SCHEDULE:
-            return await this.repository.getRiderByIdSchedule(id);
-          default:
-            return await this.repository.getRiderById(id);
-        }
-      } else {
-        return await this.repository.getRiderById(id);
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async updateRider(userMasterId: number, dto: RiderUpdateDto) {
-    try {
-      return await this.repository.updateRider(userMasterId, dto);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async deleteRider(id: number) {
-    try {
-      return await this.repository.deleteRider(id);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getAllRiders(listingParams: RiderListingParams) {
-    try {
-      return await this.repository.getAllRiders(listingParams);
-    } catch (error) {
-      throw error;
-    }
+    } catch (error) {}
   }
 }

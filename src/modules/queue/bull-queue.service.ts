@@ -4,6 +4,7 @@ import { UserType } from '@prisma/client';
 import { Queue } from 'bull';
 import AppConfig from 'src/configs/app.config';
 import { VendorUpdateStatusDto } from '../app/vendor/dto';
+import { RiderUpdateStatusDto } from '../app/rider/dto';
 
 @Injectable()
 export class BullQueueService {
@@ -41,6 +42,22 @@ export class BullQueueService {
       AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL,
       {
         vendor,
+        user,
+        dto,
+      },
+      { lifo: false },
+    );
+  }
+
+  async createBusinessAndMerchantForRider(
+    user,
+    rider,
+    dto: RiderUpdateStatusDto,
+  ) {
+    await this.emailQueue.add(
+      AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL,
+      {
+        rider,
         user,
         dto,
       },

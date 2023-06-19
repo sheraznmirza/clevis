@@ -148,13 +148,26 @@ export class EarningService {
         },
       },
       select: {
+        job: {
+          select: {
+            jobType: true,
+          },
+        },
         createdAt: true,
         jobId: true,
         amount: true,
         bookingMaster: {
           select: {
-            pickupLocationId: true,
-            dropffLocationId: true,
+            pickupLocation: {
+              select: {
+                fullAddress: true,
+              },
+            },
+            dropoffLocation: {
+              select: {
+                fullAddress: true,
+              },
+            },
             status: true,
             customer: {
               select: {
@@ -167,5 +180,107 @@ export class EarningService {
     });
   }
 
-  async getDetail() {}
+  async getDetailRider(id: number) {
+    await this.prisma.earnings.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        createdAt: true,
+        jobId: true,
+        amount: true,
+        bookingMaster: {
+          select: {
+            vendor: {
+              select: {
+                fullName: true,
+                companyName: true,
+                userMaster: {
+                  select: {
+                    phone: true,
+                  },
+                },
+              },
+            },
+            dropoffLocation: {
+              select: {
+                fullAddress: true,
+              },
+            },
+            pickupLocation: {
+              select: {
+                fullAddress: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getDetailVendor(id: number) {
+    try {
+      await this.prisma.earnings.findUnique({
+        where: {
+          id,
+        },
+
+        select: {
+          bookingMasterId: true,
+          createdAt: true,
+          amount: true,
+          bookingMaster: {
+            select: {
+              customer: {
+                select: {
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getDetailAdmin(id: number) {
+    const platform = await this.prisma.platformSetup.findFirst({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: {
+        isDeleted: false,
+      },
+      select: {
+        fee: true,
+      },
+    });
+
+    const result = await this.prisma.earnings.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        createdAt: true,
+        bookingMasterId: true,
+        bookingMaster: {
+          select: {
+            customer: {
+              select: {
+                fullName: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return {
+      amount: platform.fee,
+      ...result,
+    };
+  }
 }

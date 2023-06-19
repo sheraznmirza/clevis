@@ -19,5 +19,6 @@ import { HttpModule } from '@nestjs/axios';
     TapService,
   ],
   controllers: [RiderController],
+  exports: [RiderService],
 })
 export class RiderModule {}

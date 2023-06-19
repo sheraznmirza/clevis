@@ -477,7 +477,7 @@ export class VendorService {
   //   }
   // }
 
-  async _createBusinessMerchantForVendorRider(
+  async _createBusinessMerchantForVendor(
     user,
     vendor,
     dto: VendorUpdateStatusDto,
