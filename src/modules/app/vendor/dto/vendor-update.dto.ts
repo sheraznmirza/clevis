@@ -112,12 +112,6 @@ export class UpdateVendorDto {
   @Type(() => MediaFormat)
   logo: MediaFormat;
 
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  companyName: string;
-
   // @ApiProperty()
   // @IsEmail()
   // @IsOptional()

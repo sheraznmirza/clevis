@@ -25,6 +25,7 @@ export class AdminRepository {
         skip: +take * (+page - 1),
         select: {
           companyEmail: true,
+          companyName: true,
           status: true,
         },
       });

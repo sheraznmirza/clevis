@@ -668,6 +668,7 @@ model RiderJob {
 model UpdateApproval {
   id                 Int     @id @default(autoincrement())
   companyEmail       String?
+  companyName        String?
   businessLicenseIds String?
   vendorId           Int?
   riderId            Int?
@@ -709,7 +710,7 @@ model CustomerCards {
 
 model Review {
   id         String   @id @default(uuid())
-  body       String
+  body       String?
   customerId Int
   vendorId   Int
   rating     Float

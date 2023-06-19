@@ -530,13 +530,12 @@ export class CustomerRepository {
             vendor: {
               status: Status.APPROVED,
               serviceType: dto.serviceType,
-              userAddress: {
-                some: {
-                  // cityId: customerCity.customer.userAddress[0].cityId,
-                  cityId: 32,
-                  isDeleted: false,
-                },
-              },
+              // userAddress: {
+              //   some: {
+              //     cityId: customerCity.customer.userAddress[0].cityId,
+              //     isDeleted: false,
+              //   },
+              // },
               ...(serviceIds &&
                 serviceIds.length > 0 && {
                   vendorService: {
@@ -804,6 +803,37 @@ export class CustomerRepository {
                 },
               },
               status: true,
+              review: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                select: {
+                  id: true,
+                  body: true,
+                  rating: true,
+                  updatedAt: true,
+                  customer: {
+                    select: {
+                      fullName: true,
+                      userMaster: {
+                        select: {
+                          profilePicture: {
+                            select: {
+                              id: true,
+                              location: true,
+                              key: true,
+                              name: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },

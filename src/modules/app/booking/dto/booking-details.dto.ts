@@ -9,6 +9,7 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+import { Articles } from './create-booking-carwash.dto';
 
 class LocationDetails {
   @ApiProperty()
@@ -52,10 +53,16 @@ export class BookingDetailsDto {
   @IsNotEmpty()
   vendorId: number;
 
-  @ApiProperty()
-  @IsNumber()
+  @ApiProperty({
+    isArray: true,
+    required: true,
+    type: Articles,
+  })
+  @IsArray()
   @IsNotEmpty()
-  totalPrice: number;
+  @ValidateNested()
+  @Type(() => Articles)
+  articles: Articles[];
 
   @ApiProperty()
   @IsBoolean()
