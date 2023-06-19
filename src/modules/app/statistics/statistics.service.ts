@@ -38,4 +38,20 @@ export class StatisticsService {
       throw error;
     }
   }
+
+  async getRiderDashboard(user: GetUserType) {
+    try {
+      return await this.repository.getDashboard(user);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async geRiderTotalJobs(user: GetUserType) {
+    try {
+      return await this.repository.geRiderTotalJobs(user);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

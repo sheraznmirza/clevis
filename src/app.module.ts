@@ -31,6 +31,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { JobModule } from './modules/app/job/job.module';
 import { join } from 'path';
 import { BullQueueModule } from './modules/queue/bull-queue.module';
+import { ReviewModule } from './modules/app/review/review.module';
+import { EarningModule } from './modules/app/earning/earning.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -71,6 +73,8 @@ import { BullQueueModule } from './modules/queue/bull-queue.module';
     TapModule,
     JobModule,
     BullQueueModule,
+    ReviewModule,
+    EarningModule,
     // DatabaseModule,
   ],
   providers: [

@@ -41,4 +41,18 @@ export class StatisticsController {
   getDashboard(@GetUser() user: GetUserType) {
     return this.StatisticsService.getDashboard(user);
   }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Authorized(UserType.RIDER)
+  @Get('/Rider/dashboard')
+  geRiderDashboard(@GetUser() user: GetUserType) {
+    return this.StatisticsService.getRiderDashboard(user);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Authorized(UserType.RIDER)
+  @Get('/Rider/dashboard/Totaljobs')
+  geRiderTotalJobs(@GetUser() user: GetUserType) {
+    return this.StatisticsService.geRiderTotalJobs(user);
+  }
 }

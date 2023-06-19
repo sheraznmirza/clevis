@@ -207,6 +207,11 @@ export class BookingRepository {
         totalPrice += bookingDetailPrice[i];
       }
 
+      totalPrice =
+        totalPrice +
+        (pickupDeliveryCharges || 0) +
+        (dropoffDeliveryCharges || 0);
+
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
@@ -543,24 +548,22 @@ export class BookingRepository {
           return service.serviceId;
         });
       }
-
+      console.log('search: ', search);
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           customerId: customerId,
-          ...(search && {
-            vendor: {
+
+          vendor: {
+            ...(search && {
               companyName: {
                 contains: search,
                 mode: 'insensitive',
               },
-            },
-          }),
-
-          ...(dto?.serviceType && {
-            vendor: {
+            }),
+            ...(dto?.serviceType && {
               serviceType: dto.serviceType,
-            },
-          }),
+            }),
+          },
 
           ...(dto?.status && {
             status: dto.status,
@@ -617,20 +620,18 @@ export class BookingRepository {
       const totalCount = await this.prisma.bookingMaster.count({
         where: {
           customerId: customerId,
-          ...(search && {
-            vendor: {
+
+          vendor: {
+            ...(search && {
               companyName: {
                 contains: search,
                 mode: 'insensitive',
               },
-            },
-          }),
-
-          ...(dto?.serviceType && {
-            vendor: {
+            }),
+            ...(dto?.serviceType && {
               serviceType: dto.serviceType,
-            },
-          }),
+            }),
+          },
 
           ...(dto?.status && {
             status: dto.status,
@@ -867,6 +868,7 @@ export class BookingRepository {
         skip: +take * (+page - 1),
         select: {
           bookingMasterId: true,
+          isWithDelivery: true,
           customer: {
             select: {
               fullName: true,

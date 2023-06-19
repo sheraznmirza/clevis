@@ -1,6 +1,11 @@
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { BookingStatus, UserType } from '@prisma/client';
+import {
+  BookingStatus,
+  JobType,
+  RiderJobStatus,
+  UserType,
+} from '@prisma/client';
 import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 import { StatisticUserAdminQueryDto } from './dto/statistics.user.dto';
 import { GetUserType } from 'src/core/dto';
@@ -143,87 +148,6 @@ export class StatisticRepository {
         totalCompleted: totalCompleted._count.bookingMasterId,
         totalRejected: totalRejected._count.bookingMasterId,
       };
-
-      // const result = await this.prisma.vendorService.findMany({
-      //   where: {
-      //     vendorId: user.userTypeId,
-      //   },
-      //   select: {
-      //     vendorServiceId: true,
-      //   },
-      // });
-      // const vendorServiceIds = result.map((item) => item.vendorServiceId);
-
-      // const allocatePrices = await this.prisma.allocatePrice.findMany({
-      //   where: {
-      //     vendorServiceId: {
-      //       in: vendorServiceIds,
-      //     },
-      //   },
-      //   select: {
-      //     bookingDetail: {
-      //       select: {
-      //         allocatePriceId: true,
-      //       },
-      //     },
-      //   },
-      // });
-      // const allocatePriceIds = allocatePrices.map((item) =>
-      //   item.bookingDetail.map((obj) => obj.allocatePriceId),
-      // );
-
-      // let array = [];
-      // allocatePriceIds.forEach((arr) => (array = [...array, ...arr]));
-      // const data = await this.prisma.bookingMaster.findMany({
-      //   where: {
-      //     isDeleted: false,
-      //     vendorId: user.userTypeId,
-      //     bookingDetail: {
-      //       some: {
-      //         allocatePriceId: {
-      //           in: array,
-      //         },
-      //       },
-      //     },
-      //   },
-      //   select: {
-      //     bookingDetail: {
-      //       select: {
-      //         allocatePrice: {
-      //           select: {
-      //             vendorService: {
-      //               select: {
-      //                 service: {
-      //                   select: { serviceId: true, serviceName: true },
-      //                 },
-      //               },
-      //             },
-      //             category: {
-      //               select: { categoryId: true, categoryName: true },
-      //             },
-      //             price: true,
-      //           },
-      //         },
-      //       },
-      //     },
-      //   },
-      // });
-
-      // const services = {};
-
-      // data.forEach((booking) => {
-      //   booking.bookingDetail.forEach((detail) => {
-      //     const { serviceName } = detail.allocatePrice.vendorService.service;
-      //     const price = detail.allocatePrice.price;
-      //     if (services[serviceName]) {
-      //       services[serviceName] += price;
-      //     } else {
-      //       services[serviceName] = price;
-      //     }
-      //   });
-      // });
-
-      // return { services, data };
     } catch (error) {
       throw error;
     }
@@ -243,5 +167,79 @@ export class StatisticRepository {
     } catch (error) {
       throw unknowError(417, error, '');
     }
+  }
+
+  async getRiderDashboard(user: GetUserType) {
+    try {
+      const jobTypePickup = await this.prisma.job.aggregate({
+        where: {
+          riderId: user.userTypeId,
+          jobType: JobType.PICKUP,
+        },
+        _count: {
+          _all: true,
+        },
+      });
+
+      const jobTypeDropoff = await this.prisma.job.aggregate({
+        where: {
+          riderId: user.userTypeId,
+          jobType: JobType.DELIVERY,
+        },
+        _count: {
+          _all: true,
+        },
+      });
+      return { jobTypeDropoff, jobTypePickup };
+    } catch (error) {
+      throw unknowError(417, error, '');
+    }
+  }
+
+  async geRiderTotalJobs(user: GetUserType) {
+    try {
+      const completeJobs = await this.prisma.job.aggregate({
+        where: {
+          riderId: user.userTypeId,
+          jobStatus: RiderJobStatus.Completed,
+        },
+
+        _count: {
+          _all: true,
+        },
+      });
+
+      const comfirmedJobs = await this.prisma.job.aggregate({
+        where: {
+          riderId: user.userTypeId,
+          jobStatus: RiderJobStatus.Accepted,
+        },
+
+        _count: {
+          _all: true,
+        },
+      });
+
+      const pendingJobs = await this.prisma.job.aggregate({
+        where: {
+          riderId: user.userTypeId,
+          jobStatus: RiderJobStatus.Pending,
+        },
+
+        _count: {
+          _all: true,
+        },
+      });
+
+      return {
+        completeJobs,
+        pendingJobs,
+        comfirmedJobs,
+        totalJobs:
+          completeJobs._count._all +
+          pendingJobs._count._all +
+          comfirmedJobs._count._all,
+      };
+    } catch (error) {}
   }
 }
