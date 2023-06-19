@@ -12,7 +12,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { MediaFormat } from 'src/core/globalTypes';
 
-class Articles {
+export class Articles {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()

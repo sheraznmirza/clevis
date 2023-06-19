@@ -207,11 +207,6 @@ export class BookingRepository {
         totalPrice += bookingDetailPrice[i];
       }
 
-      totalPrice =
-        totalPrice +
-        (pickupDeliveryCharges || 0) +
-        (dropoffDeliveryCharges || 0);
-
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
@@ -224,7 +219,7 @@ export class BookingRepository {
             carNumberPlate: dto.carNumberPlate,
           }),
           ...(dto.instructions && { instructions: dto.instructions }),
-          totalPrice: totalPrice,
+          totalPrice: totalPrice ? totalPrice : 0,
           ...(dto.isWithDelivery &&
             dto?.pickupLocation?.timeFrom &&
             dto?.pickupLocation?.timeTill && {
@@ -1119,7 +1114,7 @@ export class BookingRepository {
           vendorId: true,
           status: true,
           tapAuthId: true,
-
+          isWithDelivery: true,
           vendor: {
             select: {
               fullName: true,
@@ -1173,40 +1168,42 @@ export class BookingRepository {
           },
         });
 
-        const admin = await this.prisma.admin.findUnique({
-          where: {
-            userMasterId: 1,
-          },
-          select: {
-            userMasterId: true,
-            tapBranchId: true,
-            tapBrandId: true,
-            tapBusinessEntityId: true,
-            tapBusinessId: true,
-            tapMerchantId: true,
-            tapPrimaryWalletId: true,
-            tapWalletId: true,
-          },
-        });
+        if (!booking.isWithDelivery) {
+          const admin = await this.prisma.admin.findUnique({
+            where: {
+              userMasterId: 1,
+            },
+            select: {
+              userMasterId: true,
+              tapBranchId: true,
+              tapBrandId: true,
+              tapBusinessEntityId: true,
+              tapBusinessId: true,
+              tapMerchantId: true,
+              tapPrimaryWalletId: true,
+              tapWalletId: true,
+            },
+          });
 
-        const adminChargePayload: createChargeRequestInterface = {
-          amount: platform.fee,
-          currency: 'AED',
-          customer: {
-            id: booking.customer.tapCustomerId,
-          },
-          merchant: {
-            id: admin.tapMerchantId,
-          },
-          source: { id: booking.tapAuthId, type: 'CARD' },
-          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
-          post: {
-            url: `${this.config.get('APP_URL')}/tap/charge/${
-              user.userMasterId
-            }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
-          },
-        };
-        await this.tapService.createCharge(adminChargePayload);
+          const adminChargePayload: createChargeRequestInterface = {
+            amount: platform.fee,
+            currency: 'AED',
+            customer: {
+              id: booking.customer.tapCustomerId,
+            },
+            merchant: {
+              id: admin.tapMerchantId,
+            },
+            source: { id: booking.tapAuthId, type: 'CARD' },
+            redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+            post: {
+              url: `${this.config.get('APP_URL')}/tap/charge/${
+                user.userMasterId
+              }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
+            },
+          };
+          await this.tapService.createCharge(adminChargePayload);
+        }
       }
 
       // const context = {
@@ -1448,6 +1445,26 @@ export class BookingRepository {
         },
       });
 
+      const bookingDetailPrice: number[] = [];
+      for (let i = 0; i < dto.articles.length; i++) {
+        const allocatePricePrice = await this.prisma.allocatePrice.findUnique({
+          where: {
+            id: dto.articles[i].allocatePriceId,
+          },
+          select: {
+            price: true,
+          },
+        });
+        bookingDetailPrice.push(
+          dto.articles[i].quantity * allocatePricePrice?.price,
+        );
+      }
+
+      let totalPrice = 0;
+      for (let i = 0; i < dto.articles.length; i++) {
+        totalPrice += bookingDetailPrice[i];
+      }
+
       if (dto.isWithDelivery) {
         if (dto?.pickupLocation?.userAddressId) {
           const pickupLocation = await this.prisma.userAddress.findUnique({
@@ -1512,20 +1529,20 @@ export class BookingRepository {
           tapCustomerId: true,
         },
       });
-
+      console.log('response: ', response);
       const payload = {
-        amount: dto.totalPrice + (platformFee?.fee || 1),
-        ...(vendor.serviceType === ServiceType.LAUNDRY && {
-          amount:
-            dto.totalPrice +
-              (platformFee?.fee || 1) +
-              response?.distance *
-                (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
-        }),
+        ...(vendor.serviceType === ServiceType.LAUNDRY && dto.isWithDelivery
+          ? {
+              amount:
+                totalPrice +
+                  (platformFee?.fee || 1) +
+                  response?.distance *
+                    (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
+            }
+          : { amount: totalPrice + (platformFee?.fee || 1) }),
         currency: 'AED',
         customer: {
           id: customer.tapCustomerId,
-          // id: 'cus_TS02A1920231303Mk200706641',
         },
         source: { id: 'src_card' },
         threeDSecure: true,
@@ -1561,6 +1578,7 @@ export class BookingRepository {
           response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
           0,
         platformFee: platformFee?.fee,
+        totalPrice,
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
         serviceDurationMin: vendor?.deliverySchedule?.serviceDurationMin,

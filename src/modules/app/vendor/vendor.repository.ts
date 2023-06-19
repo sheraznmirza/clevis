@@ -219,6 +219,7 @@ export class VendorRepository {
         data: {
           companyEmail:
             dto.companyEmail !== null ? dto.companyEmail : undefined,
+          companyName: dto.companyName !== null ? dto.companyName : undefined,
           vendorId,
           ...(businessLicenseIds && {
             businessLicenseIds: businessLicenseIds,
@@ -380,8 +381,6 @@ export class VendorRepository {
           vendor: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
-              companyName:
-                dto.companyName !== null ? dto.companyName : undefined,
               description:
                 dto.description !== null ? dto.description : undefined,
               // companyEmail:

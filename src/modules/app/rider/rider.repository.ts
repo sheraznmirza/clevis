@@ -385,6 +385,7 @@ export class RiderRepository {
         data: {
           companyEmail:
             dto.companyEmail !== null ? dto.companyEmail : undefined,
+          companyName: dto.companyName !== null ? dto.companyName : undefined,
           riderId,
           ...(businessLicenseIds && {
             businessLicenseIds: businessLicenseIds,
@@ -709,8 +710,6 @@ export class RiderRepository {
           rider: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
-              companyName:
-                dto.companyName !== null ? dto.companyName : undefined,
               companyEmail:
                 dto.companyEmail !== null ? dto.companyEmail : undefined,
               description:

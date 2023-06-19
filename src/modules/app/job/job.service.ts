@@ -525,6 +525,9 @@ export class JobService {
           where: {
             isDeleted: false,
           },
+          select: {
+            fee: true,
+          },
         });
 
         const admin = await this.prisma.admin.findUnique({
