@@ -10,19 +10,18 @@ import { ApiTags } from '@nestjs/swagger';
 import { GetUserType } from 'src/core/dto';
 import { GetUser } from '../auth/decorator';
 
+@UseGuards(JwtGuard, RolesGuard)
 @ApiTags('Statistics')
 @Controller('statistics')
 export class StatisticsController {
   constructor(private StatisticsService: StatisticsService) {}
 
-  @UseGuards(JwtGuard, RolesGuard)
   @Authorized(UserType.ADMIN)
   @Get('admin/vendorCount')
   getMe(@Query() query: StatisticVendorAdminQueryDto) {
     return this.StatisticsService.statisticService(query);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
   @Authorized(UserType.ADMIN)
   @Get('admin/userCount')
   getUser(@Query() query: StatisticUserAdminQueryDto) {
@@ -35,21 +34,18 @@ export class StatisticsController {
     return this.StatisticsService.getDashboardEarnings(user);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
   @Authorized(UserType.VENDOR)
   @Get('/dashboard')
   getDashboard(@GetUser() user: GetUserType) {
     return this.StatisticsService.getDashboard(user);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
   @Authorized(UserType.RIDER)
   @Get('/Rider/dashboard')
   geRiderDashboard(@GetUser() user: GetUserType) {
     return this.StatisticsService.getRiderDashboard(user);
   }
 
-  @UseGuards(JwtGuard, RolesGuard)
   @Authorized(UserType.RIDER)
   @Get('/Rider/dashboard/Totaljobs')
   geRiderTotalJobs(@GetUser() user: GetUserType) {
