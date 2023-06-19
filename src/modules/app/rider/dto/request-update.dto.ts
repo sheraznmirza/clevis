@@ -9,6 +9,11 @@ export class UpdateRequestDto {
   @IsOptional()
   companyEmail: string;
 
+  @ApiProperty()
+  @IsEmail()
+  @IsOptional()
+  companyName: string;
+
   @ApiProperty({
     isArray: true,
     type: MediaFormat,

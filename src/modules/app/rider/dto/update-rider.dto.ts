@@ -34,11 +34,6 @@ export class RiderUpdateDto {
   fullAddress: string;
 
   @ApiProperty()
-  @IsString()
-  @IsOptional()
-  companyName: string;
-
-  @ApiProperty()
   @IsEmail()
   @IsOptional()
   companyEmail: string;
