@@ -12,7 +12,7 @@ export class EarningService {
     const { page = 1, take = 10, search } = dto;
 
     if (dto.status === AllEarning.Receive) {
-      return await this.prisma.earnings.findMany({
+      const earnings = await this.prisma.earnings.findMany({
         take: +take,
         skip: +take * (+page - 1),
         orderBy: {
@@ -39,9 +39,20 @@ export class EarningService {
           bookingMasterId: true,
         },
       });
+
+      const totalCount = await this.prisma.earnings.count({
+        where: {
+          isRefunded: false,
+          userMaster: {
+            userType: UserType.ADMIN,
+          },
+        },
+      });
+
+      return { data: earnings, page: +page, take: +take, totalCount };
     } else if (dto.status === AllEarning.Disperse) {
       const { page = 1, take = 10, search } = dto;
-      return await this.prisma.earnings.findMany({
+      const earnings = await this.prisma.earnings.findMany({
         take: +take,
         skip: +take * (+page - 1),
         orderBy: {
@@ -91,12 +102,22 @@ export class EarningService {
           bookingMasterId: true,
         },
       });
+
+      const totalCount = await this.prisma.earnings.count({
+        where: {
+          isRefunded: false,
+          userMaster: {
+            OR: [{ userType: UserType.VENDOR }, { userType: UserType.RIDER }],
+          },
+        },
+      });
+      return { data: earnings, page: +page, take: +take, totalCount };
     }
   }
 
   async getVendorEarning(vendorId: number, dto: VendorEarning) {
     const { page = 1, take = 10, search } = dto;
-    return await this.prisma.earnings.findMany({
+    const earnings = await this.prisma.earnings.findMany({
       take: +take,
       skip: +take * (+page - 1),
       orderBy: {
@@ -131,11 +152,22 @@ export class EarningService {
         },
       },
     });
+
+    const totalCount = await this.prisma.earnings.count({
+      where: {
+        isRefunded: false,
+        bookingMaster: {
+          vendorId,
+        },
+      },
+    });
+
+    return { data: earnings, page: +page, take: +take, totalCount };
   }
 
   async getRiderEarning(riderId: number, dto: VendorEarning) {
     const { page = 1, take = 10, search } = dto;
-    return await this.prisma.earnings.findMany({
+    const earnings = await this.prisma.earnings.findMany({
       take: +take,
       skip: +take * (+page - 1),
       orderBy: {
@@ -178,6 +210,15 @@ export class EarningService {
         },
       },
     });
+    const totalCount = await this.prisma.earnings.count({
+      where: {
+        isRefunded: false,
+        job: {
+          riderId,
+        },
+      },
+    });
+    return { data: earnings, page: +page, take: +take, totalCount };
   }
 
   async getDetailRider(id: number) {

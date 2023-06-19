@@ -29,7 +29,7 @@ export class EarningController {
   }
 
   @Authorized(UserType.RIDER)
-  @Get('rider/')
+  @Get('rider')
   getRiderEarning(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
     return this.earningservice.getRiderEarning(user.userTypeId, dto);
   }
