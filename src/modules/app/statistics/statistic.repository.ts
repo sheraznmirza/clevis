@@ -10,7 +10,9 @@ import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 import { StatisticUserAdminQueryDto } from './dto/statistics.user.dto';
 import { GetUserType } from 'src/core/dto';
 import { unknowError } from 'src/helpers/response.helper';
-
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 @Injectable()
 export class StatisticRepository {
   constructor(private prisma: PrismaService) {}
@@ -155,7 +157,10 @@ export class StatisticRepository {
 
   async getDashboardEarnings(user: GetUserType) {
     try {
-      const result = await this.prisma.bookingMaster.aggregate({
+      const todayDate = dayjs().utc().format();
+      const sevenDayBeforeDate = dayjs().utc().subtract(7, 'days').format();
+
+      const totalEarnings = await this.prisma.bookingMaster.aggregate({
         where: {
           vendorId: user.userTypeId,
         },
@@ -163,7 +168,28 @@ export class StatisticRepository {
           totalPrice: true,
         },
       });
-      return result;
+
+      const forLast7Days = await this.prisma.bookingMaster.aggregate({
+        where: {
+          vendorId: user.userTypeId,
+          createdAt: {
+            gte: sevenDayBeforeDate,
+            lte: todayDate,
+          },
+        },
+        _sum: {
+          totalPrice: true,
+        },
+      });
+
+      const sevenDayPercentage =
+        (+forLast7Days._sum.totalPrice / totalEarnings._sum.totalPrice) * 100;
+
+      return {
+        totalEarning: totalEarnings._sum.totalPrice,
+        last7Days: forLast7Days,
+        last7DayPercentage: sevenDayPercentage,
+      };
     } catch (error) {
       throw unknowError(417, error, '');
     }
