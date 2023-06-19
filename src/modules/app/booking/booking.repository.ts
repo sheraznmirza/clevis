@@ -868,6 +868,7 @@ export class BookingRepository {
         skip: +take * (+page - 1),
         select: {
           bookingMasterId: true,
+          isWithDelivery: true,
           customer: {
             select: {
               fullName: true,
@@ -977,6 +978,7 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          isWithDelivery: true,
           customer: {
             select: {
               fullName: true,
