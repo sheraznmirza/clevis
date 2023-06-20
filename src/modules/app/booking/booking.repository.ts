@@ -209,8 +209,7 @@ export class BookingRepository {
         data: {
           customerId,
           vendorId: dto.vendorId,
-          // tapAuthId: dto.tapAuthId,
-          tapAuthId: 'fwafaw',
+          tapAuthId: dto.tapAuthId,
           pickupDeliveryCharges,
           dropoffDeliveryCharges,
           bookingDate: dto.bookingDate,
@@ -414,8 +413,7 @@ export class BookingRepository {
         data: {
           customerId,
           vendorId: dto.vendorId,
-          // tapAuthId: dto.tapAuthId,
-          tapAuthId: 'fff',
+          tapAuthId: dto.tapAuthId,
           pickupDeliveryCharges: deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
