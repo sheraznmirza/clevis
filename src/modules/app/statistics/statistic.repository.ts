@@ -157,6 +157,14 @@ export class StatisticRepository {
 
   async getDashboardEarnings(user: GetUserType) {
     try {
+      const ratings = await this.prisma.review.aggregate({
+        where: {
+          vendorId: user.userTypeId,
+        },
+        _avg: {
+          rating: true,
+        },
+      });
       const todayDate = dayjs().utc().format();
       const sevenDayBeforeDate = dayjs().utc().subtract(7, 'days').format();
 
@@ -186,6 +194,7 @@ export class StatisticRepository {
         (+forLast7Days._sum.totalPrice / totalEarnings._sum.totalPrice) * 100;
 
       return {
+        reviewAverage: ratings._avg.rating,
         totalEarning: totalEarnings._sum.totalPrice,
         last7Days: forLast7Days,
         last7DayPercentage: sevenDayPercentage,
@@ -197,32 +206,52 @@ export class StatisticRepository {
 
   async getRiderDashboard(user: GetUserType) {
     try {
-      const jobTypePickup = await this.prisma.job.aggregate({
+      let date = new Date();
+      let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      const totalEarning = await this.prisma.earnings.aggregate({
         where: {
-          riderId: user.userTypeId,
-          jobType: JobType.PICKUP,
+          job: {
+            createdAt: {
+              gte: firstDay,
+              lte: lastDay,
+            },
+            riderId: user.userTypeId,
+          },
         },
-        _count: {
-          _all: true,
+        _sum: {
+          amount: true,
         },
       });
 
-      const jobTypeDropoff = await this.prisma.job.aggregate({
+      const pickupCount = await this.prisma.job.count({
+        where: {
+          riderId: user.userTypeId,
+          jobType: JobType.PICKUP,
+          createdAt: {
+            gte: firstDay,
+            lte: lastDay,
+          },
+        },
+      });
+
+      const dropoffCount = await this.prisma.job.count({
         where: {
           riderId: user.userTypeId,
           jobType: JobType.DELIVERY,
-        },
-        _count: {
-          _all: true,
+          createdAt: {
+            gte: firstDay,
+            lte: lastDay,
+          },
         },
       });
-      return { jobTypeDropoff, jobTypePickup };
+      return { dropoffCount, pickupCount, totalEarning };
     } catch (error) {
       throw unknowError(417, error, '');
     }
   }
 
-  async geRiderTotalJobs(user: GetUserType) {
+  async getRiderTotalJobs(user: GetUserType) {
     try {
       const completeJobs = await this.prisma.job.aggregate({
         where: {

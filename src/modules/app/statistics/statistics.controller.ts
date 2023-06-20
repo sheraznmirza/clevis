@@ -29,13 +29,13 @@ export class StatisticsController {
   }
 
   @Authorized(UserType.VENDOR)
-  @Get('/dashboard/earnings')
+  @Get('/dashboard/vendor/earnings')
   getDashboardEarnings(@GetUser() user: GetUserType) {
     return this.StatisticsService.getDashboardEarnings(user);
   }
 
   @Authorized(UserType.VENDOR)
-  @Get('/dashboard')
+  @Get('/dashboard/vendor')
   getDashboard(@GetUser() user: GetUserType) {
     return this.StatisticsService.getDashboard(user);
   }
