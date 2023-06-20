@@ -1533,6 +1533,19 @@ export class BookingRepository {
         },
       });
       console.log('response: ', response);
+      console.log('response distance: ', response?.distance);
+      console.log(
+        'vendor?.deliverySchedule?.kilometerFare: ',
+        vendor?.deliverySchedule?.kilometerFare,
+      );
+      console.log(
+        'delivery charges: ',
+        response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
+          1,
+      );
+      console.log('dto.isWithDelivery: ', dto.isWithDelivery);
+      console.log('vendor.serviceType: ', vendor.serviceType);
+
       const payload = {
         ...(vendor.serviceType === ServiceType.LAUNDRY && dto.isWithDelivery
           ? {
@@ -1558,6 +1571,8 @@ export class BookingRepository {
           url: `${this.config.get('APP_URL')}/tap/authorize`,
         },
       };
+
+      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
