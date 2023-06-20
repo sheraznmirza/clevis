@@ -161,6 +161,9 @@ export class StatisticRepository {
         where: {
           vendorId: user.userTypeId,
         },
+        _count: {
+          rating: true,
+        },
         _avg: {
           rating: true,
         },
@@ -194,6 +197,7 @@ export class StatisticRepository {
         (+forLast7Days._sum.totalPrice / totalEarnings._sum.totalPrice) * 100;
 
       return {
+        reviewCount: ratings._count.rating,
         reviewAverage: ratings._avg.rating || 0,
         totalEarning: totalEarnings._sum.totalPrice,
         last7Days: forLast7Days,

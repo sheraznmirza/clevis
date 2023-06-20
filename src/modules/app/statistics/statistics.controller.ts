@@ -41,7 +41,7 @@ export class StatisticsController {
   }
 
   @Authorized(UserType.RIDER)
-  @Get('/Rider/dashboard')
+  @Get('/Rider/dashboard/totalearning')
   geRiderDashboard(@GetUser() user: GetUserType) {
     return this.StatisticsService.getRiderDashboard(user);
   }
