@@ -70,14 +70,14 @@ export class BookingRepository {
       let dropoffResponse: any;
 
       const attachments = [];
-      console.log('dto.tapAuthId: ', dto.tapAuthId);
-      const tapAuthorize = await this.tapService.retrieveAuthorize(
-        dto.tapAuthId,
-      );
-      console.log('tapAuthorize: ', tapAuthorize);
-      if (tapAuthorize.status === 'FAILED') {
-        throw new BadRequestException('Payment is not authorized.');
-      }
+      // console.log('dto.tapAuthId: ', dto.tapAuthId);
+      // const tapAuthorize = await this.tapService.retrieveAuthorize(
+      //   dto.tapAuthId,
+      // );
+      // console.log('tapAuthorize: ', tapAuthorize);
+      // if (tapAuthorize.status === 'FAILED') {
+      //   throw new BadRequestException('Payment is not authorized.');
+      // }
 
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
@@ -211,7 +211,8 @@ export class BookingRepository {
         data: {
           customerId,
           vendorId: dto.vendorId,
-          tapAuthId: dto.tapAuthId,
+          // tapAuthId: dto.tapAuthId,
+          tapAuthId: 'fwafaw',
           pickupDeliveryCharges,
           dropoffDeliveryCharges,
           bookingDate: dto.bookingDate,
@@ -338,13 +339,13 @@ export class BookingRepository {
 
       const attachments = [];
 
-      const tapAuthorize = await this.tapService.retrieveAuthorize(
-        dto.tapAuthId,
-      );
+      // const tapAuthorize = await this.tapService.retrieveAuthorize(
+      //   dto.tapAuthId,
+      // );
 
-      if (tapAuthorize.status === 'FAILED') {
-        throw new BadRequestException('Payment is not authorized.');
-      }
+      // if (tapAuthorize.status === 'FAILED') {
+      //   throw new BadRequestException('Payment is not authorized.');
+      // }
 
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
@@ -415,7 +416,8 @@ export class BookingRepository {
         data: {
           customerId,
           vendorId: dto.vendorId,
-          tapAuthId: dto.tapAuthId,
+          // tapAuthId: dto.tapAuthId,
+          tapAuthId: 'fff',
           pickupDeliveryCharges: deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
@@ -1138,73 +1140,73 @@ export class BookingRepository {
         },
       });
 
-      if (dto.bookingStatus === BookingStatus.Completed) {
-        const chargePayload: createChargeRequestInterface = {
-          amount: booking.totalPrice,
-          currency: 'AED',
-          customer: {
-            id: booking.customer.tapCustomerId,
-          },
-          merchant: {
-            id: booking.vendor.tapMerchantId,
-          },
-          source: { id: booking.tapAuthId, type: 'CARD' },
-          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
-          post: {
-            url: `${this.config.get('APP_URL')}/tap/charge/${
-              booking.vendor.userMasterId
-            }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
-          },
-        };
-        const createCharge = await this.tapService.createCharge(chargePayload);
-        console.log('createCharge: ', createCharge);
+      // if (dto.bookingStatus === BookingStatus.Completed) {
+      //   const chargePayload: createChargeRequestInterface = {
+      //     amount: booking.totalPrice,
+      //     currency: 'AED',
+      //     customer: {
+      //       id: booking.customer.tapCustomerId,
+      //     },
+      //     merchant: {
+      //       id: booking.vendor.tapMerchantId,
+      //     },
+      //     source: { id: booking.tapAuthId, type: 'CARD' },
+      //     redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+      //     post: {
+      //       url: `${this.config.get('APP_URL')}/tap/charge/${
+      //         booking.vendor.userMasterId
+      //       }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
+      //     },
+      //   };
+      //   const createCharge = await this.tapService.createCharge(chargePayload);
+      //   console.log('createCharge: ', createCharge);
 
-        const platform = await this.prisma.platformSetup.findFirst({
-          orderBy: {
-            createdAt: 'desc',
-          },
-          where: {
-            isDeleted: false,
-          },
-        });
+      //   const platform = await this.prisma.platformSetup.findFirst({
+      //     orderBy: {
+      //       createdAt: 'desc',
+      //     },
+      //     where: {
+      //       isDeleted: false,
+      //     },
+      //   });
 
-        if (!booking.isWithDelivery) {
-          const admin = await this.prisma.admin.findUnique({
-            where: {
-              userMasterId: 1,
-            },
-            select: {
-              userMasterId: true,
-              tapBranchId: true,
-              tapBrandId: true,
-              tapBusinessEntityId: true,
-              tapBusinessId: true,
-              tapMerchantId: true,
-              tapPrimaryWalletId: true,
-              tapWalletId: true,
-            },
-          });
+      //   if (!booking.isWithDelivery) {
+      //     const admin = await this.prisma.admin.findUnique({
+      //       where: {
+      //         userMasterId: 1,
+      //       },
+      //       select: {
+      //         userMasterId: true,
+      //         tapBranchId: true,
+      //         tapBrandId: true,
+      //         tapBusinessEntityId: true,
+      //         tapBusinessId: true,
+      //         tapMerchantId: true,
+      //         tapPrimaryWalletId: true,
+      //         tapWalletId: true,
+      //       },
+      //     });
 
-          const adminChargePayload: createChargeRequestInterface = {
-            amount: platform.fee,
-            currency: 'AED',
-            customer: {
-              id: booking.customer.tapCustomerId,
-            },
-            merchant: {
-              id: admin.tapMerchantId,
-            },
-            source: { id: booking.tapAuthId, type: 'CARD' },
-            redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
-            post: {
-              url: `${this.config.get('APP_URL')}/tap/charge/${
-                user.userMasterId
-              }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
-            },
-          };
-          await this.tapService.createCharge(adminChargePayload);
-        }
-      }
+      //     const adminChargePayload: createChargeRequestInterface = {
+      //       amount: platform.fee,
+      //       currency: 'AED',
+      //       customer: {
+      //         id: booking.customer.tapCustomerId,
+      //       },
+      //       merchant: {
+      //         id: admin.tapMerchantId,
+      //       },
+      //       source: { id: booking.tapAuthId, type: 'CARD' },
+      //       redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+      //       post: {
+      //         url: `${this.config.get('APP_URL')}/tap/charge/${
+      //           user.userMasterId
+      //         }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
+      //       },
+      //     };
+      //     await this.tapService.createCharge(adminChargePayload);
+      //   }
+      // }
 
       // const context = {
       //   first_paragraph:
@@ -1555,8 +1557,8 @@ export class BookingRepository {
           url: `${this.config.get('APP_URL')}/tap/authorize`,
         },
       };
-      const url: AuthorizeResponseInterface =
-        await this.tapService.createAuthorize(payload);
+      // const url: AuthorizeResponseInterface =
+      //   await this.tapService.createAuthorize(payload);
 
       // const response = await mapsDistanceData(
       //   dto.pickupLocation,
@@ -1583,7 +1585,7 @@ export class BookingRepository {
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
         serviceDurationMin: vendor?.deliverySchedule?.serviceDurationMin,
         serviceDurationMax: vendor?.deliverySchedule?.serviceDurationMax,
-        tapUrl: url.transaction.url,
+        // tapUrl: url.transaction.url,
       };
       // return response.rows[0].elements[0].distance.value / 1000;
     } catch (error) {
