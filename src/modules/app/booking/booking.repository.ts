@@ -674,6 +674,7 @@ export class BookingRepository {
           vat: true,
           vendor: {
             select: {
+              vendorId: true,
               companyName: true,
               fullName: true,
               logo: {
@@ -1501,7 +1502,7 @@ export class BookingRepository {
           dto.dropoffLocation.longitude = dropoffLocation.longitude;
         }
         if (vendor.serviceType === ServiceType.LAUNDRY) {
-          Promise.all([
+          const values = await Promise.all([
             mapsDistanceData(
               dto.pickupLocation,
               vendor.userAddress[0],
@@ -1514,16 +1515,16 @@ export class BookingRepository {
               this.config,
               this.httpService,
             ),
-          ])
-            .then((values) => {
-              console.log(values);
-              for (let i = 0; i < values.length; i++) {
-                response.distance = +values[i].distanceValue;
-              }
-            })
-            .catch((error) => {
-              throw error;
-            });
+          ]);
+          // .then((values) => {
+          console.log('values: ', values);
+          for (let i = 0; i < values.length; i++) {
+            response.distance = +values[i].distanceValue;
+          }
+          // })
+          // .catch((error) => {
+          //   throw error;
+          // });
         }
       }
       const customer = await this.prisma.customer.findUnique({
@@ -1534,7 +1535,21 @@ export class BookingRepository {
           tapCustomerId: true,
         },
       });
+      console.log('vendor.serviceType: ', vendor.serviceType);
       console.log('response: ', response);
+      console.log('response distance: ', response?.distance);
+      console.log(
+        'vendor?.deliverySchedule?.kilometerFare: ',
+        vendor?.deliverySchedule?.kilometerFare,
+      );
+      console.log(
+        'delivery charges: ',
+        response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
+          1,
+      );
+      console.log('dto.isWithDelivery: ', dto.isWithDelivery);
+      console.log('vendor.serviceType: ', vendor.serviceType);
+
       const payload = {
         ...(vendor.serviceType === ServiceType.LAUNDRY && dto.isWithDelivery
           ? {
@@ -1560,6 +1575,8 @@ export class BookingRepository {
           url: `${this.config.get('APP_URL')}/tap/authorize`,
         },
       };
+
+      console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
@@ -1576,7 +1593,7 @@ export class BookingRepository {
       //   this.config,
       //   this.httpService,
       // );
-
+      console.log('url: ', url.transaction.url);
       return {
         distance: `${response?.distance || 0} km`,
         deliveryCharges:
