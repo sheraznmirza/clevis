@@ -49,7 +49,7 @@ export class StatisticsService {
 
   async geRiderTotalJobs(user: GetUserType) {
     try {
-      return await this.repository.geRiderTotalJobs(user);
+      return await this.repository.getRiderTotalJobs(user);
     } catch (error) {
       throw error;
     }
