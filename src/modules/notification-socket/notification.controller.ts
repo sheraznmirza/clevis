@@ -42,6 +42,12 @@ export class NotificationController {
     );
   }
 
+  @Authorized(UserType.CUSTOMER)
+  @Get('count')
+  getNotificationCount(@GetUser() user: GetUserType) {
+    return this.notificationService.getNotificationCount(user.userMasterId);
+  }
+
   @Authorized([
     UserType.ADMIN,
     UserType.CUSTOMER,

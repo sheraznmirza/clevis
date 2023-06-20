@@ -146,6 +146,19 @@ export class NotificationService {
     }
   }
 
+  async getNotificationCount(userMasterId: number) {
+    try {
+      return await this._dbService.notification.count({
+        where: {
+          userMasterId,
+          readStatus: NotificationReadStatus.UNREAD,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async updateNotification(params: NotificationUpdateParams) {
     try {
       const notificationsId: number[] = params.notificationId
