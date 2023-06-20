@@ -194,7 +194,7 @@ export class StatisticRepository {
         (+forLast7Days._sum.totalPrice / totalEarnings._sum.totalPrice) * 100;
 
       return {
-        reviewAverage: ratings._avg.rating,
+        reviewAverage: ratings._avg.rating || 0,
         totalEarning: totalEarnings._sum.totalPrice,
         last7Days: forLast7Days,
         last7DayPercentage: sevenDayPercentage,
