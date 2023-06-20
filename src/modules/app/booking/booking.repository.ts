@@ -1080,8 +1080,32 @@ export class BookingRepository {
         select: {
           status: true,
           isWithDelivery: true,
+          vendor: {
+            select: {
+              serviceType: true,
+            },
+          },
         },
       });
+
+      if (
+        findBooking.status !== BookingStatus.Pending &&
+        findBooking.vendor.serviceType === ServiceType.LAUNDRY &&
+        findBooking.isWithDelivery
+      ) {
+        throw new BadRequestException(
+          `You cannot alter the booking status before the dropoff job has been completed.`,
+        );
+      }
+
+      if (
+        findBooking.status === BookingStatus.Completed ||
+        findBooking.status === BookingStatus.Rejected
+      ) {
+        throw new BadRequestException(
+          `You cannot alter the booking status after it has been ${findBooking.status.toLowerCase()}.`,
+        );
+      }
 
       if (
         dto.bookingStatus === BookingStatus.In_Progress &&

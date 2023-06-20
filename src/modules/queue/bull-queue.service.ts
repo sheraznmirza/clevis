@@ -58,7 +58,7 @@ export class BullQueueService {
       AppConfig.QUEUE.JOBS.RIDER_APPROVAL,
       {
         user,
-        UserType,
+        userType,
         dto,
       },
       { lifo: false },
