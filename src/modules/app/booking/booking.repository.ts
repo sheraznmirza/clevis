@@ -1077,13 +1077,15 @@ export class BookingRepository {
         },
         select: {
           status: true,
+          isWithDelivery: true,
         },
       });
 
       if (
         dto.bookingStatus === BookingStatus.In_Progress &&
         findBooking.status === BookingStatus.Confirmed &&
-        user.serviceType === ServiceType.LAUNDRY
+        user.serviceType === ServiceType.LAUNDRY &&
+        findBooking.isWithDelivery
       ) {
         const job = await this.prisma.job.findFirst({
           where: {
@@ -1099,6 +1101,7 @@ export class BookingRepository {
           );
         }
       }
+
       const booking = await this.prisma.bookingMaster.update({
         where: {
           bookingMasterId,
