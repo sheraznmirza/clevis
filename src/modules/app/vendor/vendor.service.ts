@@ -497,6 +497,7 @@ export class VendorService {
           userType: true,
           vendor: {
             select: {
+              userMasterId: true,
               status: true,
               userAddress: {
                 select: {
@@ -635,7 +636,7 @@ export class VendorService {
 
       const payloads: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.VendorStatus,
-        userId: [user.vendor.vendorId],
+        userId: [user.vendor.userMasterId],
         data: {
           title:
             dto.status === 'APPROVED'
