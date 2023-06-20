@@ -13,7 +13,13 @@ import {
   RiderVendorTabs,
   VendorRiderByIdParams,
 } from 'src/core/dto';
-import { Rider, Status } from '@prisma/client';
+import {
+  EntityType,
+  NotificationType,
+  Rider,
+  Status,
+  UserType,
+} from '@prisma/client';
 import { VendorListingParams } from 'src/core/dto';
 import { ConfigService } from '@nestjs/config';
 import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
@@ -31,6 +37,9 @@ import {
 } from 'src/modules/tap/dto/card.dto';
 import { TapService } from 'src/modules/tap/tap.service';
 import { BullQueueService } from 'src/modules/queue/bull-queue.service';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
 
 @Injectable()
 export class RiderService {
@@ -40,64 +49,64 @@ export class RiderService {
     private config: ConfigService,
     private prisma: PrismaService,
     private tapService: TapService,
-    private notification: NotificationService,
+    private notificationService: NotificationService,
     private queue: BullQueueService,
   ) {}
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
-      const rider = await this.repository.approveRider(id, dto);
-      const user = await this.prisma.userMaster.findFirst({
-        where: {
-          rider: {
-            riderId: id,
-          },
-        },
-        select: {
-          userMasterId: true,
-          email: true,
-          isEmailVerified: true,
-          phone: true,
-          userType: true,
-          rider: {
-            select: {
-              userAddress: {
-                select: {
-                  userAddressId: true,
-                  fullAddress: true,
-                  cityId: true,
-                  longitude: true,
-                  latitude: true,
-                  city: {
-                    select: {
-                      cityName: true,
-                      State: {
-                        select: {
-                          stateName: true,
-                          country: {
-                            select: {
-                              countryCode: true,
-                              countryName: true,
-                              currency: true,
-                              shortName: true,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              fullName: true,
-              riderId: true,
-              companyEmail: true,
-              companyName: true,
-              logo: true,
-              description: true,
-            },
-          },
-        },
-      });
+      const user = await this.repository.approveRider(id, dto);
+      // const user = await this.prisma.userMaster.findFirst({
+      //   where: {
+      //     rider: {
+      //       riderId: id,
+      //     },
+      //   },
+      //   select: {
+      //     userMasterId: true,
+      //     email: true,
+      //     isEmailVerified: true,
+      //     phone: true,
+      //     userType: true,
+      //     rider: {
+      //       select: {
+      //         userAddress: {
+      //           select: {
+      //             userAddressId: true,
+      //             fullAddress: true,
+      //             cityId: true,
+      //             longitude: true,
+      //             latitude: true,
+      //             city: {
+      //               select: {
+      //                 cityName: true,
+      //                 State: {
+      //                   select: {
+      //                     stateName: true,
+      //                     country: {
+      //                       select: {
+      //                         countryCode: true,
+      //                         countryName: true,
+      //                         currency: true,
+      //                         shortName: true,
+      //                       },
+      //                     },
+      //                   },
+      //                 },
+      //               },
+      //             },
+      //           },
+      //         },
+      //         fullName: true,
+      //         riderId: true,
+      //         companyEmail: true,
+      //         companyName: true,
+      //         logo: true,
+      //         description: true,
+      //       },
+      //     },
+      //   },
+      // });
 
       // const payload: createBusinessRequestInterface = {
       //   name: {
@@ -195,15 +204,12 @@ export class RiderService {
       //   context, // `.hbs` extension is appended automatically
       // );
 
-      this.queue.createBusinessAndMerchantForRider(user, rider, dto);
-      if (!rider) {
-        throw unknowError(404, {}, 'Rider does not exist');
-      } else {
-        return successResponse(
-          200,
-          `Rider successfully ${rider.status.toLowerCase()}.`,
-        );
-      }
+      this.queue.createBusinessAndMerchantForRider(user, dto, UserType.RIDER);
+
+      return successResponse(
+        200,
+        `Rider successfully ${dto.status.toLowerCase()}.`,
+      );
     } catch (error) {
       throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
     }
@@ -290,12 +296,61 @@ export class RiderService {
     }
   }
 
-  async _createBusinessMerchantForRider(
-    user,
-    rider,
-    dto: RiderUpdateStatusDto,
-  ) {
+  async _createBusinessMerchantForRider(rider: any, dto: RiderUpdateStatusDto) {
     try {
+      const user = await this.prisma.userMaster.findFirst({
+        where: {
+          rider: {
+            riderId: rider.riderId,
+          },
+        },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          phone: true,
+          userType: true,
+          rider: {
+            select: {
+              status: true,
+              userAddress: {
+                select: {
+                  userAddressId: true,
+                  fullAddress: true,
+                  cityId: true,
+                  longitude: true,
+                  latitude: true,
+                  city: {
+                    select: {
+                      cityName: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          country: {
+                            select: {
+                              countryCode: true,
+                              countryName: true,
+                              currency: true,
+                              shortName: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              fullName: true,
+              riderId: true,
+              companyEmail: true,
+              companyName: true,
+              logo: true,
+              description: true,
+            },
+          },
+        },
+      });
+
       const payload: createBusinessRequestInterface = {
         name: {
           en: user.rider.companyName,
@@ -373,8 +428,8 @@ export class RiderService {
       });
       const context = {
         app_name: this.config.get('APP_NAME'),
-        app_url: `${this.config.get(dynamicUrl(rider.userType))}`,
-        first_name: rider.fullName,
+        app_url: `${this.config.get(dynamicUrl(user.userType))}`,
+        first_name: user.rider.fullName,
         message:
           rider.status === Status.APPROVED
             ? 'Your account has been approved. You can now log in and start your journey with us!'
@@ -383,14 +438,38 @@ export class RiderService {
       };
       // await this.notification.HandleNotifications()
       await this.mail.sendEmail(
-        rider.email,
+        user.email,
         this.config.get('MAIL_ADMIN'),
         `${this.config.get('APP_NAME')} - ${
-          rider.userType[0] + rider.userType.slice(1).toLowerCase()
-        } ${rider.status.toLowerCase()}`,
+          user.userType[0] + user.userType.slice(1).toLowerCase()
+        } ${user.rider.status.toLowerCase()}`,
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );
-    } catch (error) {}
+
+      const payloads: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.VendorStatus,
+        userId: [user.rider.riderId],
+        data: {
+          title:
+            dto.status === 'APPROVED'
+              ? NotificationTitle.ADMIN_APPROVED
+              : NotificationTitle.ADMIN_REJECTED,
+          body:
+            dto.status === 'APPROVED'
+              ? NotificationBody.ADMIN_APPROVED_RIDER
+              : NotificationBody.ADMIN_REJECTED,
+          type: NotificationType.BookingStatus,
+          entityType: EntityType.RIDER,
+          entityId: user.rider.riderId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payloads,
+        UserType.RIDER,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 }

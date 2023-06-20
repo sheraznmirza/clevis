@@ -34,31 +34,31 @@ export class BullQueueService {
     );
   }
   async createBusinessAndMerchantForVendorRider(
-    user,
-    vendor,
+    user: any,
     dto: VendorUpdateStatusDto,
+    userType: UserType,
   ) {
     await this.emailQueue.add(
       AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL,
       {
-        vendor,
         user,
         dto,
+        userType,
       },
       { lifo: false },
     );
   }
 
   async createBusinessAndMerchantForRider(
-    user,
-    rider,
+    user: any,
     dto: RiderUpdateStatusDto,
+    userType: UserType,
   ) {
     await this.emailQueue.add(
-      AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL,
+      AppConfig.QUEUE.JOBS.RIDER_APPROVAL,
       {
-        rider,
         user,
+        UserType,
         dto,
       },
       { lifo: false },

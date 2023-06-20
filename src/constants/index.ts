@@ -35,6 +35,7 @@ export enum NotificationBody {
   BOOKING_IN_PROGRESS = 'The vendor has marked the booking {id} as In Progress',
   VENDOR_UPDATE_BY_ADMIN = 'Your Profile Information has been updated by the admin.',
   VENDOR_CREATED_JOB = 'Job Created by Vendor ',
+  ADMIN_APPROVED_RIDER = 'Welcome to Clevis.You can now start accepting jobs and earning with our platform. Get ready to hit the road',
 }
 
 export enum EventType {

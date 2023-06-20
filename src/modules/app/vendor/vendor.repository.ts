@@ -129,12 +129,8 @@ export class VendorRepository {
           status: dto.status,
         },
       });
-      const user = await this.prisma.userMaster.findFirst({
-        where: { vendor: { vendorId: vendor.vendorId } },
-        select: { userType: true, email: true },
-      });
 
-      return { ...user, ...vendor };
+      return vendor;
     } catch (error) {
       if (error.code === 'P2025') {
         throw new BadRequestException(
