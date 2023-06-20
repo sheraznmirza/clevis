@@ -75,6 +75,7 @@ export class EarningService {
             select: {
               vendor: {
                 select: {
+                  fullName: true,
                   serviceType: true,
                 },
               },
@@ -93,6 +94,7 @@ export class EarningService {
                 select: {
                   fullName: true,
                   companyName: true,
+                  serviceType: true,
                 },
               },
             },
