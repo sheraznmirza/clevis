@@ -43,7 +43,7 @@ export class EarningController {
   @Authorized(UserType.VENDOR)
   @Get('detail/vendor')
   getDetailVendor(@GetUser() user: GetUserType) {
-    return this.earningservice.getDetailRider(user.userTypeId);
+    return this.earningservice.getDetailVendor(user.userTypeId);
   }
 
   @Authorized(UserType.ADMIN)

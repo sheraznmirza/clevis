@@ -210,6 +210,7 @@ export class EarningService {
         },
       },
     });
+
     const totalCount = await this.prisma.earnings.count({
       where: {
         isRefunded: false,
