@@ -252,7 +252,7 @@ export class StatisticRepository {
       return {
         dropoffCount,
         pickupCount,
-        totalEarning: totalEarning._sum.amount,
+        totalEarnings: totalEarning._sum.amount,
       };
     } catch (error) {
       throw unknowError(417, error, '');
