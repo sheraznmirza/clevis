@@ -242,7 +242,6 @@ export class BookingRepository {
               userMasterId: true,
               fullName: true,
               serviceType: true,
-              userMasterId: true,
               userMaster: {
                 select: {
                   email: true,
