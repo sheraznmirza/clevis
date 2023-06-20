@@ -112,10 +112,10 @@ export class CreateBookingCarWashDto {
   @IsOptional()
   carNumberPlate: string;
 
-  // @ApiProperty()
-  // @IsString()
-  // @IsNotEmpty()
-  // tapAuthId: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  tapAuthId: string;
 
   @ApiProperty()
   @IsBoolean()

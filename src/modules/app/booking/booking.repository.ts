@@ -25,7 +25,6 @@ import {
 } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
-import { map } from 'rxjs';
 import { mapsDistanceData } from 'src/helpers/maps.helper';
 import { ChargeEntityTypes, GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
@@ -71,13 +70,12 @@ export class BookingRepository {
 
       const attachments = [];
       // console.log('dto.tapAuthId: ', dto.tapAuthId);
-      // const tapAuthorize = await this.tapService.retrieveAuthorize(
-      //   dto.tapAuthId,
-      // );
-      // console.log('tapAuthorize: ', tapAuthorize);
-      // if (tapAuthorize.status === 'FAILED') {
-      //   throw new BadRequestException('Payment is not authorized.');
-      // }
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
 
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
@@ -339,13 +337,13 @@ export class BookingRepository {
 
       const attachments = [];
 
-      // const tapAuthorize = await this.tapService.retrieveAuthorize(
-      //   dto.tapAuthId,
-      // );
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
 
-      // if (tapAuthorize.status === 'FAILED') {
-      //   throw new BadRequestException('Payment is not authorized.');
-      // }
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
 
       if (dto.attachments && dto.attachments.length > 0) {
         dto.attachments.forEach(async (item) => {
@@ -1559,8 +1557,8 @@ export class BookingRepository {
           url: `${this.config.get('APP_URL')}/tap/authorize`,
         },
       };
-      // const url: AuthorizeResponseInterface =
-      //   await this.tapService.createAuthorize(payload);
+      const url: AuthorizeResponseInterface =
+        await this.tapService.createAuthorize(payload);
 
       // const response = await mapsDistanceData(
       //   dto.pickupLocation,
@@ -1587,7 +1585,7 @@ export class BookingRepository {
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
         serviceDurationMin: vendor?.deliverySchedule?.serviceDurationMin,
         serviceDurationMax: vendor?.deliverySchedule?.serviceDurationMax,
-        // tapUrl: url.transaction.url,
+        tapUrl: url.transaction.url,
       };
       // return response.rows[0].elements[0].distance.value / 1000;
     } catch (error) {
