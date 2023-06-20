@@ -46,21 +46,21 @@ export class MailProcessor {
 
   @Process(AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL)
   async createBusinessMerchantForVendor(job: Job) {
-    const { user, vendor, dto } = job.data;
+    const { user, dto } = job.data;
     try {
-      this.vendorService._createBusinessMerchantForVendor(user, vendor, dto);
+      this.vendorService._createBusinessMerchantForVendor(user, dto);
     } catch (error) {
       console.error('Error creating in Vendor merchant and business:', error);
     }
   }
 
-  // @Process(AppConfig.QUEUE.JOBS.VENDOR_RIDER_APPROVAL)
-  // async createBusinessMerchantForRider(job: Job) {
-  //   const { user, rider, dto } = job.data;
-  //   try {
-  //     this.riderService._createBusinessMerchantForRider(user, rider, dto);
-  //   } catch (error) {
-  //     console.error('Error creating in rider merchant and business:', error);
-  //   }
-  // }
+  @Process(AppConfig.QUEUE.JOBS.RIDER_APPROVAL)
+  async createBusinessMerchantForRider(job: Job) {
+    const { user, dto } = job.data;
+    try {
+      this.riderService._createBusinessMerchantForRider(user, dto);
+    } catch (error) {
+      console.error('Error creating in rider merchant and business:', error);
+    }
+  }
 }

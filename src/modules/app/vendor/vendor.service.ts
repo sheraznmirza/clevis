@@ -117,59 +117,59 @@ export class VendorService {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
-      const vendor = await this.repository.approveVendor(id, dto);
-      const user = await this.prisma.userMaster.findFirst({
-        where: {
-          vendor: {
-            vendorId: id,
-          },
-        },
-        select: {
-          userMasterId: true,
-          email: true,
-          isEmailVerified: true,
-          phone: true,
-          userType: true,
-          vendor: {
-            select: {
-              userAddress: {
-                select: {
-                  userAddressId: true,
-                  fullAddress: true,
-                  cityId: true,
-                  longitude: true,
-                  latitude: true,
-                  city: {
-                    select: {
-                      cityName: true,
-                      State: {
-                        select: {
-                          stateName: true,
-                          country: {
-                            select: {
-                              countryCode: true,
-                              countryName: true,
-                              currency: true,
-                              shortName: true,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              fullName: true,
-              vendorId: true,
-              companyEmail: true,
-              companyName: true,
-              logo: true,
-              description: true,
-              serviceType: true,
-            },
-          },
-        },
-      });
+      const user = await this.repository.approveVendor(id, dto);
+      // const user = await this.prisma.userMaster.findFirst({
+      //   where: {
+      //     vendor: {
+      //       vendorId: id,
+      //     },
+      //   },
+      //   select: {
+      //     userMasterId: true,
+      //     email: true,
+      //     isEmailVerified: true,
+      //     phone: true,
+      //     userType: true,
+      //     vendor: {
+      //       select: {
+      //         userAddress: {
+      //           select: {
+      //             userAddressId: true,
+      //             fullAddress: true,
+      //             cityId: true,
+      //             longitude: true,
+      //             latitude: true,
+      //             city: {
+      //               select: {
+      //                 cityName: true,
+      //                 State: {
+      //                   select: {
+      //                     stateName: true,
+      //                     country: {
+      //                       select: {
+      //                         countryCode: true,
+      //                         countryName: true,
+      //                         currency: true,
+      //                         shortName: true,
+      //                       },
+      //                     },
+      //                   },
+      //                 },
+      //               },
+      //             },
+      //           },
+      //         },
+      //         fullName: true,
+      //         vendorId: true,
+      //         companyEmail: true,
+      //         companyName: true,
+      //         logo: true,
+      //         description: true,
+      //         serviceType: true,
+      //       },
+      //     },
+      //   },
+      // });
 
       // const payload: createBusinessRequestInterface = {
       //   name: {
@@ -289,10 +289,14 @@ export class VendorService {
       //   UserType.VENDOR,
       // );
 
-      this.queue.createBusinessAndMerchantForVendorRider(user, vendor, dto);
+      this.queue.createBusinessAndMerchantForVendorRider(
+        user,
+        dto,
+        UserType.VENDOR,
+      );
       return successResponse(
         200,
-        `Vendor successfully ${vendor.status.toLowerCase()}.`,
+        `Vendor successfully ${dto.status.toLowerCase()}.`,
       );
     } catch (error) {
       throw error;
@@ -478,11 +482,60 @@ export class VendorService {
   // }
 
   async _createBusinessMerchantForVendor(
-    user,
-    vendor,
+    vendor: any,
     dto: VendorUpdateStatusDto,
   ) {
     try {
+      console.log('vendor queue initiated');
+      const user = await this.prisma.userMaster.findFirst({
+        where: { vendor: { vendorId: vendor.vendorId } },
+        select: {
+          userMasterId: true,
+          email: true,
+          isEmailVerified: true,
+          phone: true,
+          userType: true,
+          vendor: {
+            select: {
+              status: true,
+              userAddress: {
+                select: {
+                  userAddressId: true,
+                  fullAddress: true,
+                  cityId: true,
+                  longitude: true,
+                  latitude: true,
+                  city: {
+                    select: {
+                      cityName: true,
+                      State: {
+                        select: {
+                          stateName: true,
+                          country: {
+                            select: {
+                              countryCode: true,
+                              countryName: true,
+                              currency: true,
+                              shortName: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              fullName: true,
+              vendorId: true,
+              companyEmail: true,
+              companyName: true,
+              logo: true,
+              description: true,
+              serviceType: true,
+            },
+          },
+        },
+      });
       const payload: createBusinessRequestInterface = {
         name: {
           en: user.vendor.companyName,
@@ -562,20 +615,20 @@ export class VendorService {
 
       const context = {
         app_name: this.config.get('APP_NAME'),
-        app_url: `${this.config.get(dynamicUrl(vendor.userType))}`,
-        first_name: vendor.fullName,
+        app_url: `${this.config.get(dynamicUrl(user.userType))}`,
+        first_name: user.vendor.fullName,
         message:
-          vendor.status === Status.APPROVED
+          user.vendor.status === Status.APPROVED
             ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin.  '
             : 'We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.\n Please contact admin if you have any questions regarding this issue ',
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
       await this.mail.sendEmail(
-        vendor.email,
+        user.email,
         this.config.get('MAIL_NO_REPLY'),
         `${
-          vendor.userType[0] + vendor.userType.slice(1).toLowerCase()
-        } ${vendor.status.toLowerCase()}`,
+          user.userType[0] + user.userType.slice(1).toLowerCase()
+        } ${user.vendor.status.toLowerCase()}`,
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );

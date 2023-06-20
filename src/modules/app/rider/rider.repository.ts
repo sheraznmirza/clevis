@@ -29,13 +29,15 @@ export class RiderRepository {
           status: dto.status,
         },
       });
-      const user = await this.prisma.userMaster.findFirst({
-        where: { rider: { riderId: rider.riderId } },
-        select: { userType: true, email: true },
-      });
-      return { ...user, ...rider };
+      return rider;
     } catch (error) {
-      throw error;
+      if (error.code === 'P2025') {
+        throw new BadRequestException(
+          'The rider with this vendorId does not exist',
+        );
+      } else {
+        throw error;
+      }
     }
   }
 
