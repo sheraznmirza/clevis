@@ -56,8 +56,16 @@ export class JobService {
         },
         select: {
           status: true,
+          isWithDelivery: true,
         },
       });
+
+      if (!booking.isWithDelivery) {
+        throw new BadRequestException(
+          'Jobs can only be created for bookings where delivery is required',
+        );
+      }
+
       if (
         createJobDto.jobType === JobType.PICKUP &&
         booking.status !== BookingStatus.Confirmed
