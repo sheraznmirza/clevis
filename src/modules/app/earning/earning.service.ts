@@ -75,6 +75,7 @@ export class EarningService {
             select: {
               vendor: {
                 select: {
+                  fullName: true,
                   serviceType: true,
                 },
               },
@@ -93,6 +94,7 @@ export class EarningService {
                 select: {
                   fullName: true,
                   companyName: true,
+                  serviceType: true,
                 },
               },
             },
@@ -225,7 +227,7 @@ export class EarningService {
   async getDetailRider(id: number) {
     await this.prisma.earnings.findUnique({
       where: {
-        id,
+        id: id,
       },
       select: {
         createdAt: true,
@@ -264,7 +266,7 @@ export class EarningService {
     try {
       await this.prisma.earnings.findUnique({
         where: {
-          id,
+          id: id,
         },
 
         select: {
