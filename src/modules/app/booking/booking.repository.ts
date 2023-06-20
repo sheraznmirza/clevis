@@ -674,6 +674,7 @@ export class BookingRepository {
           vat: true,
           vendor: {
             select: {
+              vendorId: true,
               companyName: true,
               fullName: true,
               logo: {
