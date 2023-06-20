@@ -438,6 +438,7 @@ export class VendorRepository {
           },
           vendor: {
             select: {
+              userMasterId: true,
               vendorId: true,
               vendorService: {
                 select: {

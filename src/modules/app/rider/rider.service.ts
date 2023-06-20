@@ -165,6 +165,7 @@ export class RiderService {
           userType: true,
           rider: {
             select: {
+              userMasterId: true,
               status: true,
               userAddress: {
                 select: {
@@ -302,7 +303,7 @@ export class RiderService {
 
       const payloads: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.VendorStatus,
-        userId: [user.rider.riderId],
+        userId: [user.rider.userMasterId],
         data: {
           title:
             dto.status === 'APPROVED'
