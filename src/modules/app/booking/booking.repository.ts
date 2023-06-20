@@ -241,6 +241,7 @@ export class BookingRepository {
             select: {
               fullName: true,
               serviceType: true,
+              userMasterId: true,
               userMaster: {
                 select: {
                   email: true,
@@ -304,7 +305,7 @@ export class BookingRepository {
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
-        userId: [bookingMaster.vendorId],
+        userId: [bookingMaster.vendor.userMasterId],
         data: {
           title: NotificationTitle.BOOKING_CREATED,
           body: NotificationBody.BOOKING_CREATED,
