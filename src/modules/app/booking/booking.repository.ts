@@ -239,6 +239,7 @@ export class BookingRepository {
           vendorId: true,
           vendor: {
             select: {
+              userMasterId: true,
               fullName: true,
               serviceType: true,
               userMasterId: true,
@@ -1134,6 +1135,7 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              userMasterId: true,
               email: true,
               fullName: true,
               tapCustomerId: true,
@@ -1245,7 +1247,7 @@ export class BookingRepository {
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingStatus,
-        userId: [booking.customerId],
+        userId: [booking.customer.userMasterId],
         data: {
           title:
             dto.bookingStatus === 'In_Progress'
