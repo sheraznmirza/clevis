@@ -1516,7 +1516,7 @@ export class BookingRepository {
             ),
           ])
             .then((values) => {
-              console.log(values);
+              console.log('values: ', values);
               for (let i = 0; i < values.length; i++) {
                 response.distance = +values[i].distanceValue;
               }
@@ -1534,6 +1534,7 @@ export class BookingRepository {
           tapCustomerId: true,
         },
       });
+      console.log('vendor.serviceType: ', vendor.serviceType);
       console.log('response: ', response);
       console.log('response distance: ', response?.distance);
       console.log(
@@ -1591,7 +1592,7 @@ export class BookingRepository {
       //   this.config,
       //   this.httpService,
       // );
-
+      console.log('url: ', url.transaction.url);
       return {
         distance: `${response?.distance || 0} km`,
         deliveryCharges:
