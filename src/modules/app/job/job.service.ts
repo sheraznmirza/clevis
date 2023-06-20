@@ -551,7 +551,7 @@ export class JobService {
             booking.jobType === JobType.PICKUP
               ? booking.bookingMaster.pickupDeliveryCharges
               : booking.bookingMaster.dropoffDeliveryCharges,
-          currency: 'AED',
+          currency: 'SAR',
           customer: {
             id: booking.bookingMaster.customer.tapCustomerId,
           },
@@ -570,7 +570,7 @@ export class JobService {
 
         const adminChargePayload: createChargeRequestInterface = {
           amount: platform.fee,
-          currency: 'AED',
+          currency: 'SAR',
           customer: {
             id: booking.bookingMaster.customer.tapCustomerId,
           },

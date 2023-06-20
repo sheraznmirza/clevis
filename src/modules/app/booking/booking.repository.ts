@@ -1143,7 +1143,7 @@ export class BookingRepository {
       if (dto.bookingStatus === BookingStatus.Completed) {
         const chargePayload: createChargeRequestInterface = {
           amount: booking.totalPrice,
-          currency: 'AED',
+          currency: 'SAR',
           customer: {
             id: booking.customer.tapCustomerId,
           },
@@ -1189,7 +1189,7 @@ export class BookingRepository {
 
           const adminChargePayload: createChargeRequestInterface = {
             amount: platform.fee,
-            currency: 'AED',
+            currency: 'SAR',
             customer: {
               id: booking.customer.tapCustomerId,
             },
@@ -1542,7 +1542,7 @@ export class BookingRepository {
                     (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
             }
           : { amount: totalPrice + (platformFee?.fee || 1) }),
-        currency: 'AED',
+        currency: 'SAR',
         customer: {
           id: customer.tapCustomerId,
         },

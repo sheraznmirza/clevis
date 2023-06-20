@@ -128,6 +128,13 @@ export class AuthService {
           customer: {
             select: {
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                take: 1,
+                orderBy: {
+                  createdAt: 'desc',
+                },
                 select: {
                   userAddressId: true,
                   fullAddress: true,
@@ -143,6 +150,7 @@ export class AuthService {
                             select: {
                               countryId: true,
                               countryName: true,
+                              currency: true,
                             },
                           },
                         },
@@ -1410,7 +1418,7 @@ export class AuthService {
       const payload: createCustomerRequestInterface = {
         email: user.email,
         first_name: user.customer.fullName,
-        currency: 'AED',
+        currency: 'SAR', // user.customer.userAddress[0].city.state.country.currency,
       };
       const tapCustomer = await this.tapService.createCustomer(payload);
 
