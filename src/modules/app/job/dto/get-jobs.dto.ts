@@ -51,12 +51,16 @@ export class GetVendorJobsDto extends ListingParams {
   @IsOptional()
   status: RiderJobStatus;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+  })
   @IsDateString()
   @IsOptional()
   timeFrom: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+  })
   @IsDateString()
   @IsOptional()
   timeTill: string;
