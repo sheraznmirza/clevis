@@ -225,7 +225,7 @@ export class EarningService {
   async getDetailRider(id: number) {
     await this.prisma.earnings.findUnique({
       where: {
-        id,
+        id: id,
       },
       select: {
         createdAt: true,
@@ -264,7 +264,7 @@ export class EarningService {
     try {
       await this.prisma.earnings.findUnique({
         where: {
-          id,
+          id: id,
         },
 
         select: {
