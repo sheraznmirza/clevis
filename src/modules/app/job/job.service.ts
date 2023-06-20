@@ -57,12 +57,26 @@ export class JobService {
         select: {
           status: true,
           isWithDelivery: true,
+          job: {
+            where: {
+              jobType: createJobDto.jobType,
+            },
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
       if (!booking.isWithDelivery) {
         throw new BadRequestException(
           'Jobs can only be created for bookings where delivery is required',
+        );
+      }
+
+      if (booking?.job?.length > 0) {
+        throw new BadRequestException(
+          'Job of this type for this booking is already created',
         );
       }
 
@@ -222,20 +236,17 @@ export class JobService {
       const jobs = await this.prisma.job.findMany({
         where: {
           ...(jobType && { jobType: jobType }),
-          ...(status && {
-            jobStatus: status,
-          }),
 
           ...(listingParams.status === RiderJobStatus.Pending && {
             AND: [
               { jobStatus: RiderJobStatus.Pending },
-              {
-                riderJob: {
-                  none: {
-                    riderId: user.userTypeId,
-                  },
-                },
-              },
+              // {
+              //   riderJob: {
+              //     none: {
+              //       riderId: user.userTypeId,
+              //     },
+              //   },
+              // },
             ],
           }),
 
@@ -246,6 +257,7 @@ export class JobService {
                 riderJob: {
                   some: {
                     riderId: user.userTypeId,
+                    status: RiderJobStatus.Accepted,
                   },
                 },
               },
@@ -259,6 +271,7 @@ export class JobService {
                 riderJob: {
                   some: {
                     riderId: user.userTypeId,
+                    status: RiderJobStatus.Completed,
                   },
                 },
               },
@@ -315,20 +328,17 @@ export class JobService {
       const totalCount = await this.prisma.job.count({
         where: {
           ...(jobType && { jobType: jobType }),
-          ...(status && {
-            jobStatus: status,
-          }),
 
           ...(listingParams.status === RiderJobStatus.Pending && {
             AND: [
               { jobStatus: RiderJobStatus.Pending },
-              {
-                riderJob: {
-                  none: {
-                    riderId: user.userTypeId,
-                  },
-                },
-              },
+              // {
+              //   riderJob: {
+              //     none: {
+              //       riderId: user.userTypeId,
+              //     },
+              //   },
+              // },
             ],
           }),
 
@@ -339,6 +349,7 @@ export class JobService {
                 riderJob: {
                   some: {
                     riderId: user.userTypeId,
+                    status: RiderJobStatus.Accepted,
                   },
                 },
               },
@@ -352,6 +363,7 @@ export class JobService {
                 riderJob: {
                   some: {
                     riderId: user.userTypeId,
+                    status: RiderJobStatus.Completed,
                   },
                 },
               },
