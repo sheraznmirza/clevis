@@ -249,7 +249,11 @@ export class StatisticRepository {
           },
         },
       });
-      return { dropoffCount, pickupCount, totalEarning };
+      return {
+        dropoffCount,
+        pickupCount,
+        totalEarnings: totalEarning._sum.amount,
+      };
     } catch (error) {
       throw unknowError(417, error, '');
     }
