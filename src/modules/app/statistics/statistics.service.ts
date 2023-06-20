@@ -41,7 +41,7 @@ export class StatisticsService {
 
   async getRiderDashboard(user: GetUserType) {
     try {
-      return await this.repository.getDashboard(user);
+      return await this.repository.getRiderDashboard(user);
     } catch (error) {
       throw error;
     }
