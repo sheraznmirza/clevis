@@ -29,7 +29,7 @@ export class StatisticsController {
   }
 
   @Authorized(UserType.VENDOR)
-  @Get('/dashboard/Earnings')
+  @Get('/dashboard/earnings')
   getDashboardEarnings(@GetUser() user: GetUserType) {
     return this.StatisticsService.getDashboardEarnings(user);
   }
