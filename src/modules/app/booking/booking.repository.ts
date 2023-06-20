@@ -1501,7 +1501,7 @@ export class BookingRepository {
           dto.dropoffLocation.longitude = dropoffLocation.longitude;
         }
         if (vendor.serviceType === ServiceType.LAUNDRY) {
-          Promise.all([
+          const values = await Promise.all([
             mapsDistanceData(
               dto.pickupLocation,
               vendor.userAddress[0],
@@ -1514,16 +1514,16 @@ export class BookingRepository {
               this.config,
               this.httpService,
             ),
-          ])
-            .then((values) => {
-              console.log('values: ', values);
-              for (let i = 0; i < values.length; i++) {
-                response.distance = +values[i].distanceValue;
-              }
-            })
-            .catch((error) => {
-              throw error;
-            });
+          ]);
+          // .then((values) => {
+          console.log('values: ', values);
+          for (let i = 0; i < values.length; i++) {
+            response.distance = +values[i].distanceValue;
+          }
+          // })
+          // .catch((error) => {
+          //   throw error;
+          // });
         }
       }
       const customer = await this.prisma.customer.findUnique({
