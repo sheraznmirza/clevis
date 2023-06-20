@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Body, UseGuards, Param } from '@nestjs/common';
 import { UserType } from '@prisma/client';
 import { Authorized } from 'src/core/decorators';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -10,6 +10,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { VendorEarning } from './dto/vendor-earning.dto';
 import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
+import { riders } from 'src/seeders/constants';
 
 @ApiTags('Earning')
 @UseGuards(JwtGuard, RolesGuard)
@@ -35,19 +36,19 @@ export class EarningController {
   }
 
   @Authorized(UserType.RIDER)
-  @Get('detail/rider')
-  getDetail(@GetUser() user: GetUserType) {
-    return this.earningservice.getDetailRider(user.userTypeId);
+  @Get('detail/:riderId')
+  getDetail(@Param('riderId') id: number) {
+    return this.earningservice.getDetailRider(id);
   }
 
   @Authorized(UserType.VENDOR)
-  @Get('detail/vendor')
-  getDetailVendor(@GetUser() user: GetUserType) {
-    return this.earningservice.getDetailVendor(user.userTypeId);
+  @Get('detail/:vendorId')
+  getDetailVendor(@Param('vendorId') id: number) {
+    return this.earningservice.getDetailVendor(id);
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('detail/vendor')
+  @Get('detail/admin')
   getDetailAdmin(@GetUser() user: GetUserType) {
     return this.earningservice.getDetailAdmin(user.userTypeId);
   }
