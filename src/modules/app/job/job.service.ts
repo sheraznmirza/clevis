@@ -474,6 +474,11 @@ export class JobService {
           jobStatus: true,
           jobType: true,
           riderId: true,
+          vendor: {
+            select: {
+              userMasterId: true,
+            },
+          },
           rider: {
             select: {
               userMasterId: true,
@@ -660,7 +665,7 @@ export class JobService {
 
         const payload: SQSSendNotificationArgs<NotificationData> = {
           type: NotificationType.RiderJob,
-          userId: [booking.rider.userMasterId],
+          userId: [booking.vendor.userMasterId],
           data: {
             title:
               dto.jobStatus === RiderJobStatus.Accepted
