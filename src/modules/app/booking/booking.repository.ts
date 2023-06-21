@@ -1558,7 +1558,7 @@ export class BookingRepository {
       return {
         distance: `${response?.distance || 0} km`,
         deliveryCharges: response?.deliveryCharges || 0,
-        platformFee: platformFee?.fee,
+        platformFee: platformFee?.fee || 0,
         totalPrice: Math.round(totalPrice),
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
