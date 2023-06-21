@@ -474,6 +474,11 @@ export class JobService {
           jobStatus: true,
           jobType: true,
           riderId: true,
+          vendor: {
+            select: {
+              userMasterId: true,
+            },
+          },
           rider: {
             select: {
               userMasterId: true,
@@ -539,34 +544,6 @@ export class JobService {
         dto.jobStatus === RiderJobStatus.Completed &&
         booking.riderId === user.userTypeId
       ) {
-        const platform = await this.prisma.platformSetup.findFirst({
-          orderBy: {
-            createdAt: 'desc',
-          },
-          where: {
-            isDeleted: false,
-          },
-          select: {
-            fee: true,
-          },
-        });
-
-        const admin = await this.prisma.admin.findUnique({
-          where: {
-            userMasterId: 1,
-          },
-          select: {
-            userMasterId: true,
-            tapBranchId: true,
-            tapBrandId: true,
-            tapBusinessEntityId: true,
-            tapBusinessId: true,
-            tapMerchantId: true,
-            tapPrimaryWalletId: true,
-            tapWalletId: true,
-          },
-        });
-
         const riderChargePayload: createChargeRequestInterface = {
           amount:
             booking.jobType === JobType.PICKUP
@@ -587,26 +564,58 @@ export class JobService {
             }/${ChargeEntityTypes.job}/${jobId}`,
           },
         };
+        console.log('riderChargePayload : ', riderChargePayload);
+
         await this.tapService.createCharge(riderChargePayload);
 
-        const adminChargePayload: createChargeRequestInterface = {
-          amount: platform.fee,
-          currency: 'SAR',
-          customer: {
-            id: booking.bookingMaster.customer.tapCustomerId,
-          },
-          merchant: {
-            id: admin.tapMerchantId,
-          },
-          source: { id: booking.bookingMaster.tapAuthId, type: 'CARD' },
-          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
-          post: {
-            url: `${this.config.get('APP_URL')}/tap/charge/${
-              user.userMasterId
-            }/${ChargeEntityTypes.job}/${jobId}`,
-          },
-        };
-        await this.tapService.createCharge(adminChargePayload);
+        if (booking.jobType === JobType.DELIVERY) {
+          const platform = await this.prisma.platformSetup.findFirst({
+            orderBy: {
+              createdAt: 'desc',
+            },
+            where: {
+              isDeleted: false,
+            },
+            select: {
+              fee: true,
+            },
+          });
+
+          const admin = await this.prisma.admin.findUnique({
+            where: {
+              userMasterId: 1,
+            },
+            select: {
+              userMasterId: true,
+              tapBranchId: true,
+              tapBrandId: true,
+              tapBusinessEntityId: true,
+              tapBusinessId: true,
+              tapMerchantId: true,
+              tapPrimaryWalletId: true,
+              tapWalletId: true,
+            },
+          });
+
+          const adminChargePayload: createChargeRequestInterface = {
+            amount: platform.fee,
+            currency: 'SAR',
+            customer: {
+              id: booking.bookingMaster.customer.tapCustomerId,
+            },
+            merchant: {
+              id: admin.tapMerchantId,
+            },
+            source: { id: booking.bookingMaster.tapAuthId, type: 'CARD' },
+            redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+            post: {
+              url: `${this.config.get('APP_URL')}/tap/charge/${1}/${
+                ChargeEntityTypes.job
+              }/${jobId}`,
+            },
+          };
+          await this.tapService.createCharge(adminChargePayload);
+        }
       }
 
       if (
@@ -658,7 +667,7 @@ export class JobService {
 
         const payload: SQSSendNotificationArgs<NotificationData> = {
           type: NotificationType.RiderJob,
-          userId: [booking.rider.userMasterId],
+          userId: [booking.vendor.userMasterId],
           data: {
             title:
               dto.jobStatus === RiderJobStatus.Accepted
