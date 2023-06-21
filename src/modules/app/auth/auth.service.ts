@@ -1418,6 +1418,23 @@ export class AuthService {
 
   async _createTapCustomerAndMail(response, user, userType: UserType) {
     try {
+      const payloads: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.CustomerCreate,
+        userId: [user.customer.userMasterId],
+        data: {
+          title: NotificationTitle.CUSTOMER_CREATE_ACCOUNT,
+          body: NotificationBody.CUSTOMER_CREATE_ACCOUNT,
+
+          type: NotificationType.CustomerCreate,
+          entityType: EntityType.VENDOR,
+          entityId: user.userMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payloads,
+        UserType.CUSTOMER,
+      );
+
       await this.updateRt(user.userMasterId, response.refreshToken);
 
       const payload: createCustomerRequestInterface = {

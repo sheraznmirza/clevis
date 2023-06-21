@@ -305,7 +305,7 @@ export class EarningService {
 
     const result = await this.prisma.earnings.findUnique({
       where: {
-        id,
+        id: id,
       },
       select: {
         createdAt: true,
