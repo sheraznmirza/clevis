@@ -226,8 +226,8 @@ export class RiderService {
         },
         contact_person: {
           name: {
-            first: user.rider.fullName.split(' ')[0],
-            last: user.rider.fullName.split(' ')[1],
+            first: user.rider.fullName,
+            last: 'Clevis',
           },
 
           contact_info: {
@@ -242,8 +242,8 @@ export class RiderService {
           },
           authorization: {
             name: {
-              first: user.rider.fullName.split(' ')[0],
-              last: user.rider.fullName.split(' ')[1],
+              first: user.rider.fullName,
+              last: 'Clevis',
             },
           },
         },

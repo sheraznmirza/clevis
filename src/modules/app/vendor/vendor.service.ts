@@ -388,8 +388,8 @@ export class VendorService {
         },
         contact_person: {
           name: {
-            first: user.vendor.fullName.split(' ')[0],
-            last: user.vendor.fullName.split(' ')[1],
+            first: user.vendor.fullName,
+            last: 'Clevis',
           },
 
           contact_info: {
@@ -404,8 +404,8 @@ export class VendorService {
           },
           authorization: {
             name: {
-              first: user.vendor.fullName.split(' ')[0],
-              last: user.vendor.fullName.split(' ')[1],
+              first: user.vendor.fullName,
+              last: 'Clevis',
             },
           },
         },
