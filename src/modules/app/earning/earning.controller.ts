@@ -13,7 +13,7 @@ import { RolesGuard } from 'src/core/guards';
 import { riders } from 'src/seeders/constants';
 
 @ApiTags('Earning')
-// @UseGuards(JwtGuard, RolesGuard)
+@UseGuards(JwtGuard, RolesGuard)
 @Controller('earning')
 export class EarningController {
   constructor(private earningservice: EarningService) {}
@@ -29,8 +29,8 @@ export class EarningController {
     return this.earningservice.getVendorEarning(user.userTypeId, dto);
   }
 
-  // @Authorized(UserType.VENDOR)
-  @Get('vendor/:vendorId')
+  @Authorized(UserType.ADMIN)
+  @Get('vendor/byId/:vendorId')
   getVendorEarningById(
     @Param('vendorId') vendorId: number,
     @Query() dto: VendorEarning,
@@ -44,8 +44,8 @@ export class EarningController {
     return this.earningservice.getRiderEarning(user.userTypeId, dto);
   }
 
-  // @Authorized(UserType.VENDOR)
-  @Get('rider/:riderId')
+  @Authorized(UserType.ADMIN)
+  @Get('rider/byId/:riderId')
   getRiderEarningById(
     @Param('riderId') id: number,
     @Query() dto: VendorEarning,
