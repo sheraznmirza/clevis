@@ -179,7 +179,7 @@ export class BookingRepository {
         : 0;
 
       const dropoffDeliveryCharges = dropoffResponse
-        ? pickupResponse?.distanceValue *
+        ? dropoffResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
         : 0;
 
@@ -1508,7 +1508,7 @@ export class BookingRepository {
           ]);
           console.log('values: ', values);
           for (let i = 0; i < values.length; i++) {
-            response.distance = +values[i].distanceValue;
+            response.distance += +values[i].distanceValue;
           }
         }
       }
