@@ -69,6 +69,7 @@ export class EarningService {
           job: {
             select: {
               jobType: true,
+              bookingMasterId: true,
             },
           },
           bookingMaster: {

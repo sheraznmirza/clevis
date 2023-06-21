@@ -13,7 +13,7 @@ import { RolesGuard } from 'src/core/guards';
 import { riders } from 'src/seeders/constants';
 
 @ApiTags('Earning')
-@UseGuards(JwtGuard, RolesGuard)
+// @UseGuards(JwtGuard, RolesGuard)
 @Controller('earning')
 export class EarningController {
   constructor(private earningservice: EarningService) {}
@@ -29,10 +29,28 @@ export class EarningController {
     return this.earningservice.getVendorEarning(user.userTypeId, dto);
   }
 
+  // @Authorized(UserType.VENDOR)
+  @Get('vendor/:vendorId')
+  getVendorEarningById(
+    @Param('vendorId') vendorId: number,
+    @Query() dto: VendorEarning,
+  ) {
+    return this.earningservice.getVendorEarning(vendorId, dto);
+  }
+
   @Authorized(UserType.RIDER)
   @Get('rider')
   getRiderEarning(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
     return this.earningservice.getRiderEarning(user.userTypeId, dto);
+  }
+
+  // @Authorized(UserType.VENDOR)
+  @Get('rider/:riderId')
+  getRiderEarningById(
+    @Param('riderId') id: number,
+    @Query() dto: VendorEarning,
+  ) {
+    return this.earningservice.getVendorEarning(id, dto);
   }
 
   @Authorized(UserType.RIDER)
