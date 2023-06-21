@@ -54,6 +54,8 @@ enum NotificationType {
   VendorStatus
   UpdateByAdmin
   VendorCreatedJob
+  RiderJob
+  CustomerCreate
 }
 
 enum MediaStatus {
@@ -119,6 +121,7 @@ enum EntityType {
   CUSTOMER
   BOOKINGMASTER
   USERMASTER
+  JOB
 }
 
 enum PaymentStatus {
