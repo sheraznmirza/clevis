@@ -1,3 +1,5 @@
+import { VendorStatus } from '../customer/dto';
+
 export const vendorServiceByIdMappedLaundry = (vendorService) => {
   const mappedAllocatePrice = [];
   const hashMap = {};
@@ -53,4 +55,30 @@ export const vendorServiceByIdMappedCarWash = (vendorService) => {
   }
 
   return mappedAllocatePrice;
+};
+
+export const getRiderDirectoryMapper = (riders, dayObj) => {
+  console.log('riders: ', riders);
+  console.log('dayObj: ', dayObj);
+  const mappedRiders = [];
+  for (let i = 0; i < riders.length; i++) {
+    const riderObj = { ...riders[i] };
+    const todaySchedule = riders[i].rider.companySchedule.find((element) => {
+      return element.day === dayObj.currentDay;
+    });
+
+    if (
+      todaySchedule.isActive &&
+      dayObj.currentTime >= todaySchedule.startTime &&
+      dayObj.currentTime < todaySchedule.endTime
+    ) {
+      riderObj.companyStatus = VendorStatus.OPEN;
+    } else {
+      riderObj.companyStatus = VendorStatus.CLOSED;
+    }
+
+    mappedRiders.push(riderObj);
+    delete mappedRiders[i].rider.companySchedule;
+  }
+  return mappedRiders;
 };
