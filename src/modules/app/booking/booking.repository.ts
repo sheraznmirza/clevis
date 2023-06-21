@@ -1398,6 +1398,7 @@ export class BookingRepository {
     try {
       const response = {
         distance: 0,
+        deliveryCharges: 0,
       };
       const vendor = await this.prisma.vendor.findUnique({
         where: {
@@ -1508,7 +1509,9 @@ export class BookingRepository {
           ]);
           console.log('values: ', values);
           for (let i = 0; i < values.length; i++) {
-            response.distance += Math.round(
+            response.distance += +values[i].distanceValue;
+
+            response.deliveryCharges += Math.round(
               +values[i].distanceValue *
                 (vendor?.deliverySchedule?.kilometerFare || 1),
             );
@@ -1530,7 +1533,7 @@ export class BookingRepository {
               amount:
                 Math.round(totalPrice) +
                 (platformFee?.fee || 0) +
-                response?.distance,
+                response?.deliveryCharges,
             }
           : { amount: Math.round(totalPrice) + (platformFee?.fee || 0) }),
         currency: 'SAR',
@@ -1554,7 +1557,7 @@ export class BookingRepository {
 
       return {
         distance: `${response?.distance || 0} km`,
-        deliveryCharges: response?.distance || 0,
+        deliveryCharges: response?.deliveryCharges || 0,
         platformFee: platformFee?.fee,
         totalPrice: Math.round(totalPrice),
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
