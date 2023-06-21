@@ -464,6 +464,7 @@ export class JobService {
           riderId: true,
           rider: {
             select: {
+              userMasterId: true,
               tapMerchantId: true,
             },
           },
@@ -642,6 +643,28 @@ export class JobService {
             riderId: user.userTypeId,
           },
         });
+
+        const payload: SQSSendNotificationArgs<NotificationData> = {
+          type: NotificationType.RiderJob,
+          userId: [booking.rider.userMasterId],
+          data: {
+            title:
+              dto.jobStatus === RiderJobStatus.Accepted
+                ? NotificationTitle.RIDER_ACCEPT_JOB
+                : NotificationTitle.RIDER_JOB_COMPLETED,
+            body:
+              dto.jobStatus === RiderJobStatus.Accepted
+                ? NotificationBody.RIDER_ACCEPT_JOB
+                : NotificationBody.RIDER_JOB_COMPLETED,
+            type: NotificationType.RiderJob,
+            entityType: EntityType.JOB,
+            entityId: jobId,
+          },
+        };
+        await this.notificationService.HandleNotifications(
+          payload,
+          UserType.RIDER,
+        );
       }
 
       return successResponse(200, `Job status successfully ${dto.jobStatus}`);
