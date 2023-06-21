@@ -19,7 +19,7 @@ export enum NotificationTitle {
   ADMIN_REJECTED = 'Admin Rejected',
   BOOKING_COMPLETED = 'Booking Completed',
   BOOKING_IN_PROGRESS = 'Booking In_progress',
-  VENDOR_UPDATE_BY_ADMIN = 'Vender Update by Admin',
+  VENDOR_UPDATE_BY_ADMIN = 'Update by Admin',
   VENDOR_CREATED_JOB = 'Job Created by Vendor',
   RIDER_ACCEPT_JOB = 'Job Request Accepted',
   RIDER_JOB_COMPLETED = 'Job Completed',
