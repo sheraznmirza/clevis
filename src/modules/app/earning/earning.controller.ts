@@ -29,10 +29,28 @@ export class EarningController {
     return this.earningservice.getVendorEarning(user.userTypeId, dto);
   }
 
+  @Authorized(UserType.ADMIN)
+  @Get('vendor/byId/:vendorId')
+  getVendorEarningById(
+    @Param('vendorId') vendorId: number,
+    @Query() dto: VendorEarning,
+  ) {
+    return this.earningservice.getVendorEarning(vendorId, dto);
+  }
+
   @Authorized(UserType.RIDER)
   @Get('rider')
   getRiderEarning(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
     return this.earningservice.getRiderEarning(user.userTypeId, dto);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Get('rider/byId/:riderId')
+  getRiderEarningById(
+    @Param('riderId') id: number,
+    @Query() dto: VendorEarning,
+  ) {
+    return this.earningservice.getVendorEarning(id, dto);
   }
 
   @Authorized(UserType.RIDER)
