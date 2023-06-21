@@ -11,7 +11,7 @@ export type GetUserType = {
   serviceType?: ServiceType;
 };
 
-enum OrderOf {
+export enum OrderOf {
   asc = 'asc',
   desc = 'desc',
 }

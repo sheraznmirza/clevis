@@ -9,6 +9,7 @@ import {
   VendorUpdateBusyStatusDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
+  GetRiderListing,
 } from './dto';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
@@ -238,6 +239,14 @@ export class VendorService {
       } else {
         return await this.repository.getVendorById(id);
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRiderDirectory(user: GetUserType, listingParams: GetRiderListing) {
+    try {
+      return await this.repository.getRiderDirectory(user, listingParams);
     } catch (error) {
       throw error;
     }
