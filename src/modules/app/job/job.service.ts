@@ -586,6 +586,8 @@ export class JobService {
             }/${ChargeEntityTypes.job}/${jobId}`,
           },
         };
+        console.log('riderChargePayload : ', riderChargePayload);
+
         await this.tapService.createCharge(riderChargePayload);
 
         const adminChargePayload: createChargeRequestInterface = {
