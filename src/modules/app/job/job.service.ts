@@ -197,12 +197,12 @@ export class JobService {
     }
   }
 
-  async getAllRiderJobs(user: GetUserType, listingParams: GetRiderJobsDto) {
+  async getAllRiderJobs(riderId: number, listingParams: GetRiderJobsDto) {
     const { page = 1, take = 10, search, jobType, status } = listingParams;
     try {
       const rider = await this.prisma.userAddress.findFirst({
         where: {
-          riderId: user.userTypeId,
+          riderId: riderId,
           isDeleted: false,
           ...(search && {
             OR: [
@@ -256,7 +256,7 @@ export class JobService {
               {
                 riderJob: {
                   some: {
-                    riderId: user.userTypeId,
+                    riderId: riderId,
                     status: RiderJobStatus.Accepted,
                   },
                 },
@@ -270,7 +270,7 @@ export class JobService {
               {
                 riderJob: {
                   some: {
-                    riderId: user.userTypeId,
+                    riderId: riderId,
                     status: RiderJobStatus.Completed,
                   },
                 },
@@ -348,7 +348,7 @@ export class JobService {
               {
                 riderJob: {
                   some: {
-                    riderId: user.userTypeId,
+                    riderId: riderId,
                     status: RiderJobStatus.Accepted,
                   },
                 },
@@ -362,7 +362,7 @@ export class JobService {
               {
                 riderJob: {
                   some: {
-                    riderId: user.userTypeId,
+                    riderId: riderId,
                     status: RiderJobStatus.Completed,
                   },
                 },
@@ -391,13 +391,13 @@ export class JobService {
     }
   }
 
-  async getAllVendorJobs(user: GetUserType, listingParams: GetVendorJobsDto) {
+  async getAllVendorJobs(vendorId: number, listingParams: GetVendorJobsDto) {
     const { page = 1, take = 10, search, jobType } = listingParams;
     try {
       const jobs = await this.prisma.job.findMany({
         where: {
           ...(jobType && { jobType: jobType }),
-          vendorId: user.userTypeId,
+          vendorId: vendorId,
           ...(listingParams.status && {
             jobStatus: listingParams.status,
           }),
@@ -445,7 +445,7 @@ export class JobService {
       const totalCount = await this.prisma.job.count({
         where: {
           ...(jobType && { jobType: jobType }),
-          vendorId: user.userTypeId,
+          vendorId: vendorId,
         },
       });
 
