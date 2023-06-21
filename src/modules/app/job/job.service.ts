@@ -497,6 +497,7 @@ export class JobService {
           },
           bookingMaster: {
             select: {
+              bookingMasterId: true,
               tapAuthId: true,
               pickupDeliveryCharges: true,
               dropoffDeliveryCharges: true,
@@ -615,6 +616,15 @@ export class JobService {
             },
           };
           await this.tapService.createCharge(adminChargePayload);
+
+          await this.prisma.bookingMaster.update({
+            where: {
+              bookingMasterId: booking.bookingMaster.bookingMasterId,
+            },
+            data: {
+              status: BookingStatus.Completed,
+            },
+          });
         }
       }
 
