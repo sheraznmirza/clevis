@@ -170,6 +170,9 @@ export class BookingRepository {
         );
       }
 
+      console.log('pickupResponse: ', pickupResponse);
+      console.log('dropoffResponse: ', dropoffResponse);
+
       const pickupDeliveryCharges = pickupResponse
         ? pickupResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
@@ -179,6 +182,9 @@ export class BookingRepository {
         ? pickupResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
         : 0;
+
+      console.log('pickupDeliveryCharges: ', pickupDeliveryCharges);
+      console.log('dropoffDeliveryCharges: ', dropoffDeliveryCharges);
 
       const bookingDetailPrice: number[] = [];
 
@@ -1500,7 +1506,7 @@ export class BookingRepository {
               this.httpService,
             ),
           ]);
-
+          console.log('values: ', values);
           for (let i = 0; i < values.length; i++) {
             response.distance = +values[i].distanceValue;
           }
