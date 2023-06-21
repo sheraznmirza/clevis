@@ -41,7 +41,16 @@ export class JobController {
     @GetUser() user: GetUserType,
     @Query() listingParams: GetRiderJobsDto,
   ) {
-    return this.jobService.getAllRiderJobs(user, listingParams);
+    return this.jobService.getAllRiderJobs(user.userTypeId, listingParams);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Get('rider/byId/:riderId')
+  getAllAdminRiderJobs(
+    @Param('riderId') riderId: number,
+    @Query() listingParams: GetRiderJobsDto,
+  ) {
+    return this.jobService.getAllRiderJobs(riderId, listingParams);
   }
 
   @Authorized(UserType.VENDOR)
@@ -50,7 +59,16 @@ export class JobController {
     @GetUser() user: GetUserType,
     @Query() listingParams: GetVendorJobsDto,
   ) {
-    return this.jobService.getAllVendorJobs(user, listingParams);
+    return this.jobService.getAllVendorJobs(user.userTypeId, listingParams);
+  }
+
+  @Authorized(UserType.ADMIN)
+  @Get('vendor/byId/:vendorId')
+  getAllAdminVendorJobs(
+    @Param('vendorId') vendorId: number,
+    @Query() listingParams: GetVendorJobsDto,
+  ) {
+    return this.jobService.getAllVendorJobs(vendorId, listingParams);
   }
 
   @Authorized(UserType.RIDER)
