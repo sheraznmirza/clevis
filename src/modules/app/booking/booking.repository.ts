@@ -1508,7 +1508,10 @@ export class BookingRepository {
           ]);
           console.log('values: ', values);
           for (let i = 0; i < values.length; i++) {
-            response.distance += +values[i].distanceValue;
+            response.distance += Math.round(
+              +values[i].distanceValue *
+                (vendor?.deliverySchedule?.kilometerFare || 1),
+            );
           }
         }
       }
@@ -1524,14 +1527,12 @@ export class BookingRepository {
       const payload = {
         ...(vendor.serviceType === ServiceType.LAUNDRY && dto.isWithDelivery
           ? {
-              amount: Math.round(
-                totalPrice +
-                  (platformFee?.fee || 1) +
-                  response?.distance *
-                    (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
-              ),
+              amount:
+                Math.round(totalPrice) +
+                (platformFee?.fee || 0) +
+                response?.distance,
             }
-          : { amount: Math.round(totalPrice + (platformFee?.fee || 1)) }),
+          : { amount: Math.round(totalPrice) + (platformFee?.fee || 0) }),
         currency: 'SAR',
         customer: {
           id: customer.tapCustomerId,
