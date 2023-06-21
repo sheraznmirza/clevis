@@ -10,14 +10,28 @@ import {
   UpdateRequestDto,
   UpdateRiderScheduleDto,
 } from './dto';
-import { Media, ServiceType, UserType, Vendor } from '@prisma/client';
+import {
+  EntityType,
+  Media,
+  NotificationType,
+  ServiceType,
+  UserType,
+  Vendor,
+} from '@prisma/client';
 import { RiderListingParams, VendorListingParams } from 'src/core/dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
 export class RiderRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
@@ -879,6 +893,22 @@ export class RiderRepository {
           })),
         });
       }
+
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.UpdateByAdmin,
+        userId: [rider.userMasterId],
+        data: {
+          title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
+          body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+          type: NotificationType.UpdateByAdmin,
+          entityType: EntityType.RIDER,
+          entityId: rider.rider.riderId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.RIDER,
+      );
 
       return {
         ...successResponse(200, 'Rider updated successfully.'),

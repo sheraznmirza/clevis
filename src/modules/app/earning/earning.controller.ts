@@ -36,19 +36,19 @@ export class EarningController {
   }
 
   @Authorized(UserType.RIDER)
-  @Get('detail/:id')
+  @Get('rider/earning/detail/:id')
   getDetail(@Param('id') id: number) {
     return this.earningservice.getDetailRider(id);
   }
 
   @Authorized(UserType.VENDOR)
-  @Get('detail/:id')
+  @Get('vendor/earning/detail/:id')
   getDetailVendor(@Param('id') id: number) {
     return this.earningservice.getDetailVendor(id);
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('detail/id')
+  @Get('admin/earning/detail/:id')
   getDetailAdmin(@Param('id') id: number) {
     return this.earningservice.getDetailAdmin(id);
   }
