@@ -474,8 +474,14 @@ export class JobService {
           jobStatus: true,
           jobType: true,
           riderId: true,
+          vendor: {
+            select: {
+              userMasterId: true,
+            },
+          },
           rider: {
             select: {
+              userMasterId: true,
               tapMerchantId: true,
             },
           },
@@ -491,6 +497,7 @@ export class JobService {
           },
           bookingMaster: {
             select: {
+              bookingMasterId: true,
               tapAuthId: true,
               pickupDeliveryCharges: true,
               dropoffDeliveryCharges: true,
@@ -538,34 +545,6 @@ export class JobService {
         dto.jobStatus === RiderJobStatus.Completed &&
         booking.riderId === user.userTypeId
       ) {
-        const platform = await this.prisma.platformSetup.findFirst({
-          orderBy: {
-            createdAt: 'desc',
-          },
-          where: {
-            isDeleted: false,
-          },
-          select: {
-            fee: true,
-          },
-        });
-
-        const admin = await this.prisma.admin.findUnique({
-          where: {
-            userMasterId: 1,
-          },
-          select: {
-            userMasterId: true,
-            tapBranchId: true,
-            tapBrandId: true,
-            tapBusinessEntityId: true,
-            tapBusinessId: true,
-            tapMerchantId: true,
-            tapPrimaryWalletId: true,
-            tapWalletId: true,
-          },
-        });
-
         const riderChargePayload: createChargeRequestInterface = {
           amount:
             booking.jobType === JobType.PICKUP
@@ -586,26 +565,67 @@ export class JobService {
             }/${ChargeEntityTypes.job}/${jobId}`,
           },
         };
+        console.log('riderChargePayload : ', riderChargePayload);
+
         await this.tapService.createCharge(riderChargePayload);
 
-        const adminChargePayload: createChargeRequestInterface = {
-          amount: platform.fee,
-          currency: 'SAR',
-          customer: {
-            id: booking.bookingMaster.customer.tapCustomerId,
-          },
-          merchant: {
-            id: admin.tapMerchantId,
-          },
-          source: { id: booking.bookingMaster.tapAuthId, type: 'CARD' },
-          redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
-          post: {
-            url: `${this.config.get('APP_URL')}/tap/charge/${
-              user.userMasterId
-            }/${ChargeEntityTypes.job}/${jobId}`,
-          },
-        };
-        await this.tapService.createCharge(adminChargePayload);
+        if (booking.jobType === JobType.DELIVERY) {
+          const platform = await this.prisma.platformSetup.findFirst({
+            orderBy: {
+              createdAt: 'desc',
+            },
+            where: {
+              isDeleted: false,
+            },
+            select: {
+              fee: true,
+            },
+          });
+
+          const admin = await this.prisma.admin.findUnique({
+            where: {
+              userMasterId: 1,
+            },
+            select: {
+              userMasterId: true,
+              tapBranchId: true,
+              tapBrandId: true,
+              tapBusinessEntityId: true,
+              tapBusinessId: true,
+              tapMerchantId: true,
+              tapPrimaryWalletId: true,
+              tapWalletId: true,
+            },
+          });
+
+          const adminChargePayload: createChargeRequestInterface = {
+            amount: platform.fee,
+            currency: 'SAR',
+            customer: {
+              id: booking.bookingMaster.customer.tapCustomerId,
+            },
+            merchant: {
+              id: admin.tapMerchantId,
+            },
+            source: { id: booking.bookingMaster.tapAuthId, type: 'CARD' },
+            redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
+            post: {
+              url: `${this.config.get('APP_URL')}/tap/charge/${1}/${
+                ChargeEntityTypes.job
+              }/${jobId}`,
+            },
+          };
+          await this.tapService.createCharge(adminChargePayload);
+
+          await this.prisma.bookingMaster.update({
+            where: {
+              bookingMasterId: booking.bookingMaster.bookingMasterId,
+            },
+            data: {
+              status: BookingStatus.Completed,
+            },
+          });
+        }
       }
 
       if (
@@ -654,6 +674,28 @@ export class JobService {
             riderId: user.userTypeId,
           },
         });
+
+        const payload: SQSSendNotificationArgs<NotificationData> = {
+          type: NotificationType.RiderJob,
+          userId: [booking.vendor.userMasterId],
+          data: {
+            title:
+              dto.jobStatus === RiderJobStatus.Accepted
+                ? NotificationTitle.RIDER_ACCEPT_JOB
+                : NotificationTitle.RIDER_JOB_COMPLETED,
+            body:
+              dto.jobStatus === RiderJobStatus.Accepted
+                ? NotificationBody.RIDER_ACCEPT_JOB
+                : NotificationBody.RIDER_JOB_COMPLETED,
+            type: NotificationType.RiderJob,
+            entityType: EntityType.JOB,
+            entityId: jobId,
+          },
+        };
+        await this.notificationService.HandleNotifications(
+          payload,
+          UserType.RIDER,
+        );
       }
 
       return successResponse(200, `Job status successfully ${dto.jobStatus}`);

@@ -29,27 +29,45 @@ export class EarningController {
     return this.earningservice.getVendorEarning(user.userTypeId, dto);
   }
 
+  @Authorized(UserType.ADMIN)
+  @Get('vendor/byId/:vendorId')
+  getVendorEarningById(
+    @Param('vendorId') vendorId: number,
+    @Query() dto: VendorEarning,
+  ) {
+    return this.earningservice.getVendorEarning(vendorId, dto);
+  }
+
   @Authorized(UserType.RIDER)
   @Get('rider')
   getRiderEarning(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
     return this.earningservice.getRiderEarning(user.userTypeId, dto);
   }
 
+  @Authorized(UserType.ADMIN)
+  @Get('rider/byId/:riderId')
+  getRiderEarningById(
+    @Param('riderId') id: number,
+    @Query() dto: VendorEarning,
+  ) {
+    return this.earningservice.getVendorEarning(id, dto);
+  }
+
   @Authorized(UserType.RIDER)
-  @Get('detail/:riderId')
-  getDetail(@Param('riderId') id: number) {
+  @Get('rider/earning/detail/:id')
+  getDetail(@Param('id') id: number) {
     return this.earningservice.getDetailRider(id);
   }
 
   @Authorized(UserType.VENDOR)
-  @Get('detail/:vendorId')
-  getDetailVendor(@Param('vendorId') id: number) {
+  @Get('vendor/earning/detail/:id')
+  getDetailVendor(@Param('id') id: number) {
     return this.earningservice.getDetailVendor(id);
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('detail/admin')
-  getDetailAdmin(@GetUser() user: GetUserType) {
-    return this.earningservice.getDetailAdmin(user.userTypeId);
+  @Get('admin/earning/detail/:id')
+  getDetailAdmin(@Param('id') id: number) {
+    return this.earningservice.getDetailAdmin(id);
   }
 }

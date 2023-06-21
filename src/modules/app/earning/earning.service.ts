@@ -69,6 +69,7 @@ export class EarningService {
           job: {
             select: {
               jobType: true,
+              bookingMasterId: true,
             },
           },
           bookingMaster: {
@@ -305,7 +306,7 @@ export class EarningService {
 
     const result = await this.prisma.earnings.findUnique({
       where: {
-        id,
+        id: id,
       },
       select: {
         createdAt: true,

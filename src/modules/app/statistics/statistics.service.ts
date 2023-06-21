@@ -8,14 +8,14 @@ import { GetUserType } from 'src/core/dto';
 export class StatisticsService {
   constructor(private repository: StatisticRepository) {}
 
-  async statisticService(query: StatisticVendorAdminQueryDto) {
+  async statisticServiceVendor(query: StatisticVendorAdminQueryDto) {
     try {
-      return await this.repository.getStatistic(query);
+      return await this.repository.getStatisticVendor(query);
     } catch (error) {
       throw error;
     }
   }
-  async statisticServices(query: StatisticUserAdminQueryDto) {
+  async statisticService(query: StatisticUserAdminQueryDto) {
     try {
       return await this.repository.getStatistics(query);
     } catch (error) {

@@ -28,14 +28,11 @@ import { HttpService } from '@nestjs/axios';
 import { mapsDistanceData } from 'src/helpers/maps.helper';
 import { ChargeEntityTypes, GetUserType } from 'src/core/dto';
 import { TapService } from 'src/modules/tap/tap.service';
-import {
-  createChargeRequestInterface,
-  createCustomerRequestInterface,
-} from 'src/modules/tap/dto/card.dto';
+import { createChargeRequestInterface } from 'src/modules/tap/dto/card.dto';
 import { AuthorizeResponseInterface } from './entity';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
-import { NotificationSocketType, NotificationTitle } from 'src/constants';
+import { NotificationTitle } from 'src/constants';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody } from 'src/constants';
 import { MailService } from 'src/modules/mail/mail.service';
@@ -173,15 +170,21 @@ export class BookingRepository {
         );
       }
 
+      console.log('pickupResponse: ', pickupResponse);
+      console.log('dropoffResponse: ', dropoffResponse);
+
       const pickupDeliveryCharges = pickupResponse
         ? pickupResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
         : 0;
 
       const dropoffDeliveryCharges = dropoffResponse
-        ? pickupResponse?.distanceValue *
+        ? dropoffResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
         : 0;
+
+      console.log('pickupDeliveryCharges: ', pickupDeliveryCharges);
+      console.log('dropoffDeliveryCharges: ', dropoffDeliveryCharges);
 
       const bookingDetailPrice: number[] = [];
 
@@ -210,14 +213,14 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           tapAuthId: dto.tapAuthId,
-          pickupDeliveryCharges,
-          dropoffDeliveryCharges,
+          pickupDeliveryCharges: Math.round(pickupDeliveryCharges),
+          dropoffDeliveryCharges: Math.round(dropoffDeliveryCharges),
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
           }),
           ...(dto.instructions && { instructions: dto.instructions }),
-          totalPrice: totalPrice ? totalPrice : 0,
+          totalPrice: totalPrice ? Math.round(totalPrice) : 0,
           ...(dto.isWithDelivery &&
             dto?.pickupLocation?.timeFrom &&
             dto?.pickupLocation?.timeTill && {
@@ -332,9 +335,6 @@ export class BookingRepository {
 
   async createBookingCarWash(customerId, dto: CreateBookingCarWashDto) {
     try {
-      let pickupLocationId: UserAddress;
-      let response: any;
-
       const attachments = [];
 
       const tapAuthorize = await this.tapService.retrieveAuthorize(
@@ -356,39 +356,6 @@ export class BookingRepository {
           attachments.push(result);
         });
       }
-
-      if (dto.isWithDelivery) {
-        if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
-          pickupLocationId = await this.prisma.userAddress.create({
-            data: {
-              latitude: dto.pickupLocation.latitude,
-              longitude: dto.pickupLocation.longitude,
-              cityId: dto.pickupLocation.cityId,
-              customerId,
-              fullAddress: dto.pickupLocation.fullAddress,
-            },
-          });
-          dto.pickupLocation.userAddressId = pickupLocationId.userAddressId;
-        }
-      }
-
-      const vendor = await this.prisma.vendor.findUnique({
-        where: {
-          vendorId: dto.vendorId,
-        },
-        select: {
-          deliverySchedule: {
-            select: {
-              kilometerFare: true,
-            },
-          },
-        },
-      });
-
-      const deliveryCharges = response
-        ? response?.distanceValue *
-          (vendor?.deliverySchedule?.kilometerFare || 8.5)
-        : 0;
 
       const bookingDetailPrice: number[] = [];
       for (let i = 0; i < dto.articles.length; i++) {
@@ -415,7 +382,6 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           tapAuthId: dto.tapAuthId,
-          pickupDeliveryCharges: deliveryCharges,
           bookingDate: dto.bookingDate,
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
@@ -1432,6 +1398,7 @@ export class BookingRepository {
     try {
       const response = {
         distance: 0,
+        deliveryCharges: 0,
       };
       const vendor = await this.prisma.vendor.findUnique({
         where: {
@@ -1540,15 +1507,15 @@ export class BookingRepository {
               this.httpService,
             ),
           ]);
-          // .then((values) => {
           console.log('values: ', values);
           for (let i = 0; i < values.length; i++) {
-            response.distance = +values[i].distanceValue;
+            response.distance += +values[i].distanceValue;
+
+            response.deliveryCharges += Math.round(
+              +values[i].distanceValue *
+                (vendor?.deliverySchedule?.kilometerFare || 1),
+            );
           }
-          // })
-          // .catch((error) => {
-          //   throw error;
-          // });
         }
       }
       const customer = await this.prisma.customer.findUnique({
@@ -1559,31 +1526,16 @@ export class BookingRepository {
           tapCustomerId: true,
         },
       });
-      console.log('vendor.serviceType: ', vendor.serviceType);
-      console.log('response: ', response);
-      console.log('response distance: ', response?.distance);
-      console.log(
-        'vendor?.deliverySchedule?.kilometerFare: ',
-        vendor?.deliverySchedule?.kilometerFare,
-      );
-      console.log(
-        'delivery charges: ',
-        response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
-          1,
-      );
-      console.log('dto.isWithDelivery: ', dto.isWithDelivery);
-      console.log('vendor.serviceType: ', vendor.serviceType);
 
       const payload = {
         ...(vendor.serviceType === ServiceType.LAUNDRY && dto.isWithDelivery
           ? {
               amount:
-                totalPrice +
-                  (platformFee?.fee || 1) +
-                  response?.distance *
-                    (vendor?.deliverySchedule?.kilometerFare || 1) || 1,
+                Math.round(totalPrice) +
+                (platformFee?.fee || 0) +
+                response?.deliveryCharges,
             }
-          : { amount: totalPrice + (platformFee?.fee || 1) }),
+          : { amount: Math.round(totalPrice) + (platformFee?.fee || 0) }),
         currency: 'SAR',
         customer: {
           id: customer.tapCustomerId,
@@ -1599,32 +1551,15 @@ export class BookingRepository {
           url: `${this.config.get('APP_URL')}/tap/authorize`,
         },
       };
-
       console.log('payload: ', payload);
       const url: AuthorizeResponseInterface =
         await this.tapService.createAuthorize(payload);
 
-      // const response = await mapsDistanceData(
-      //   dto.pickupLocation,
-      //   vendor.userAddress[0],
-      //   this.config,
-      //   this.httpService,
-      // );
-
-      // const response = await mapsDistanceData(
-      //   dto.pickupLocation,
-      //   vendor.userAddress[0],
-      //   this.config,
-      //   this.httpService,
-      // );
-      console.log('url: ', url.transaction.url);
       return {
         distance: `${response?.distance || 0} km`,
-        deliveryCharges:
-          response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1) ||
-          0,
-        platformFee: platformFee?.fee,
-        totalPrice,
+        deliveryCharges: response?.deliveryCharges || 0,
+        platformFee: platformFee?.fee || 0,
+        totalPrice: Math.round(totalPrice),
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
         deliveryDurationMax: vendor?.deliverySchedule?.deliveryDurationMax,
         serviceDurationMin: vendor?.deliverySchedule?.serviceDurationMin,

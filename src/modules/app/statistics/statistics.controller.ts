@@ -19,7 +19,7 @@ export class StatisticsController {
   @Authorized(UserType.ADMIN)
   @Get('admin/vendorCount')
   getMe(@Query() query: StatisticVendorAdminQueryDto) {
-    return this.StatisticsService.statisticService(query);
+    return this.StatisticsService.statisticServiceVendor(query);
   }
 
   @Authorized(UserType.ADMIN)

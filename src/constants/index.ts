@@ -19,8 +19,11 @@ export enum NotificationTitle {
   ADMIN_REJECTED = 'Admin Rejected',
   BOOKING_COMPLETED = 'Booking Completed',
   BOOKING_IN_PROGRESS = 'Booking In_progress',
-  VENDOR_UPDATE_BY_ADMIN = 'Vender Update by Admin',
+  VENDOR_UPDATE_BY_ADMIN = 'Update by Admin',
   VENDOR_CREATED_JOB = 'Job Created by Vendor',
+  RIDER_ACCEPT_JOB = 'Job Request Accepted',
+  RIDER_JOB_COMPLETED = 'Job Completed',
+  CUSTOMER_CREATE_ACCOUNT = 'Account Created',
 }
 
 export enum NotificationBody {
@@ -36,6 +39,9 @@ export enum NotificationBody {
   VENDOR_UPDATE_BY_ADMIN = 'Your Profile Information has been updated by the admin.',
   VENDOR_CREATED_JOB = 'Job Created by Vendor ',
   ADMIN_APPROVED_RIDER = 'Welcome to Clevis.You can now start accepting jobs and earning with our platform. Get ready to hit the road',
+  RIDER_ACCEPT_JOB = 'You have accepted a new job request. Please proceed to the designated location and provide your excellent service. ',
+  RIDER_JOB_COMPLETED = 'You have successfully completed the assigned job. ',
+  CUSTOMER_CREATE_ACCOUNT = 'Welcome to Clevis. Book Laundry & car wash service from the comfort of your home.',
 }
 
 export enum EventType {

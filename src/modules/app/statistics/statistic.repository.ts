@@ -17,7 +17,7 @@ dayjs.extend(utc);
 export class StatisticRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getStatistic(query: StatisticVendorAdminQueryDto) {
+  async getStatisticVendor(query: StatisticVendorAdminQueryDto) {
     try {
       const monthlyEntryCounts2 = await this.prisma.userMaster.findMany({
         where: { userType: UserType.VENDOR },
