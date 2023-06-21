@@ -1554,10 +1554,7 @@ export class BookingRepository {
 
       return {
         distance: `${response?.distance || 0} km`,
-        deliveryCharges:
-          Math.round(
-            response?.distance * (vendor?.deliverySchedule?.kilometerFare || 1),
-          ) || 0,
+        deliveryCharges: response?.distance || 0,
         platformFee: platformFee?.fee,
         totalPrice: Math.round(totalPrice),
         deliveryDurationMin: vendor?.deliverySchedule?.deliveryDurationMin,
