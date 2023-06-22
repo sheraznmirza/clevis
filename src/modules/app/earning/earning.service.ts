@@ -182,6 +182,7 @@ export class EarningService {
 
         bookingMaster: {
           select: {
+            totalPrice: true,
             tapPaymentStatus: true,
             bookingMasterId: true,
             vendor: {
