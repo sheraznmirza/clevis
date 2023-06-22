@@ -3,6 +3,7 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { AllEarning, EarningDto, EarningDtos } from './dto';
 import { UserType } from '@prisma/client';
 import { VendorEarning } from './dto/vendor-earning.dto';
+import { RiderEarning } from './dto/rider-earning.dto';
 
 @Injectable()
 export class EarningService {
@@ -135,7 +136,14 @@ export class EarningService {
   }
 
   async getVendorEarning(vendorId: number, dto: VendorEarning) {
-    const { page = 1, take = 10, search } = dto;
+    const {
+      page = 1,
+      take = 10,
+      search,
+      serviceType,
+      timeFrom,
+      timeTill,
+    } = dto;
     const earnings = await this.prisma.earnings.findMany({
       take: +take,
       skip: +take * (+page - 1),
@@ -145,8 +153,13 @@ export class EarningService {
       where: {
         isRefunded: false,
         bookingMaster: {
+          vendor: {
+            ...(serviceType && { serviceType: serviceType }),
+          },
           vendorId,
         },
+        ...(timeFrom &&
+          timeTill && { createdAt: { gte: timeFrom, lte: timeTill } }),
       },
       select: {
         id: true,
@@ -185,8 +198,8 @@ export class EarningService {
     return { data: earnings, page: +page, take: +take, totalCount };
   }
 
-  async getRiderEarning(riderId: number, dto: VendorEarning) {
-    const { page = 1, take = 10, search } = dto;
+  async getRiderEarning(riderId: number, dto: RiderEarning) {
+    const { page = 1, take = 10, search, jobType, timeFrom, timeTill } = dto;
     const earnings = await this.prisma.earnings.findMany({
       take: +take,
       skip: +take * (+page - 1),
@@ -198,7 +211,10 @@ export class EarningService {
         userMasterId: { not: 1 },
         job: {
           riderId,
+          ...(jobType && { jobType: jobType }),
         },
+        ...(timeFrom &&
+          timeTill && { createdAt: { gte: timeFrom, lte: timeTill } }),
       },
       distinct: ['id'],
       select: {
