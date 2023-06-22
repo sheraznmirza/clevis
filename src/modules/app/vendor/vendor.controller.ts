@@ -26,6 +26,7 @@ import {
   UpdateRequestDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
+  GetRiderListing,
 } from './dto';
 import { VendorService } from './vendor.service';
 import {
@@ -41,7 +42,7 @@ import { User } from '@onesignal/node-onesignal';
 @Controller('vendor')
 export class VendorController {
   constructor(private vendorService: VendorService) {}
-  @Authorized([UserType.VENDOR])
+  @Authorized(UserType.VENDOR)
   @Get('me')
   getMe(@GetUser() user: GetUserType, @Query() query: VendorRiderByIdParams) {
     return this.vendorService.getVendorById(
@@ -49,6 +50,15 @@ export class VendorController {
       query,
       user.userTypeId,
     );
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Get('rider-directory')
+  getRiderDirectory(
+    @GetUser() user: GetUserType,
+    @Query() listingParams: GetRiderListing,
+  ) {
+    return this.vendorService.getRiderDirectory(user, listingParams);
   }
 
   // @Authorized(UserType.VENDOR)

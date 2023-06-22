@@ -39,6 +39,8 @@ export class TapService {
   async tapCharge(params: ChargeParams, dto: ChargeDto) {
     try {
       if (dto.status === 'CAPTURED') {
+        console.log('charge dto: ', dto);
+        console.log('charge params: ', params);
         await this.prisma.earnings.create({
           data: {
             amount: dto.amount,

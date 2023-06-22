@@ -9,6 +9,7 @@ import {
   VendorUpdateBusyStatusDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
+  GetRiderListing,
 } from './dto';
 import { successResponse, unknowError } from '../../../helpers/response.helper';
 import { MailService } from '../../mail/mail.service';
@@ -247,6 +248,14 @@ export class VendorService {
     }
   }
 
+  async getRiderDirectory(user: GetUserType, listingParams: GetRiderListing) {
+    try {
+      return await this.repository.getRiderDirectory(user, listingParams);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // async getAllVendorServices(page: number, take: number, search?: string) {
   //   try {
   //     return await this.repository.getAllCategory(page, take, search);
@@ -392,8 +401,8 @@ export class VendorService {
         },
         contact_person: {
           name: {
-            first: user.vendor.fullName.split(' ')[0],
-            last: user.vendor.fullName.split(' ')[1],
+            first: user.vendor.fullName,
+            last: 'Clevis',
           },
 
           contact_info: {
@@ -408,8 +417,8 @@ export class VendorService {
           },
           authorization: {
             name: {
-              first: user.vendor.fullName.split(' ')[0],
-              last: user.vendor.fullName.split(' ')[1],
+              first: user.vendor.fullName,
+              last: 'Clevis',
             },
           },
         },

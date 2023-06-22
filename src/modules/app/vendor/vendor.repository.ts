@@ -14,12 +14,14 @@ import {
   VendorUpdateBusyStatusDto,
   VendorUpdateServiceDto,
   VendorUpdateStatusDto,
+  GetRiderListing,
 } from './dto';
 import {
   EntityType,
   Media,
   NotificationType,
   ServiceType,
+  Status,
   UserType,
   Vendor,
 } from '@prisma/client';
@@ -30,6 +32,7 @@ import {
 } from 'src/core/dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import {
+  getRiderDirectoryMapper,
   vendorServiceByIdMappedCarWash,
   vendorServiceByIdMappedLaundry,
 } from './vendor.mapper';
@@ -38,6 +41,10 @@ import { NotificationData } from 'src/modules/notification-socket/types';
 import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { currentDateToVendorFilter } from 'src/helpers/date.helper';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -1207,6 +1214,136 @@ export class VendorRepository {
         error,
         'The request was well-formed but was unable to be followed due to semantic errors ',
       );
+    }
+  }
+
+  async getRiderDirectory(user: GetUserType, listingParams: GetRiderListing) {
+    const { page = 1, take = 10, search, orderBy } = listingParams;
+    try {
+      if (user.serviceType === ServiceType.CAR_WASH) {
+        throw new ForbiddenException(
+          'Car Wash vendors are not allowed to view the rider directory',
+        );
+      }
+
+      const dayObj = currentDateToVendorFilter(dayjs().utc().format());
+
+      const currentCity = await this.prisma.userAddress.findFirst({
+        where: {
+          vendorId: user.userTypeId,
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          cityId: true,
+        },
+      });
+
+      const riders = await this.prisma.userMaster.findMany({
+        where: {
+          isDeleted: false,
+          isActive: true,
+          userType: UserType.RIDER,
+          isEmailVerified: true,
+          rider: {
+            status: Status.APPROVED,
+            isBusy: false,
+            userAddress: {
+              some: {
+                cityId: currentCity.cityId,
+                isDeleted: false,
+              },
+            },
+            ...(search && {
+              companyName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            }),
+          },
+        },
+        take: +take,
+        skip: +take * (+page - 1),
+        orderBy: {
+          rider: {
+            companyName: orderBy ? orderBy : 'asc',
+          },
+        },
+        select: {
+          userMasterId: true,
+          phone: true,
+          rider: {
+            select: {
+              companyName: true,
+              companyEmail: true,
+              logo: {
+                select: {
+                  name: true,
+                  location: true,
+                  key: true,
+                },
+              },
+              companySchedule: {
+                select: {
+                  day: true,
+                  startTime: true,
+                  endTime: true,
+                  isActive: true,
+                },
+              },
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                select: {
+                  fullAddress: true,
+                },
+                take: 1,
+              },
+            },
+          },
+        },
+      });
+
+      const totalCount = await this.prisma.userMaster.count({
+        where: {
+          isDeleted: false,
+          isActive: true,
+          userType: UserType.RIDER,
+          isEmailVerified: true,
+          rider: {
+            status: Status.APPROVED,
+            userAddress: {
+              some: {
+                cityId: currentCity.cityId,
+                isDeleted: false,
+              },
+            },
+            ...(search && {
+              companyName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            }),
+          },
+        },
+      });
+
+      const mappedRiders = getRiderDirectoryMapper(riders, dayObj);
+
+      return {
+        data: mappedRiders,
+        page: +page,
+        take: +take,
+        totalCount,
+      };
+    } catch (error) {
+      throw error;
     }
   }
 
