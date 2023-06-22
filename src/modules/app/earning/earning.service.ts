@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { AllEarning, EarningDto } from './dto';
+import { AllEarning, EarningDto, EarningDtos } from './dto';
 import { UserType } from '@prisma/client';
 import { VendorEarning } from './dto/vendor-earning.dto';
 
@@ -25,11 +25,26 @@ export class EarningService {
           },
         },
         select: {
+          id: true,
           bookingMaster: {
             select: {
               customer: {
                 select: {
                   fullName: true,
+                },
+              },
+            },
+          },
+          job: {
+            select: {
+              bookingMaster: {
+                select: {
+                  bookingMasterId: true,
+                  customer: {
+                    select: {
+                      fullName: true,
+                    },
+                  },
                 },
               },
             },
@@ -66,6 +81,7 @@ export class EarningService {
           },
         },
         select: {
+          id: true,
           job: {
             select: {
               jobType: true,
@@ -133,6 +149,7 @@ export class EarningService {
         },
       },
       select: {
+        id: true,
         createdAt: true,
         amount: true,
 
@@ -178,14 +195,31 @@ export class EarningService {
       },
       where: {
         isRefunded: false,
+        userMasterId: { not: 1 },
         job: {
           riderId,
         },
       },
+      distinct: ['id'],
       select: {
+        id: true,
         job: {
           select: {
             jobType: true,
+            bookingMaster: {
+              select: {
+                vendor: {
+                  select: {
+                    fullName: true,
+                    userMaster: {
+                      select: {
+                        email: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
         createdAt: true,
@@ -226,7 +260,7 @@ export class EarningService {
   }
 
   async getDetailRider(id: number) {
-    await this.prisma.earnings.findUnique({
+    return await this.prisma.earnings.findUnique({
       where: {
         id: id,
       },
@@ -234,27 +268,31 @@ export class EarningService {
         createdAt: true,
         jobId: true,
         amount: true,
-        bookingMaster: {
+        job: {
           select: {
-            vendor: {
+            bookingMaster: {
               select: {
-                fullName: true,
-                companyName: true,
-                userMaster: {
+                vendor: {
                   select: {
-                    phone: true,
+                    fullName: true,
+                    companyEmail: true,
+                    userMaster: {
+                      select: {
+                        phone: true,
+                      },
+                    },
                   },
                 },
-              },
-            },
-            dropoffLocation: {
-              select: {
-                fullAddress: true,
-              },
-            },
-            pickupLocation: {
-              select: {
-                fullAddress: true,
+                dropoffLocation: {
+                  select: {
+                    fullAddress: true,
+                  },
+                },
+                pickupLocation: {
+                  select: {
+                    fullAddress: true,
+                  },
+                },
               },
             },
           },
@@ -265,12 +303,13 @@ export class EarningService {
 
   async getDetailVendor(id: number) {
     try {
-      await this.prisma.earnings.findUnique({
+      return await this.prisma.earnings.findUnique({
         where: {
           id: id,
         },
 
         select: {
+          id: true,
           bookingMasterId: true,
           createdAt: true,
           amount: true,
@@ -291,7 +330,7 @@ export class EarningService {
     }
   }
 
-  async getDetailAdmin(id: number) {
+  async getDetailAdmin(id: number, dto: EarningDtos) {
     const platform = await this.prisma.platformSetup.findFirst({
       orderBy: {
         createdAt: 'desc',
@@ -303,29 +342,113 @@ export class EarningService {
         fee: true,
       },
     });
+    if (dto.status === AllEarning.Receive) {
+      const result = await this.prisma.earnings.findUnique({
+        where: {
+          id: id,
+        },
+        select: {
+          id: true,
+          amount: true,
+          createdAt: true,
 
-    const result = await this.prisma.earnings.findUnique({
-      where: {
-        id: id,
-      },
-      select: {
-        createdAt: true,
-        bookingMasterId: true,
-        bookingMaster: {
-          select: {
-            customer: {
-              select: {
-                fullName: true,
-                email: true,
+          job: {
+            select: {
+              bookingMaster: {
+                select: {
+                  bookingMasterId: true,
+                  customer: {
+                    select: {
+                      fullName: true,
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          bookingMaster: {
+            select: {
+              customer: {
+                select: {
+                  fullName: true,
+                  email: true,
+                },
               },
             },
           },
         },
-      },
-    });
-    return {
-      amount: platform.fee,
-      ...result,
-    };
+      });
+      return {
+        amount: platform.fee,
+        ...result,
+      };
+    } else if (dto.status === AllEarning.Disperse) {
+      const results = await this.prisma.earnings.findUnique({
+        where: {
+          id: id,
+        },
+
+        select: {
+          id: true,
+          createdAt: true,
+          amount: true,
+          bookingMasterId: true,
+
+          job: {
+            select: {
+              bookingMasterId: true,
+              vendor: {
+                select: {
+                  banking: {
+                    where: {
+                      isDeleted: false,
+                    },
+                    select: {
+                      bankName: true,
+                      accountNumber: true,
+                      accountTitle: true,
+                    },
+                  },
+                  fullName: true,
+                  companyName: true,
+                  userMaster: {
+                    select: {
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          bookingMaster: {
+            select: {
+              vendor: {
+                select: {
+                  banking: {
+                    select: {
+                      bankName: true,
+                      accountNumber: true,
+                      accountTitle: true,
+                    },
+                  },
+                  fullName: true,
+                  companyName: true,
+                  userMaster: {
+                    select: {
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      return {
+        amount: platform.fee,
+        ...results,
+      };
+    }
   }
 }

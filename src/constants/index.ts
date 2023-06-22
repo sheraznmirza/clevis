@@ -20,7 +20,7 @@ export enum NotificationTitle {
   BOOKING_COMPLETED = 'Booking Completed',
   BOOKING_IN_PROGRESS = 'Booking In_progress',
   VENDOR_UPDATE_BY_ADMIN = 'Update by Admin',
-  VENDOR_CREATED_JOB = 'Job Created by Vendor',
+  VENDOR_CREATED_JOB = 'Job Created by {vendor}',
   RIDER_ACCEPT_JOB = 'Job Request Accepted',
   RIDER_JOB_COMPLETED = 'Job Completed',
   CUSTOMER_CREATE_ACCOUNT = 'Account Created',
@@ -28,7 +28,7 @@ export enum NotificationTitle {
 
 export enum NotificationBody {
   BOOKING_APPROVED = 'The booking request has been accepted. ',
-  BOOKING_REJECTED = 'Booking Rejected by vendor',
+  BOOKING_REJECTED = 'Booking Rejected by {vendor}',
   BOOKING_CREATED = 'You have received a new booking request',
   RIDER_CREATED = 'Rider Verified Successfully & Waiting for Approvel',
   VENDOR_CREATED = 'Vendor Verified Successfully & Waiting for Approvel',
@@ -37,10 +37,10 @@ export enum NotificationBody {
   BOOKING_COMPLETED = 'The booking {id} has been successfully completed',
   BOOKING_IN_PROGRESS = 'The vendor has marked the booking {id} as In Progress',
   VENDOR_UPDATE_BY_ADMIN = 'Your Profile Information has been updated by the admin.',
-  VENDOR_CREATED_JOB = 'Job Created by Vendor ',
-  ADMIN_APPROVED_RIDER = 'Welcome to Clevis.You can now start accepting jobs and earning with our platform. Get ready to hit the road',
-  RIDER_ACCEPT_JOB = 'You have accepted a new job request. Please proceed to the designated location and provide your excellent service. ',
-  RIDER_JOB_COMPLETED = 'You have successfully completed the assigned job. ',
+  VENDOR_CREATED_JOB = 'Job Created by {Vendor}',
+  ADMIN_APPROVED_RIDER = 'Welcome to Clevis.{rider} can now start accepting jobs and earning with our platform. Get ready to hit the road',
+  RIDER_ACCEPT_JOB = '{rider} have accepted a new job request. Please proceed to the designated location and provide your excellent service. ',
+  RIDER_JOB_COMPLETED = '{rider} have successfully completed the assigned job {id }. ',
   CUSTOMER_CREATE_ACCOUNT = 'Welcome to Clevis. Book Laundry & car wash service from the comfort of your home.',
 }
 

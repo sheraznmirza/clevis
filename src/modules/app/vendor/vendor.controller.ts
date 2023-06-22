@@ -126,7 +126,11 @@ export class VendorController {
   @HttpCode(HttpStatus.OK)
   @Patch('/me')
   updateMe(@GetUser() user: GetUserType, @Body() dto: UpdateVendorDto) {
-    return this.vendorService.updateVendor(user.userMasterId, dto);
+    return this.vendorService.updateVendor(
+      user.userMasterId,
+      dto,
+      UserType.VENDOR,
+    );
   }
 
   @Authorized(UserType.ADMIN)
@@ -136,7 +140,7 @@ export class VendorController {
     @Param('userMasterId') userMasterId: number,
     @Body() dto: UpdateVendorDto,
   ) {
-    return this.vendorService.updateVendor(userMasterId, dto);
+    return this.vendorService.updateVendor(userMasterId, dto, UserType.ADMIN);
   }
 
   @Authorized(UserType.VENDOR)

@@ -22,6 +22,7 @@ export class StatisticRepository {
       const monthlyEntryCounts2 = await this.prisma.userMaster.findMany({
         where: { userType: UserType.VENDOR },
         // createdAt:{gte: }},
+
         select: {
           createdAt: true,
           vendor: { select: { serviceType: true } },
