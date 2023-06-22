@@ -144,6 +144,18 @@ export class EarningService {
       timeFrom,
       timeTill,
     } = dto;
+
+    const platform = await this.prisma.platformSetup.findFirst({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      where: {
+        isDeleted: false,
+      },
+      select: {
+        fee: true,
+      },
+    });
     const earnings = await this.prisma.earnings.findMany({
       take: +take,
       skip: +take * (+page - 1),
@@ -170,6 +182,7 @@ export class EarningService {
 
         bookingMaster: {
           select: {
+            tapPaymentStatus: true,
             bookingMasterId: true,
             vendor: {
               select: {
@@ -197,7 +210,13 @@ export class EarningService {
       },
     });
 
-    return { data: earnings, page: +page, take: +take, totalCount };
+    return {
+      data: earnings,
+      page: +page,
+      take: +take,
+      totalCount,
+      amount: platform.fee,
+    };
   }
 
   async getRiderEarning(riderId: number, dto: RiderEarning) {
