@@ -351,11 +351,12 @@ export class EarningService {
           id: true,
           amount: true,
           createdAt: true,
-          bookingMasterId: true,
+
           job: {
             select: {
               bookingMaster: {
                 select: {
+                  bookingMasterId: true,
                   customer: {
                     select: {
                       fullName: true,
@@ -396,9 +397,13 @@ export class EarningService {
 
           job: {
             select: {
+              bookingMasterId: true,
               vendor: {
                 select: {
                   banking: {
+                    where: {
+                      isDeleted: false,
+                    },
                     select: {
                       bankName: true,
                       accountNumber: true,

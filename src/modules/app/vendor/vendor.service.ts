@@ -144,9 +144,13 @@ export class VendorService {
     }
   }
 
-  async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
+  async updateVendor(
+    userMasterId: number,
+    dto: UpdateVendorDto,
+    userType: UserType,
+  ) {
     try {
-      return await this.repository.updateVendor(userMasterId, dto);
+      return await this.repository.updateVendor(userMasterId, dto, userType);
     } catch (error) {
       throw error;
     }

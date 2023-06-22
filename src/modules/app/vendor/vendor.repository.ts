@@ -250,7 +250,11 @@ export class VendorRepository {
     }
   }
 
-  async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
+  async updateVendor(
+    userMasterId: number,
+    dto: UpdateVendorDto,
+    userType: UserType,
+  ) {
     try {
       const user = await this.prisma.userMaster.findUnique({
         where: {
@@ -566,21 +570,23 @@ export class VendorRepository {
         });
       }
 
-      const payload: SQSSendNotificationArgs<NotificationData> = {
-        type: NotificationType.UpdateByAdmin,
-        userId: [vendor.userMasterId],
-        data: {
-          title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
-          body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+      if (userType === UserType.ADMIN) {
+        const payload: SQSSendNotificationArgs<NotificationData> = {
           type: NotificationType.UpdateByAdmin,
-          entityType: EntityType.VENDOR,
-          entityId: vendor.userMasterId,
-        },
-      };
-      await this.notificationService.HandleNotifications(
-        payload,
-        UserType.VENDOR,
-      );
+          userId: [vendor.userMasterId],
+          data: {
+            title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
+            body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+            type: NotificationType.UpdateByAdmin,
+            entityType: EntityType.VENDOR,
+            entityId: vendor.userMasterId,
+          },
+        };
+        await this.notificationService.HandleNotifications(
+          payload,
+          UserType.VENDOR,
+        );
+      }
 
       return {
         ...successResponse(200, 'Vendor updated successfully.'),

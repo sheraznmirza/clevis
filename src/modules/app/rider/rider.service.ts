@@ -311,7 +311,10 @@ export class RiderService {
               : NotificationTitle.ADMIN_REJECTED,
           body:
             dto.status === 'APPROVED'
-              ? NotificationBody.ADMIN_APPROVED_RIDER
+              ? NotificationBody.ADMIN_APPROVED_RIDER.replace(
+                  '{rider}',
+                  user.rider.fullName,
+                )
               : NotificationBody.ADMIN_REJECTED,
           type: NotificationType.BookingStatus,
           entityType: EntityType.RIDER,
