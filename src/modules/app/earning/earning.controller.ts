@@ -50,7 +50,7 @@ export class EarningController {
     @Param('riderId') id: number,
     @Query() dto: VendorEarning,
   ) {
-    return this.earningservice.getVendorEarning(id, dto);
+    return this.earningservice.getRiderEarning(id, dto);
   }
 
   @Authorized(UserType.RIDER)
