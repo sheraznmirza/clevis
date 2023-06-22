@@ -4,7 +4,7 @@ import { Authorized } from 'src/core/decorators';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { GetUser } from '../auth/decorator';
 import { GetUserType } from 'src/core/dto';
-import { EarningDto } from './dto';
+import { EarningDto, EarningDtos } from './dto';
 import { EarningService } from './earning.service';
 import { ApiTags } from '@nestjs/swagger';
 import { VendorEarning } from './dto/vendor-earning.dto';
@@ -54,20 +54,20 @@ export class EarningController {
   }
 
   @Authorized(UserType.RIDER)
-  @Get('rider/earning/detail/:id')
+  @Get('rider/detail/:id')
   getDetail(@Param('id') id: number) {
     return this.earningservice.getDetailRider(id);
   }
 
   @Authorized(UserType.VENDOR)
-  @Get('vendor/earning/detail/:id')
+  @Get('vendor/detail/:id')
   getDetailVendor(@Param('id') id: number) {
     return this.earningservice.getDetailVendor(id);
   }
 
   @Authorized(UserType.ADMIN)
-  @Get('admin/earning/detail/:id')
-  getDetailAdmin(@Param('id') id: number) {
-    return this.earningservice.getDetailAdmin(id);
+  @Get('admin/detail/:id')
+  getDetailAdmin(@Param('id') id: number, @Query() dto: EarningDtos) {
+    return this.earningservice.getDetailAdmin(id, dto);
   }
 }

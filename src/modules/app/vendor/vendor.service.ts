@@ -145,9 +145,13 @@ export class VendorService {
     }
   }
 
-  async updateVendor(userMasterId: number, dto: UpdateVendorDto) {
+  async updateVendor(
+    userMasterId: number,
+    dto: UpdateVendorDto,
+    userType: UserType,
+  ) {
     try {
-      return await this.repository.updateVendor(userMasterId, dto);
+      return await this.repository.updateVendor(userMasterId, dto, userType);
     } catch (error) {
       throw error;
     }
@@ -459,7 +463,7 @@ export class VendorService {
         first_name: user.vendor.fullName,
         message:
           user.vendor.status === Status.APPROVED
-            ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin.  '
+            ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin. \n For Payments, goto Tap.Company and use this Email to login after recovering password from forgot password.   '
             : 'We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.\n Please contact admin if you have any questions regarding this issue ',
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };

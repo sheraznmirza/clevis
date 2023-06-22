@@ -17,3 +17,13 @@ export class EarningDto extends ListingParams {
   @IsEnum(AllEarning)
   status: AllEarning;
 }
+export class EarningDtos {
+  @ApiProperty({
+    required: true,
+
+    enum: AllEarning,
+  })
+  @IsNotEmpty()
+  @IsEnum(AllEarning)
+  status: AllEarning;
+}

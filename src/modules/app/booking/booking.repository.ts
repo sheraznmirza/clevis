@@ -575,6 +575,9 @@ export class BookingRepository {
           },
           isDeleted: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       const totalCount = await this.prisma.bookingMaster.count({
@@ -937,6 +940,7 @@ export class BookingRepository {
         where: {
           bookingMasterId: bookingMasterId,
         },
+
         select: {
           bookingMasterId: true,
           isWithDelivery: true,
@@ -1249,12 +1253,21 @@ export class BookingRepository {
               : NotificationTitle.BOOKING_REJECTED,
           body:
             dto.bookingStatus === 'In_Progress'
-              ? NotificationBody.BOOKING_IN_PROGRESS
+              ? NotificationBody.BOOKING_IN_PROGRESS.replace(
+                  '{id}',
+                  bookingMasterId.toString(),
+                )
               : dto.bookingStatus === 'Confirmed'
               ? NotificationBody.BOOKING_APPROVED
               : dto.bookingStatus === 'Completed'
-              ? NotificationBody.BOOKING_COMPLETED
-              : NotificationBody.BOOKING_REJECTED,
+              ? NotificationBody.BOOKING_COMPLETED.replace(
+                  '{id}',
+                  bookingMasterId.toString(),
+                )
+              : NotificationBody.BOOKING_REJECTED.replace(
+                  '{vendor}',
+                  booking.vendor.fullName,
+                ),
           type: NotificationType.BookingStatus,
           entityType: EntityType.BOOKINGMASTER,
           entityId: booking.bookingMasterId,
@@ -1318,6 +1331,7 @@ export class BookingRepository {
             },
           }),
         },
+
         take: +take,
         skip: +take * (+page - 1),
         select: {
@@ -1338,6 +1352,9 @@ export class BookingRepository {
           totalPrice: true,
           status: true,
           isDeleted: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       });
 

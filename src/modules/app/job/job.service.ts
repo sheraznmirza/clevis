@@ -32,6 +32,7 @@ import { ConfigService } from '@nestjs/config';
 import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
+import { vendors } from 'src/seeders/constants';
 dayjs.extend(utc);
 
 @Injectable()
@@ -124,6 +125,7 @@ export class JobService {
           id: true,
           vendor: {
             select: {
+              fullName: true,
               userAddress: {
                 where: {
                   isDeleted: false,
@@ -170,8 +172,14 @@ export class JobService {
         type: NotificationType.VendorCreatedJob,
         userId: riderIds,
         data: {
-          title: NotificationTitle.VENDOR_CREATED_JOB,
-          body: NotificationBody.VENDOR_CREATED_JOB,
+          title: NotificationTitle.VENDOR_CREATED_JOB.replace(
+            '{vendor}',
+            job.vendor.fullName,
+          ),
+          body: NotificationBody.VENDOR_CREATED_JOB.replace(
+            '{vendor}',
+            job.vendor.fullName,
+          ),
           type: NotificationType.VendorCreatedJob,
           entityType: EntityType.RIDER,
           entityId: job.id,
@@ -685,8 +693,14 @@ export class JobService {
                 : NotificationTitle.RIDER_JOB_COMPLETED,
             body:
               dto.jobStatus === RiderJobStatus.Accepted
-                ? NotificationBody.RIDER_ACCEPT_JOB
-                : NotificationBody.RIDER_JOB_COMPLETED,
+                ? NotificationBody.RIDER_ACCEPT_JOB.replace(
+                    '{rider}',
+                    user.fullName,
+                  )
+                : NotificationBody.RIDER_JOB_COMPLETED.replace(
+                    '{rider}',
+                    user.fullName,
+                  ).replace('{id}', jobId.toString()),
             type: NotificationType.RiderJob,
             entityType: EntityType.JOB,
             entityId: jobId,
