@@ -154,10 +154,12 @@ export class EarningService {
         isRefunded: false,
         bookingMaster: {
           vendor: {
+            vendorId,
             ...(serviceType && { serviceType: serviceType }),
+            ...(search && { fullName: { contains: search } }),
           },
-          vendorId,
         },
+
         ...(timeFrom &&
           timeTill && { createdAt: { gte: timeFrom, lte: timeTill } }),
       },
@@ -210,7 +212,7 @@ export class EarningService {
         isRefunded: false,
         userMasterId: { not: 1 },
         job: {
-          riderId,
+          rider: { riderId, ...(search && { fullName: { contains: search } }) },
           ...(jobType && { jobType: jobType }),
         },
         ...(timeFrom &&
