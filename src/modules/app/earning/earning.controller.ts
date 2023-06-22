@@ -11,6 +11,7 @@ import { VendorEarning } from './dto/vendor-earning.dto';
 import { JwtGuard } from '../auth/guard';
 import { RolesGuard } from 'src/core/guards';
 import { riders } from 'src/seeders/constants';
+import { RiderEarning } from './dto/rider-earning.dto';
 
 @ApiTags('Earning')
 @UseGuards(JwtGuard, RolesGuard)
@@ -48,7 +49,7 @@ export class EarningController {
   @Get('rider/byId/:riderId')
   getRiderEarningById(
     @Param('riderId') id: number,
-    @Query() dto: VendorEarning,
+    @Query() dto: RiderEarning,
   ) {
     return this.earningservice.getRiderEarning(id, dto);
   }
