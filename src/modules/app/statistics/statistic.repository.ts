@@ -86,46 +86,106 @@ export class StatisticRepository {
   }
 
   async getStatistics(query: StatisticUserAdminQueryDto) {
+    // try {
+    //   const monthlyEntryCounts2 = await this.prisma.userMaster.findMany({
+    //     where: { userType: UserType.CUSTOMER },
+    //     // createdAt:{gte: }},
+    //     select: {
+    //       createdAt: true,
+    //       customer: { select: { userMasterId: true } },
+    //     },
+    //   });
+
+    //   const countByMonth = {};
+
+    //   monthlyEntryCounts2.forEach((entry) => {
+    //     const month = entry.createdAt.getMonth();
+    //     const year = entry.createdAt.getFullYear();
+    //     const service = entry.customer?.userMasterId;
+    //     const monthYear = `${month}-${year}-${service}`;
+
+    //     if (countByMonth[monthYear]) {
+    //       countByMonth[monthYear]++;
+    //     } else {
+    //       countByMonth[monthYear] = 1;
+    //     }
+    //   });
+
+    //   const formattedEntryCounts2 = Object.keys(countByMonth).map(
+    //     (monthYear) => {
+    //       const [month, year, service] = monthYear.split('-');
+    //       const count = countByMonth[monthYear];
+
+    //       return {
+    //         month,
+    //         year,
+    //         count,
+    //         service,
+    //       };
+    //     },
+    //   );
+
+    //   return formattedEntryCounts2;
+    // }
+
     try {
-      const monthlyEntryCounts2 = await this.prisma.userMaster.findMany({
-        where: { userType: UserType.CUSTOMER },
-        // createdAt:{gte: }},
-        select: {
-          createdAt: true,
-          customer: { select: { userMasterId: true } },
-        },
-      });
+      if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        const currentYear = dayjs().format('01-01-YYYY');
 
-      const countByMonth = {};
+        const customersByYear: Array<{
+          laundryVendors: number;
+          carWashVendors: number;
+          month: string;
+        }> = await this.prisma.$queryRaw`SELECT
+        COUNT(CASE WHEN public."UserMaster"."userType" = 'CUSTOMER' THEN 1 ELSE NULL END)::INTEGER AS "customerCount",
+        TO_CHAR(public."UserMaster"."createdAt", 'Mon') AS "month"
+        FROM public."UserMaster"
+        WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+        GROUP BY "month";`;
 
-      monthlyEntryCounts2.forEach((entry) => {
-        const month = entry.createdAt.getMonth();
-        const year = entry.createdAt.getFullYear();
-        const service = entry.customer?.userMasterId;
-        const monthYear = `${month}-${year}-${service}`;
+        // for (let i = 0; i < vendorsByYear.length; i++) {
+        //   for (let j = 0; j < byYearArray.length; j++) {
+        //     if (byYearArray[j].month === vendorsByYear[i].month) {
+        //       byYearArray[j].carWashVendors = vendorsByYear[i].carWashVendors;
+        //       byYearArray[j].laundryVendors = vendorsByYear[i].laundryVendors;
+        //     }
+        //   }
+        // }
+        return customersByYear;
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
 
-        if (countByMonth[monthYear]) {
-          countByMonth[monthYear]++;
-        } else {
-          countByMonth[monthYear] = 1;
+        const vendorByMonth: Array<{
+          laundryVendors: number;
+          carWashVendors: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+       COUNT(CASE WHEN public."Vendor"."serviceType" = 'LAUNDRY' THEN 1 ELSE NULL END)::INTEGER AS "laundryVendors",
+       COUNT(CASE WHEN public."Vendor"."serviceType" = 'CAR_WASH' THEN 1 ELSE NULL END)::INTEGER AS "carWashVendors",
+       TO_CHAR(public."UserMaster"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Vendor"
+       INNER JOIN public."UserMaster"
+       ON public."Vendor"."userMasterId" = public."UserMaster"."userMasterId"
+       WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
+
+        for (let i = 0; i < vendorByMonth.length; i++) {
+          for (let j = 0; j < byMonthArray.length; j++) {
+            if (byMonthArray[j].day === vendorByMonth[i].day) {
+              byMonthArray[j].carWashVendors = vendorByMonth[i].carWashVendors;
+              byMonthArray[j].laundryVendors = vendorByMonth[i].laundryVendors;
+            }
+          }
         }
-      });
 
-      const formattedEntryCounts2 = Object.keys(countByMonth).map(
-        (monthYear) => {
-          const [month, year, service] = monthYear.split('-');
-          const count = countByMonth[monthYear];
-
-          return {
-            month,
-            year,
-            count,
-            service,
-          };
-        },
-      );
-
-      return formattedEntryCounts2;
+        return byMonthArray;
+      } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
+        return 'sorry sir yeh abhi nahi kiya';
+      } else {
+        throw new BadRequestException('Send the correct tab');
+      }
     } catch (error) {
       throw error;
     }
