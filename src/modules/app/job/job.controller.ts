@@ -81,7 +81,7 @@ export class JobController {
     return this.jobService.updateJobStatus(jobId, dto, user);
   }
 
-  @Authorized([UserType.VENDOR, UserType.RIDER])
+  @Authorized([UserType.VENDOR, UserType.RIDER, UserType.ADMIN])
   @Get('byId/:jobId')
   findOne(@Param('jobId') id: number) {
     return this.jobService.findOne(id);
