@@ -2,7 +2,9 @@
 import { Days } from '@prisma/client';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export enum AllowDateFormat {
   ISODate = 'YYYY-MM-DD',
@@ -320,20 +322,29 @@ export function currentDateToVendorFilter(currentDay: string): {
   currentDay: Days;
 } {
   const today = dayjs(currentDay).utc().format('dddd');
+
+  // console.log('dayjs: ', dayjs('06:00').tz());
+
   let enumDays: Days = Days.Monday;
   switch (today) {
     case 'Monday':
       enumDays = Days.Monday;
+      break;
     case 'Tuesday':
       enumDays = Days.Tuesday;
+      break;
     case 'Wednesday':
       enumDays = Days.Wednesday;
+      break;
     case 'Thursday':
       enumDays = Days.Thursday;
+      break;
     case 'Friday':
       enumDays = Days.Friday;
+      break;
     case 'Saturday':
       enumDays = Days.Saturday;
+      break;
     case 'Sunday':
       enumDays = Days.Sunday;
       break;
