@@ -1292,22 +1292,22 @@ export class BookingRepository {
         userId: [booking.customer.userMasterId],
         data: {
           title:
-            dto.bookingStatus === 'In_Progress'
+            dto.bookingStatus === BookingStatus.In_Progress
               ? NotificationTitle.BOOKING_IN_PROGRESS
-              : dto.bookingStatus === 'Confirmed'
+              : dto.bookingStatus === BookingStatus.Confirmed
               ? NotificationTitle.BOOKING_APPROVED
-              : dto.bookingStatus === 'Completed'
+              : dto.bookingStatus === BookingStatus.Completed
               ? NotificationTitle.BOOKING_COMPLETED
               : NotificationTitle.BOOKING_REJECTED,
           body:
-            dto.bookingStatus === 'In_Progress'
+            dto.bookingStatus === BookingStatus.In_Progress
               ? NotificationBody.BOOKING_IN_PROGRESS.replace(
                   '{id}',
                   bookingMasterId.toString(),
                 )
-              : dto.bookingStatus === 'Confirmed'
+              : dto.bookingStatus === BookingStatus.Confirmed
               ? NotificationBody.BOOKING_APPROVED
-              : dto.bookingStatus === 'Completed'
+              : dto.bookingStatus === BookingStatus.Completed
               ? NotificationBody.BOOKING_COMPLETED.replace(
                   '{id}',
                   bookingMasterId.toString(),
@@ -1325,6 +1325,8 @@ export class BookingRepository {
         payload,
         UserType.CUSTOMER,
       );
+      console.log('Notification Sent');
+
       return successResponse(
         200,
         `Booking status changed to ${dto.bookingStatus}`,

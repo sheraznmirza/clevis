@@ -53,23 +53,23 @@ export class NotificationService {
         },
         elem.toString(),
       );
-      // if (userType === UserType.CUSTOMER) {
-      //   const userDevices = await this._dbService.device.findMany({
-      //     where: {
-      //       userMasterId: elem,
-      //       playerId: {
-      //         not: null,
-      //       },
-      //     },
-      //     select: {
-      //       playerId: true,
-      //     },
-      //   });
-      //   const playerIds = userDevices.map((device) => device.playerId);
-      //   if (playerIds.length > 0) {
-      //     await this._oneSignalService.sendNotification(playerIds, title, body);
-      //   }
-      // }
+      if (userType === UserType.CUSTOMER) {
+        const userDevices = await this._dbService.device.findMany({
+          where: {
+            userMasterId: elem,
+            playerId: {
+              not: null,
+            },
+          },
+          select: {
+            playerId: true,
+          },
+        });
+        const playerIds = userDevices.map((device) => device.playerId);
+        if (playerIds.length > 0) {
+          await this._oneSignalService.sendNotification(playerIds, title, body);
+        }
+      }
 
       // const unReadNotificationCount = await this._dbService.notification.count({
       //   where: {

@@ -489,6 +489,7 @@ export class JobService {
           },
           rider: {
             select: {
+              fullName: true,
               userMasterId: true,
               tapMerchantId: true,
             },
@@ -511,6 +512,8 @@ export class JobService {
               dropoffDeliveryCharges: true,
               customer: {
                 select: {
+                  userMasterId: true,
+                  customerId: true,
                   fullName: true,
                   email: true,
                   tapCustomerId: true,
@@ -710,6 +713,60 @@ export class JobService {
           payload,
           UserType.RIDER,
         );
+
+        const payloads: SQSSendNotificationArgs<NotificationData> = {
+          type: NotificationType.RiderJob,
+          userId: [booking.bookingMaster.customer.userMasterId],
+          data: {
+            title:
+              dto.jobStatus === RiderJobStatus.Accepted &&
+              booking.jobType === JobType.PICKUP
+                ? NotificationTitle.JOB_PICKUP_ACCEPT
+                : dto.jobStatus === RiderJobStatus.Accepted &&
+                  booking.jobType === JobType.DELIVERY
+                ? NotificationTitle.JOB_DELIVERY_ACCEPT
+                : dto.jobStatus === RiderJobStatus.Completed &&
+                  booking.jobType === JobType.PICKUP
+                ? NotificationTitle.JOB_PICKUP_COMPLETED
+                : dto.jobStatus === RiderJobStatus.Completed &&
+                  booking.jobType === JobType.DELIVERY
+                ? NotificationTitle.JOB_DELIVERY_COMPLETED
+                : null,
+            body:
+              dto.jobStatus === RiderJobStatus.Accepted &&
+              booking.jobType === JobType.PICKUP
+                ? NotificationBody.JOB_PICKUP_ACCEPT.replace(
+                    '{rider}',
+                    booking.rider.fullName,
+                  )
+                : dto.jobStatus === RiderJobStatus.Accepted &&
+                  booking.jobType === JobType.DELIVERY
+                ? NotificationBody.JOB_DELIVERY_ACCEPT.replace(
+                    '{rider}',
+                    booking.rider.fullName,
+                  )
+                : dto.jobStatus === RiderJobStatus.Completed &&
+                  booking.jobType === JobType.PICKUP
+                ? NotificationBody.JOB_PICKUP_COMPLETED.replace(
+                    '{rider}',
+                    booking.rider.fullName,
+                  )
+                : dto.jobStatus === RiderJobStatus.Completed &&
+                  booking.jobType === JobType.DELIVERY
+                ? NotificationBody.JOB_DELIVERY_COMPLETED.replace(
+                    '{rider}',
+                    booking.rider.fullName,
+                  )
+                : null,
+            type: NotificationType.RiderJob,
+            entityType: EntityType.JOB,
+            entityId: jobId,
+          },
+        };
+        await this.notificationService.HandleNotifications(
+          payloads,
+          UserType.CUSTOMER,
+        );
       }
 
       return successResponse(200, `Job status successfully ${dto.jobStatus}`);
@@ -792,6 +849,14 @@ export class JobService {
           },
           jobDate: true,
           jobTime: true,
+          earnings: {
+            where: {
+              userMasterId: { not: 1 },
+            },
+            select: {
+              amount: true,
+            },
+          },
         },
       });
 
