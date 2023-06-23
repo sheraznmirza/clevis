@@ -530,12 +530,12 @@ export class CustomerRepository {
             vendor: {
               status: Status.APPROVED,
               serviceType: dto.serviceType,
-              // userAddress: {
-              //   some: {
-              //     cityId: customerCity.customer.userAddress[0].cityId,
-              //     isDeleted: false,
-              //   },
-              // },
+              userAddress: {
+                some: {
+                  cityId: customerCity.customer.userAddress[0].cityId,
+                  isDeleted: false,
+                },
+              },
               ...(serviceIds &&
                 serviceIds.length > 0 && {
                   vendorService: {
@@ -546,32 +546,38 @@ export class CustomerRepository {
                     },
                   },
                 }),
+              ...(dayObj &&
+                vendorStatus &&
+                vendorStatus !== VendorStatus.BUSY && {
+                  companySchedule: {
+                    some: {
+                      day: dayObj.currentDay,
+                      ...(vendorStatus === VendorStatus.OPEN && {
+                        startTime: {
+                          lte: dayObj.currentTime,
+                        },
+                        endTime: {
+                          gt: dayObj.currentTime,
+                        },
+                      }),
+                      ...(vendorStatus === VendorStatus.CLOSED && {
+                        OR: [
+                          {
+                            startTime: {
+                              gt: dayObj.currentTime,
+                            },
+                          },
+                          {
+                            endTime: {
+                              lte: dayObj.currentTime,
+                            },
+                          },
+                        ],
+                      }),
+                    },
+                  },
+                }),
 
-              // companySchedule: {
-              //   some: {
-              //     day: dayObj.currentDay,
-              //     ...(vendorStatus === VendorStatus.OPEN && {
-              //       startTime: {
-              //         gte: dayObj.currentTime,
-              //       },
-              //       endTime: {
-              //         lt: dayObj.currentTime,
-              //       },
-              //     }),
-              //     ...(vendorStatus === VendorStatus.CLOSED && {
-              //       OR: [
-              //         {
-              //           startTime: {
-              //             lt: dayObj.currentTime,
-              //           },
-              //           endTime: {
-              //             gte: dayObj.currentTime,
-              //           },
-              //         },
-              //       ],
-              //     }),
-              //   },
-              // },
               ...(vendorStatus === VendorStatus.BUSY && {
                 isBusy: true,
               }),
@@ -647,17 +653,22 @@ export class CustomerRepository {
                     longitude: true,
                   },
                 },
+                review: {
+                  select: {
+                    rating: true,
+                  },
+                },
               },
             },
           },
         });
-
         const totalCount = await this.prisma.userMaster.count({
           where: {
-            isEmailVerified: true,
             isDeleted: false,
-            userType: UserType.VENDOR,
+            isActive: true,
+            isEmailVerified: true,
             vendor: {
+              status: Status.APPROVED,
               serviceType: dto.serviceType,
               userAddress: {
                 some: {
@@ -665,7 +676,57 @@ export class CustomerRepository {
                   isDeleted: false,
                 },
               },
+              ...(serviceIds &&
+                serviceIds.length > 0 && {
+                  vendorService: {
+                    some: {
+                      serviceId: {
+                        in: serviceIds,
+                      },
+                    },
+                  },
+                }),
+              ...(dayObj &&
+                vendorStatus &&
+                vendorStatus !== VendorStatus.BUSY && {
+                  companySchedule: {
+                    some: {
+                      day: dayObj.currentDay,
+                      ...(vendorStatus === VendorStatus.OPEN && {
+                        startTime: {
+                          lte: dayObj.currentTime,
+                        },
+                        endTime: {
+                          gt: dayObj.currentTime,
+                        },
+                      }),
+                      ...(vendorStatus === VendorStatus.CLOSED && {
+                        OR: [
+                          {
+                            startTime: {
+                              gt: dayObj.currentTime,
+                            },
+                          },
+                          {
+                            endTime: {
+                              lte: dayObj.currentTime,
+                            },
+                          },
+                        ],
+                      }),
+                    },
+                  },
+                }),
 
+              ...(vendorStatus === VendorStatus.BUSY && {
+                isBusy: true,
+              }),
+              ...(search && {
+                companyName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              }),
               NOT: {
                 vendorService: {
                   none: {},
@@ -680,7 +741,6 @@ export class CustomerRepository {
           page,
           take,
           totalCount,
-          customerCity,
         };
       }
     } catch (error) {
