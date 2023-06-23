@@ -47,6 +47,14 @@ export class StatisticsService {
     }
   }
 
+  async vendorEarning(query: StatisticUserAdminQueryDto) {
+    try {
+      return await this.repository.vendorEarnings(query);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getRiderDashboard(user: GetUserType) {
     try {
       return await this.repository.getRiderDashboard(user);

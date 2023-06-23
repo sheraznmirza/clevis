@@ -6,7 +6,7 @@ import { RolesGuard } from 'src/core/guards';
 import { JwtGuard } from '../auth/guard';
 import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 import { StatisticUserAdminQueryDto } from './dto/statistics.user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GetUserType } from 'src/core/dto';
 import { GetUser } from '../auth/decorator';
 
@@ -44,6 +44,12 @@ export class StatisticsController {
   @Get('/dashboard/vendor')
   getDashboard(@GetUser() user: GetUserType) {
     return this.StatisticsService.getDashboard(user);
+  }
+
+  @Authorized(UserType.VENDOR)
+  @Get('/dashboard/vendor/totalEarning')
+  vendorTotalEarning(@Query() query: StatisticUserAdminQueryDto) {
+    return this.StatisticsService.vendorEarning(query);
   }
 
   @Authorized(UserType.RIDER)

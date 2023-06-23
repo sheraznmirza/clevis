@@ -15,6 +15,7 @@ import utc from 'dayjs/plugin/utc';
 import {
   byMonthArray,
   byMonthArrayCompleted,
+  byMonthArrayFee,
   byMonthArrays,
   byYearArray,
   byYearArrayFee,
@@ -118,32 +119,31 @@ export class StatisticRepository {
           }
         }
         return byYearArrayFee;
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
+
+        const feeByMonth: Array<{
+          fee: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+          SUM(CASE WHEN public."Earnings"."userMasterId" = 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+       TO_CHAR(public."Earnings"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Earnings"
+       WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
+
+        for (let i = 0; i < feeByMonth.length; i++) {
+          for (let j = 0; j < byMonthArrayFee.length; j++) {
+            if (byMonthArrayFee[j].day === feeByMonth[i].day) {
+              byMonthArrayFee[j].fee = feeByMonth[i].fee || 0;
+            }
+          }
+        }
+
+        return byMonthArrayFee;
       }
-      // else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
-      //   const currentYear = dayjs().format('MM-01-YYYY');
-      //   console.log('currentYear: ', currentYear);
-
-      //   const feeByMonth: Array<{
-      //     fee: number;
-      //     month: string;
-      //   }> = await this.prisma.$queryRaw`SELECT
-      //     COUNT(CASE WHEN public."UserMaster"."userType" = 'CUSTOMER' THEN 1 ELSE NULL END)::INTEGER AS "customerCount",
-      //  TO_CHAR(public."UserMaster"."createdAt", 'DD')::INTEGER AS "day"
-      //  FROM public."UserMaster"
-      //  WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
-      //  GROUP BY "day"
-      //  ORDER BY "day" ASC;`;
-
-      // for (let i = 0; i < customerByMonth.length; i++) {
-      //   for (let j = 0; j < byMonthArrays.length; j++) {
-      //     if (byMonthArrays[j].day === customerByMonth[i].day) {
-      //       byMonthArrays[j].customerCount = customerByMonth[i].customerCount;
-      //     }
-      //   }
-      // }
-
-      //   return byMonthArrays;
-      // }
     } catch (error) {
       throw error;
     }
@@ -206,6 +206,57 @@ export class StatisticRepository {
     } catch (error) {
       throw error;
     }
+  }
+
+  async vendorEarnings(query: StatisticUserAdminQueryDto) {
+    try {
+      if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        const currentYear = dayjs().format('01-01-YYYY');
+
+        const feeByYear: Array<{
+          fee: number;
+          month: string;
+        }> = await this.prisma.$queryRaw`SELECT
+    SUM(CASE WHEN public."Earnings"."userMasterId" != 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+    TO_CHAR(public."Earnings"."createdAt", 'Mon') AS "month"
+    FROM public."Earnings"
+    WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
+    GROUP BY "month";`;
+
+        for (let i = 0; i < feeByYear.length; i++) {
+          for (let j = 0; j < byYearArrayFee.length; j++) {
+            if (byYearArrayFee[j].month === feeByYear[i].month) {
+              byYearArrayFee[j].fee = feeByYear[i].fee;
+            }
+          }
+        }
+        return byYearArrayFee;
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
+
+        const feeByMonth: Array<{
+          fee: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+          SUM(CASE WHEN public."Earnings"."userMasterId" != 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+       TO_CHAR(public."Earnings"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Earnings"
+       WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
+
+        for (let i = 0; i < feeByMonth.length; i++) {
+          for (let j = 0; j < byMonthArrayFee.length; j++) {
+            if (byMonthArrayFee[j].day === feeByMonth[i].day) {
+              byMonthArrayFee[j].fee = feeByMonth[i].fee;
+            }
+          }
+        }
+
+        return byMonthArrayFee;
+      }
+    } catch (error) {}
   }
 
   async getDashboard(user: GetUserType) {
