@@ -22,12 +22,27 @@ export class ReviewService {
         },
         select: {
           status: true,
+          vendor: {
+            select: {
+              review: {
+                where: {
+                  customerId: user.userTypeId,
+                },
+              },
+            },
+          },
         },
       });
 
       if (booking.status !== BookingStatus.Completed) {
         throw new BadRequestException(
           'Booking needs to be completed before it can be reviewed.',
+        );
+      }
+
+      if (booking?.vendor?.review?.length > 0) {
+        throw new BadRequestException(
+          'You have already given this booking a review.',
         );
       }
 

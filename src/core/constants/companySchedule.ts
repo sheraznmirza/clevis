@@ -4,6 +4,7 @@ type Schedule = {
   day: Days;
   startTime: string;
   endTime: string;
+  isActive?: boolean;
 };
 
 export const companySchedule = (): Schedule[] => {
@@ -40,11 +41,13 @@ export const companySchedule = (): Schedule[] => {
       day: Days.Saturday,
       startTime: startTime,
       endTime: endTime,
+      isActive: false,
     },
     {
       day: Days.Sunday,
       startTime: startTime,
       endTime: endTime,
+      isActive: false,
     },
   ];
 };

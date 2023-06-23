@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
 import { YearlyFilterDropdownType } from 'src/core/dto';
 
 export class StatisticVendorAdminQueryDto {
@@ -8,7 +8,7 @@ export class StatisticVendorAdminQueryDto {
     description: 'Select the respective tab you want to get Record',
     enum: YearlyFilterDropdownType,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsEnum(YearlyFilterDropdownType)
   tabName: YearlyFilterDropdownType;
 
