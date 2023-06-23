@@ -58,7 +58,7 @@ export class VendorLocationDto {
   })
   @IsNumber()
   @IsOptional()
-  longitude: number;
+  longitude?: number;
 
   @ApiProperty({
     required: false,
@@ -67,7 +67,7 @@ export class VendorLocationDto {
   @IsNumber()
   @IsNumber()
   @IsOptional()
-  latitude: number;
+  latitude?: number;
 
   @ApiProperty({
     required: false,
@@ -75,7 +75,7 @@ export class VendorLocationDto {
   })
   @IsNumber()
   @IsOptional()
-  distance: number;
+  distance?: number;
 
   @ApiProperty({
     required: false,
@@ -84,7 +84,7 @@ export class VendorLocationDto {
   })
   @IsEnum(VendorStatus)
   @IsOptional()
-  vendorStatus: VendorStatus;
+  vendorStatus?: VendorStatus;
 
   @ApiProperty({
     required: false,
@@ -93,7 +93,7 @@ export class VendorLocationDto {
   })
   @IsOptional()
   @IsEnum(ServiceType)
-  serviceType: ServiceType;
+  serviceType?: ServiceType;
 
   @ApiProperty({
     isArray: true,
@@ -103,7 +103,7 @@ export class VendorLocationDto {
   @ValidateNested()
   @Type(() => ServiceNames)
   @IsOptional()
-  services: ServiceNames[];
+  services?: ServiceNames[];
 
   // @ApiProperty({
   //   required: false,
@@ -117,5 +117,5 @@ export class VendorLocationDto {
   @ApiProperty()
   @IsOptional()
   @IsDateString()
-  currentDay: string;
+  currentDay?: string;
 }

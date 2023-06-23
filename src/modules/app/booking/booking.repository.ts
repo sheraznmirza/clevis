@@ -936,11 +936,12 @@ export class BookingRepository {
 
   async getVendorBookingById(bookingMasterId: number) {
     try {
+      let canPickup = false;
+      let canDeliver = false;
       const result = await this.prisma.bookingMaster.findUnique({
         where: {
           bookingMasterId: bookingMasterId,
         },
-
         select: {
           bookingMasterId: true,
           isWithDelivery: true,
@@ -1018,6 +1019,40 @@ export class BookingRepository {
           isDeleted: true,
           bookingDate: true,
           status: true,
+
+          job: {
+            select: {
+              id: true,
+              jobStatus: true,
+              jobType: true,
+              rider: {
+                select: {
+                  fullName: true,
+                  companyEmail: true,
+                  companyName: true,
+                  logo: {
+                    select: {
+                      name: true,
+                      key: true,
+                      location: true,
+                    },
+                  },
+                  userAddress: {
+                    where: {
+                      isDeleted: true,
+                    },
+                    orderBy: {
+                      createdAt: 'desc',
+                    },
+                    select: {
+                      fullAddress: true,
+                    },
+                    take: 1,
+                  },
+                },
+              },
+            },
+          },
         },
       });
       if (!result) {
@@ -1028,7 +1063,20 @@ export class BookingRepository {
       result.bookingDetail.forEach((item) => {
         totalItems += item.quantity;
       });
-      return { ...result, totalItems };
+
+      if (result.status !== BookingStatus.Completed) {
+        delete result.job;
+      }
+
+      if (result.job.every((item) => item.jobType !== JobType.PICKUP)) {
+        canPickup = true;
+      }
+
+      if (result.job.every((item) => item.jobType !== JobType.DELIVERY)) {
+        canDeliver = true;
+      }
+
+      return { ...result, totalItems, canPickup, canDeliver };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -1526,8 +1574,13 @@ export class BookingRepository {
           ]);
           console.log('values: ', values);
           for (let i = 0; i < values.length; i++) {
-            response.distance += +values[i].distanceValue;
+            if (isNaN(values[i].distanceValue)) {
+              throw new BadRequestException(
+                'Route does not exist between the vendor and one of these locations',
+              );
+            }
 
+            response.distance += +values[i].distanceValue;
             response.deliveryCharges += Math.round(
               +values[i].distanceValue *
                 (vendor?.deliverySchedule?.kilometerFare || 1),
@@ -1562,7 +1615,7 @@ export class BookingRepository {
         redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
         auto: {
           type: 'VOID',
-          time: 1,
+          time: 48,
         },
         post: {
           url: `${this.config.get('APP_URL')}/tap/authorize`,

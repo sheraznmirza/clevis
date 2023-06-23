@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   BookingStatus,
   JobType,
@@ -8,10 +8,11 @@ import {
 } from '@prisma/client';
 import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 import { StatisticUserAdminQueryDto } from './dto/statistics.user.dto';
-import { GetUserType } from 'src/core/dto';
+import { GetUserType, YearlyFilterDropdownType } from 'src/core/dto';
 import { unknowError } from 'src/helpers/response.helper';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { byMonthArray, byYearArray } from './constants';
 dayjs.extend(utc);
 @Injectable()
 export class StatisticRepository {
@@ -19,46 +20,66 @@ export class StatisticRepository {
 
   async getStatisticVendor(query: StatisticVendorAdminQueryDto) {
     try {
-      const monthlyEntryCounts2 = await this.prisma.userMaster.findMany({
-        where: { userType: UserType.VENDOR },
-        // createdAt:{gte: }},
+      if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        const currentYear = dayjs().format('01-01-YYYY');
 
-        select: {
-          createdAt: true,
-          vendor: { select: { serviceType: true } },
-        },
-      });
+        const vendorsByYear: Array<{
+          laundryVendors: number;
+          carWashVendors: number;
+          month: string;
+        }> = await this.prisma.$queryRaw`SELECT
+        COUNT(CASE WHEN public."Vendor"."serviceType" = 'LAUNDRY' THEN 1 ELSE NULL END)::INTEGER AS "laundryVendors",
+        COUNT(CASE WHEN public."Vendor"."serviceType" = 'CAR_WASH' THEN 1 ELSE NULL END)::INTEGER AS "carWashVendors",
+        TO_CHAR(public."UserMaster"."createdAt", 'Mon') AS "month"
+        FROM public."Vendor"
+        INNER JOIN public."UserMaster"
+        ON public."Vendor"."userMasterId" = public."UserMaster"."userMasterId"
+        WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+        GROUP BY "month";`;
 
-      const countByMonth = {};
-
-      monthlyEntryCounts2.forEach((entry) => {
-        const month = entry.createdAt.getMonth();
-        const year = entry.createdAt.getFullYear();
-        const service = entry.vendor?.serviceType;
-        const monthYear = `${month}-${year}-${service}`;
-
-        if (countByMonth[monthYear]) {
-          countByMonth[monthYear]++;
-        } else {
-          countByMonth[monthYear] = 1;
+        for (let i = 0; i < vendorsByYear.length; i++) {
+          for (let j = 0; j < byYearArray.length; j++) {
+            if (byYearArray[j].month === vendorsByYear[i].month) {
+              byYearArray[j].carWashVendors = vendorsByYear[i].carWashVendors;
+              byYearArray[j].laundryVendors = vendorsByYear[i].laundryVendors;
+            }
+          }
         }
-      });
+        return byYearArray;
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
 
-      const formattedEntryCounts2 = Object.keys(countByMonth).map(
-        (monthYear) => {
-          const [month, year, service] = monthYear.split('-');
-          const count = countByMonth[monthYear];
+        const vendorByMonth: Array<{
+          laundryVendors: number;
+          carWashVendors: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+       COUNT(CASE WHEN public."Vendor"."serviceType" = 'LAUNDRY' THEN 1 ELSE NULL END)::INTEGER AS "laundryVendors",
+       COUNT(CASE WHEN public."Vendor"."serviceType" = 'CAR_WASH' THEN 1 ELSE NULL END)::INTEGER AS "carWashVendors",
+       TO_CHAR(public."UserMaster"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Vendor"
+       INNER JOIN public."UserMaster"
+       ON public."Vendor"."userMasterId" = public."UserMaster"."userMasterId"
+       WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
 
-          return {
-            month,
-            year,
-            count,
-            service,
-          };
-        },
-      );
+        for (let i = 0; i < vendorByMonth.length; i++) {
+          for (let j = 0; j < byMonthArray.length; j++) {
+            if (byMonthArray[j].day === vendorByMonth[i].day) {
+              byMonthArray[j].carWashVendors = vendorByMonth[i].carWashVendors;
+              byMonthArray[j].laundryVendors = vendorByMonth[i].laundryVendors;
+            }
+          }
+        }
 
-      return formattedEntryCounts2;
+        return byMonthArray;
+      } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
+        return 'sorry sir yeh abhi nahi kiya';
+      } else {
+        throw new BadRequestException('Send the correct tab');
+      }
     } catch (error) {
       throw error;
     }
@@ -211,9 +232,9 @@ export class StatisticRepository {
 
   async getRiderDashboard(user: GetUserType) {
     try {
-      let date = new Date();
-      let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-      let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      const date = new Date();
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
       const totalEarning = await this.prisma.earnings.aggregate({
         where: {
           job: {
