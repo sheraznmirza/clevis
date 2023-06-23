@@ -197,6 +197,7 @@ model Customer {
   userMaster    UserMaster      @relation(fields: userMasterId, references: userMasterId)
   fullName      String
   tapCustomerId String?
+  devices       Device[]
   status        Status?         @default(APPROVED)
   userAddress   UserAddress[]
   bookingMaster BookingMaster[]
@@ -690,6 +691,8 @@ model Device {
   updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz()
   deletedAt    DateTime?  @db.Timestamptz()
   isDeleted    Boolean    @default(false)
+  customer     Customer?  @relation(fields: [customerId], references: [customerId])
+  customerId   Int?
 }
 
 model CustomerCards {

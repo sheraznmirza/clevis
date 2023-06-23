@@ -179,7 +179,15 @@ export class EarningService {
         id: true,
         createdAt: true,
         amount: true,
-
+        //////
+        job: {
+          select: {
+            bookingMaster: {
+              select: { totalPrice: true },
+            },
+          },
+        },
+        //////
         bookingMaster: {
           select: {
             totalPrice: true,
@@ -212,11 +220,10 @@ export class EarningService {
     });
 
     return {
-      data: earnings,
+      data: earnings.map((obj) => ({ ...obj, adminCut: platform.fee })),
       page: +page,
       take: +take,
       totalCount,
-      amount: platform.fee,
     };
   }
 
