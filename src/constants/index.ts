@@ -10,6 +10,10 @@ export enum NotificationSocketType {
 }
 
 export enum NotificationTitle {
+  JOB_PICKUP_ACCEPT = 'PickUp Accepted',
+  JOB_DELIVERY_ACCEPT = ' Delivery Accepted',
+  JOB_PICKUP_COMPLETED = 'PickUp Completed',
+  JOB_DELIVERY_COMPLETED = 'Delivery completed ',
   BOOKING_APPROVED = 'Booking Approved!',
   BOOKING_REJECTED = 'Booking Rejected!',
   BOOKING_CREATED = 'Booking Created',
@@ -27,6 +31,10 @@ export enum NotificationTitle {
 }
 
 export enum NotificationBody {
+  JOB_PICKUP_ACCEPT = '{rider} is on its ways to pick your order',
+  JOB_DELIVERY_ACCEPT = '{rider} is on its ways to deliver your order',
+  JOB_PICKUP_COMPLETED = '{rider} has pickup your order',
+  JOB_DELIVERY_COMPLETED = '{rider} has delivered your order and your booking is completed now',
   BOOKING_APPROVED = 'The booking request has been accepted. ',
   BOOKING_REJECTED = 'Booking Rejected by {vendor}',
   BOOKING_CREATED = 'You have received a new booking request',
