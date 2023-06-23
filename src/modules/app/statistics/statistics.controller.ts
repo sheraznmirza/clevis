@@ -28,6 +28,12 @@ export class StatisticsController {
     return this.StatisticsService.statisticService(query);
   }
 
+  @Authorized(UserType.ADMIN)
+  @Get('admin/totalEarning')
+  getAdminTotalEarning(@Query() query: StatisticUserAdminQueryDto) {
+    return this.StatisticsService.adminTotalEarning(query);
+  }
+
   @Authorized(UserType.VENDOR)
   @Get('/dashboard/vendor/earnings')
   getDashboardEarnings(@GetUser() user: GetUserType) {
@@ -50,5 +56,11 @@ export class StatisticsController {
   @Get('/Rider/dashboard/Totaljobs')
   geRiderTotalJobs(@GetUser() user: GetUserType) {
     return this.StatisticsService.geRiderTotalJobs(user);
+  }
+
+  @Authorized(UserType.RIDER)
+  @Get('rider/completedJobs')
+  getcompletedJob(@Query() query: StatisticUserAdminQueryDto) {
+    return this.StatisticsService.completedJob(query);
   }
 }

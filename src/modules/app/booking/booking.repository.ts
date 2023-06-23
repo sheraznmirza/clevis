@@ -1068,11 +1068,11 @@ export class BookingRepository {
         delete result.job;
       }
 
-      if (result.job.every((item) => item.jobType !== JobType.PICKUP)) {
+      if (result?.job?.every((item) => item.jobType !== JobType.PICKUP)) {
         canPickup = true;
       }
 
-      if (result.job.every((item) => item.jobType !== JobType.DELIVERY)) {
+      if (result?.job?.every((item) => item.jobType !== JobType.DELIVERY)) {
         canDeliver = true;
       }
 
