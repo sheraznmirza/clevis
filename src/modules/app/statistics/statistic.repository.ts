@@ -12,7 +12,16 @@ import { GetUserType, YearlyFilterDropdownType } from 'src/core/dto';
 import { unknowError } from 'src/helpers/response.helper';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { byMonthArray, byYearArray } from './constants';
+import {
+  byMonthArray,
+  byMonthArrayCompleted,
+  byMonthArrayFee,
+  byMonthArrays,
+  byYearArray,
+  byYearArrayFee,
+  byYearArrays,
+  byYearArrayscompleted,
+} from './constants';
 dayjs.extend(utc);
 @Injectable()
 export class StatisticRepository {
@@ -46,6 +55,8 @@ export class StatisticRepository {
           }
         }
         return byYearArray;
+
+        ///////
       } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
         const currentYear = dayjs().format('MM-01-YYYY');
         console.log('currentYear: ', currentYear);
@@ -85,50 +96,167 @@ export class StatisticRepository {
     }
   }
 
-  async getStatistics(query: StatisticUserAdminQueryDto) {
+  async adminEarning(query: StatisticUserAdminQueryDto) {
     try {
-      const monthlyEntryCounts2 = await this.prisma.userMaster.findMany({
-        where: { userType: UserType.CUSTOMER },
-        // createdAt:{gte: }},
-        select: {
-          createdAt: true,
-          customer: { select: { userMasterId: true } },
-        },
-      });
+      if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        const currentYear = dayjs().format('01-01-YYYY');
 
-      const countByMonth = {};
+        const feeByYear: Array<{
+          fee: number;
+          month: string;
+        }> = await this.prisma.$queryRaw`SELECT
+        SUM(CASE WHEN public."Earnings"."userMasterId" = 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+        TO_CHAR(public."Earnings"."createdAt", 'Mon') AS "month"
+        FROM public."Earnings"
+        WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
+        GROUP BY "month";`;
 
-      monthlyEntryCounts2.forEach((entry) => {
-        const month = entry.createdAt.getMonth();
-        const year = entry.createdAt.getFullYear();
-        const service = entry.customer?.userMasterId;
-        const monthYear = `${month}-${year}-${service}`;
-
-        if (countByMonth[monthYear]) {
-          countByMonth[monthYear]++;
-        } else {
-          countByMonth[monthYear] = 1;
+        for (let i = 0; i < feeByYear.length; i++) {
+          for (let j = 0; j < byYearArrayFee.length; j++) {
+            if (byYearArrayFee[j].month === feeByYear[i].month) {
+              byYearArrayFee[j].fee = feeByYear[i].fee;
+            }
+          }
         }
-      });
+        return byYearArrayFee;
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
 
-      const formattedEntryCounts2 = Object.keys(countByMonth).map(
-        (monthYear) => {
-          const [month, year, service] = monthYear.split('-');
-          const count = countByMonth[monthYear];
+        const feeByMonth: Array<{
+          fee: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+          SUM(CASE WHEN public."Earnings"."userMasterId" = 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+       TO_CHAR(public."Earnings"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Earnings"
+       WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
 
-          return {
-            month,
-            year,
-            count,
-            service,
-          };
-        },
-      );
+        for (let i = 0; i < feeByMonth.length; i++) {
+          for (let j = 0; j < byMonthArrayFee.length; j++) {
+            if (byMonthArrayFee[j].day === feeByMonth[i].day) {
+              byMonthArrayFee[j].fee = feeByMonth[i].fee || 0;
+            }
+          }
+        }
 
-      return formattedEntryCounts2;
+        return byMonthArrayFee;
+      }
     } catch (error) {
       throw error;
     }
+  }
+
+  async getStatistics(query: StatisticUserAdminQueryDto) {
+    try {
+      if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        const currentYear = dayjs().format('01-01-YYYY');
+
+        const customersByYear: Array<{
+          customerCount: number;
+          month: string;
+        }> = await this.prisma.$queryRaw`SELECT
+        COUNT(CASE WHEN public."UserMaster"."userType" = 'CUSTOMER' THEN 1 ELSE NULL END)::INTEGER AS "customerCount",
+        TO_CHAR(public."UserMaster"."createdAt", 'Mon') AS "month"
+        FROM public."UserMaster"
+        WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+        GROUP BY "month";`;
+
+        for (let i = 0; i < customersByYear.length; i++) {
+          for (let j = 0; j < byYearArrays.length; j++) {
+            if (byYearArrays[j].month === customersByYear[i].month) {
+              byYearArrays[j].customerCount = customersByYear[i].customerCount;
+            }
+          }
+        }
+        return byYearArrays;
+
+        ////
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
+
+        const customerByMonth: Array<{
+          customerCount: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+          COUNT(CASE WHEN public."UserMaster"."userType" = 'CUSTOMER' THEN 1 ELSE NULL END)::INTEGER AS "customerCount",
+       TO_CHAR(public."UserMaster"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."UserMaster"
+       WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
+
+        for (let i = 0; i < customerByMonth.length; i++) {
+          for (let j = 0; j < byMonthArrays.length; j++) {
+            if (byMonthArrays[j].day === customerByMonth[i].day) {
+              byMonthArrays[j].customerCount = customerByMonth[i].customerCount;
+            }
+          }
+        }
+
+        return byMonthArrays;
+      } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
+        return 'sorry sir yeh abhi nahi kiya';
+      } else {
+        throw new BadRequestException('Send the correct tab');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async vendorEarnings(query: StatisticUserAdminQueryDto) {
+    try {
+      if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        const currentYear = dayjs().format('01-01-YYYY');
+
+        const feeByYear: Array<{
+          fee: number;
+          month: string;
+        }> = await this.prisma.$queryRaw`SELECT
+    SUM(CASE WHEN public."Earnings"."userMasterId" != 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+    TO_CHAR(public."Earnings"."createdAt", 'Mon') AS "month"
+    FROM public."Earnings"
+    WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
+    GROUP BY "month";`;
+
+        for (let i = 0; i < feeByYear.length; i++) {
+          for (let j = 0; j < byYearArrayFee.length; j++) {
+            if (byYearArrayFee[j].month === feeByYear[i].month) {
+              byYearArrayFee[j].fee = feeByYear[i].fee;
+            }
+          }
+        }
+        return byYearArrayFee;
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
+
+        const feeByMonth: Array<{
+          fee: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+          SUM(CASE WHEN public."Earnings"."userMasterId" != 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+       TO_CHAR(public."Earnings"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Earnings"
+       WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
+
+        for (let i = 0; i < feeByMonth.length; i++) {
+          for (let j = 0; j < byMonthArrayFee.length; j++) {
+            if (byMonthArrayFee[j].day === feeByMonth[i].day) {
+              byMonthArrayFee[j].fee = feeByMonth[i].fee;
+            }
+          }
+        }
+
+        return byMonthArrayFee;
+      }
+    } catch (error) {}
   }
 
   async getDashboard(user: GetUserType) {
@@ -326,5 +454,69 @@ export class StatisticRepository {
           comfirmedJobs._count._all,
       };
     } catch (error) {}
+  }
+  async getCompletdJob(query: StatisticVendorAdminQueryDto) {
+    try {
+      if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        const currentYear = dayjs().format('01-01-YYYY');
+
+        const completedByYear: Array<{
+          completedJobs: number;
+          month: string;
+        }> = await this.prisma.$queryRaw`SELECT
+        COUNT(CASE WHEN public."Job"."jobStatus" = 'Completed' THEN 1 ELSE NULL END)::INTEGER AS "completedJobs",
+        TO_CHAR(public."UserMaster"."createdAt", 'Mon') AS "month"
+        FROM public."Rider"
+        INNER JOIN public."UserMaster"
+        ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
+        INNER JOIN public."Job"
+        ON public."Job"."riderId" = public."Rider"."riderId"
+        WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+        GROUP BY "month";`;
+
+        for (let i = 0; i < completedByYear.length; i++) {
+          for (let j = 0; j < byYearArrayscompleted.length; j++) {
+            if (byYearArrayscompleted[j].month === completedByYear[i].month) {
+              byYearArrayscompleted[j].completedJobs =
+                completedByYear[i].completedJobs;
+            }
+          }
+        }
+        return byYearArrayscompleted;
+      }
+      ////
+      else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+        const currentYear = dayjs().format('MM-01-YYYY');
+        console.log('currentYear: ', currentYear);
+
+        const completedByMonth: Array<{
+          completedJobs: number;
+          day: number;
+        }> = await this.prisma.$queryRaw`SELECT
+         COUNT(CASE WHEN public."Job"."jobStatus" = 'Completed' THEN 1 ELSE NULL END)::INTEGER AS "completedJobs",
+       TO_CHAR(public."UserMaster"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Rider"
+       INNER JOIN public."UserMaster"
+        ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
+        INNER JOIN public."Job"
+        ON public."Job"."riderId" = public."Rider"."riderId"
+       WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+       GROUP BY "day"
+       ORDER BY "day" ASC;`;
+
+        for (let i = 0; i < completedByMonth.length; i++) {
+          for (let j = 0; j < byMonthArrayCompleted.length; j++) {
+            if (byMonthArrayCompleted[j].day === completedByMonth[i].day) {
+              byMonthArrayCompleted[j].completedJobs =
+                completedByMonth[i].completedJobs;
+            }
+          }
+        }
+
+        return byMonthArrayCompleted;
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 }

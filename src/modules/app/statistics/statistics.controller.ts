@@ -6,7 +6,7 @@ import { RolesGuard } from 'src/core/guards';
 import { JwtGuard } from '../auth/guard';
 import { StatisticVendorAdminQueryDto } from './dto/statistic.dto';
 import { StatisticUserAdminQueryDto } from './dto/statistics.user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GetUserType } from 'src/core/dto';
 import { GetUser } from '../auth/decorator';
 
@@ -28,6 +28,12 @@ export class StatisticsController {
     return this.StatisticsService.statisticService(query);
   }
 
+  @Authorized(UserType.ADMIN)
+  @Get('admin/totalEarning')
+  getAdminTotalEarning(@Query() query: StatisticUserAdminQueryDto) {
+    return this.StatisticsService.adminTotalEarning(query);
+  }
+
   @Authorized(UserType.VENDOR)
   @Get('/dashboard/vendor/earnings')
   getDashboardEarnings(@GetUser() user: GetUserType) {
@@ -40,6 +46,12 @@ export class StatisticsController {
     return this.StatisticsService.getDashboard(user);
   }
 
+  @Authorized(UserType.VENDOR)
+  @Get('/dashboard/vendor/totalEarning')
+  vendorTotalEarning(@Query() query: StatisticUserAdminQueryDto) {
+    return this.StatisticsService.vendorEarning(query);
+  }
+
   @Authorized(UserType.RIDER)
   @Get('/Rider/dashboard/totalearning')
   geRiderDashboard(@GetUser() user: GetUserType) {
@@ -50,5 +62,11 @@ export class StatisticsController {
   @Get('/Rider/dashboard/Totaljobs')
   geRiderTotalJobs(@GetUser() user: GetUserType) {
     return this.StatisticsService.geRiderTotalJobs(user);
+  }
+
+  @Authorized(UserType.RIDER)
+  @Get('rider/completedJobs')
+  getcompletedJob(@Query() query: StatisticUserAdminQueryDto) {
+    return this.StatisticsService.completedJob(query);
   }
 }

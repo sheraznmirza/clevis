@@ -94,3 +94,258 @@ export const byMonthArray = [
   { day: 30, laundryVendors: 0, carWashVendors: 0 },
   { day: 31, laundryVendors: 0, carWashVendors: 0 },
 ];
+
+export const byYearArrays = [
+  {
+    month: 'Jan',
+    customerCount: 0,
+  },
+  {
+    month: 'Feb',
+    customerCount: 0,
+  },
+  {
+    month: 'Mar',
+    customerCount: 0,
+  },
+  {
+    month: 'Apr',
+    customerCount: 0,
+  },
+  {
+    month: 'May',
+    customerCount: 0,
+  },
+  {
+    month: 'Jun',
+    customerCount: 0,
+  },
+  {
+    month: 'Jul',
+    customerCount: 0,
+  },
+  {
+    month: 'Aug',
+    customerCount: 0,
+  },
+  {
+    month: 'Sep',
+    customerCount: 0,
+  },
+  {
+    month: 'Oct',
+    customerCount: 0,
+  },
+  {
+    month: 'Nov',
+    customerCount: 0,
+  },
+  {
+    month: 'Dec',
+    customerCount: 0,
+  },
+];
+
+export const byMonthArrays = [
+  { day: 1, customerCount: 0 },
+  { day: 2, customerCount: 0 },
+  { day: 3, customerCount: 0 },
+  { day: 4, customerCount: 0 },
+  { day: 5, customerCount: 0 },
+  { day: 6, customerCount: 0 },
+  { day: 7, customerCount: 0 },
+  { day: 8, customerCount: 0 },
+  { day: 9, customerCount: 0 },
+  { day: 10, customerCount: 0 },
+  { day: 11, customerCount: 0 },
+  { day: 12, customerCount: 0 },
+  { day: 13, customerCount: 0 },
+  { day: 14, customerCount: 0 },
+  { day: 15, customerCount: 0 },
+  { day: 16, customerCount: 0 },
+  { day: 17, customerCount: 0 },
+  { day: 18, customerCount: 0 },
+  { day: 19, customerCount: 0 },
+  { day: 20, customerCount: 0 },
+  { day: 21, customerCount: 0 },
+  { day: 22, customerCount: 0 },
+  { day: 23, customerCount: 0 },
+  { day: 24, customerCount: 0 },
+  { day: 25, customerCount: 0 },
+  { day: 26, customerCount: 0 },
+  { day: 27, customerCount: 0 },
+  { day: 28, customerCount: 0 },
+  { day: 29, customerCount: 0 },
+  { day: 30, customerCount: 0 },
+  { day: 31, customerCount: 0 },
+];
+
+export const byYearArrayscompleted = [
+  {
+    month: 'Jan',
+    completedJobs: 0,
+  },
+  {
+    month: 'Feb',
+    completedJobs: 0,
+  },
+  {
+    month: 'Mar',
+    completedJobs: 0,
+  },
+  {
+    month: 'Apr',
+    completedJobs: 0,
+  },
+  {
+    month: 'May',
+    completedJobs: 0,
+  },
+  {
+    month: 'Jun',
+    completedJobs: 0,
+  },
+  {
+    month: 'Jul',
+    completedJobs: 0,
+  },
+  {
+    month: 'Aug',
+    completedJobs: 0,
+  },
+  {
+    month: 'Sep',
+    completedJobs: 0,
+  },
+  {
+    month: 'Oct',
+    completedJobs: 0,
+  },
+  {
+    month: 'Nov',
+    completedJobs: 0,
+  },
+  {
+    month: 'Dec',
+    completedJobs: 0,
+  },
+];
+
+export const byMonthArrayCompleted = [
+  { day: 1, completedJobs: 0 },
+  { day: 2, completedJobs: 0 },
+  { day: 3, completedJobs: 0 },
+  { day: 4, completedJobs: 0 },
+  { day: 5, completedJobs: 0 },
+  { day: 6, completedJobs: 0 },
+  { day: 7, completedJobs: 0 },
+  { day: 8, completedJobs: 0 },
+  { day: 9, completedJobs: 0 },
+  { day: 10, completedJobs: 0 },
+  { day: 11, completedJobs: 0 },
+  { day: 12, completedJobs: 0 },
+  { day: 13, completedJobs: 0 },
+  { day: 14, completedJobs: 0 },
+  { day: 15, completedJobs: 0 },
+  { day: 16, completedJobs: 0 },
+  { day: 17, completedJobs: 0 },
+  { day: 18, completedJobs: 0 },
+  { day: 19, completedJobs: 0 },
+  { day: 20, completedJobs: 0 },
+  { day: 21, completedJobs: 0 },
+  { day: 22, completedJobs: 0 },
+  { day: 23, completedJobs: 0 },
+  { day: 24, completedJobs: 0 },
+  { day: 25, completedJobs: 0 },
+  { day: 26, completedJobs: 0 },
+  { day: 27, completedJobs: 0 },
+  { day: 28, completedJobs: 0 },
+  { day: 29, completedJobs: 0 },
+  { day: 30, completedJobs: 0 },
+  { day: 31, completedJobs: 0 },
+];
+
+export const byYearArrayFee = [
+  {
+    month: 'Jan',
+    fee: 0,
+  },
+  {
+    month: 'Feb',
+    fee: 0,
+  },
+  {
+    month: 'Mar',
+    fee: 0,
+  },
+  {
+    month: 'Apr',
+    fee: 0,
+  },
+  {
+    month: 'May',
+    fee: 0,
+  },
+  {
+    month: 'Jun',
+    fee: 0,
+  },
+  {
+    month: 'Jul',
+    fee: 0,
+  },
+  {
+    month: 'Aug',
+    fee: 0,
+  },
+  {
+    month: 'Sep',
+    fee: 0,
+  },
+  {
+    month: 'Oct',
+    fee: 0,
+  },
+  {
+    month: 'Nov',
+    fee: 0,
+  },
+  {
+    month: 'Dec',
+    fee: 0,
+  },
+];
+
+export const byMonthArrayFee = [
+  { day: 1, fee: 0 },
+  { day: 2, fee: 0 },
+  { day: 3, fee: 0 },
+  { day: 4, fee: 0 },
+  { day: 5, fee: 0 },
+  { day: 6, fee: 0 },
+  { day: 7, fee: 0 },
+  { day: 8, fee: 0 },
+  { day: 9, fee: 0 },
+  { day: 10, fee: 0 },
+  { day: 11, fee: 0 },
+  { day: 12, fee: 0 },
+  { day: 13, fee: 0 },
+  { day: 14, fee: 0 },
+  { day: 15, fee: 0 },
+  { day: 16, fee: 0 },
+  { day: 17, fee: 0 },
+  { day: 18, fee: 0 },
+  { day: 19, fee: 0 },
+  { day: 20, fee: 0 },
+  { day: 21, fee: 0 },
+  { day: 22, fee: 0 },
+  { day: 23, fee: 0 },
+  { day: 24, fee: 0 },
+  { day: 25, fee: 0 },
+  { day: 26, fee: 0 },
+  { day: 27, fee: 0 },
+  { day: 28, fee: 0 },
+  { day: 29, fee: 0 },
+  { day: 30, fee: 0 },
+  { day: 31, fee: 0 },
+];

@@ -644,6 +644,16 @@ export class AuthService {
       user.userType,
       user.customer.customerId,
     );
+    if (dto?.playerId) {
+      await this.prisma.device.create({
+        data: {
+          customerId: user.customer.customerId,
+          userMasterId: user.userMasterId,
+          playerId: dto.playerId,
+          type: 'ANDROID',
+        },
+      });
+    }
     await this.updateRt(user.userMasterId, response.refreshToken);
     delete user.password;
     return { tokens: response, ...user, activeAddress };
