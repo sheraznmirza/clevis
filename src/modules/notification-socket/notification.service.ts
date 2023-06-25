@@ -60,13 +60,14 @@ export class NotificationService {
             playerId: {
               not: null,
             },
+            isDeleted: false,
           },
           select: {
             playerId: true,
           },
         });
-        const playerIds = userDevices.map((device) => device.playerId);
-        if (playerIds.length > 0) {
+        if (userDevices.length > 0) {
+          const playerIds = userDevices.map((device) => device.playerId);
           await this._oneSignalService.sendNotification(playerIds, title, body);
         }
       }
