@@ -23,6 +23,14 @@ export class StatisticsService {
     }
   }
 
+  async adminTotalEarning(query: StatisticUserAdminQueryDto) {
+    try {
+      return await this.repository.adminEarning(query);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getDashboardEarnings(user: GetUserType) {
     try {
       return await this.repository.getDashboardEarnings(user);
@@ -34,6 +42,14 @@ export class StatisticsService {
   async getDashboard(user: GetUserType) {
     try {
       return await this.repository.getDashboard(user);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async vendorEarning(query: StatisticUserAdminQueryDto) {
+    try {
+      return await this.repository.vendorEarnings(query);
     } catch (error) {
       throw error;
     }
@@ -53,5 +69,11 @@ export class StatisticsService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async completedJob(query: StatisticVendorAdminQueryDto) {
+    try {
+      return await this.repository.getCompletdJob(query);
+    } catch (error) {}
   }
 }
