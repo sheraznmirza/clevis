@@ -12,6 +12,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
+  DeviceType,
   EntityType,
   NotificationType,
   ServiceType,
@@ -650,7 +651,7 @@ export class AuthService {
           customerId: user.customer.customerId,
           userMasterId: user.userMasterId,
           playerId: dto.playerId,
-          type: 'ANDROID',
+          type: DeviceType.ANDROID,
         },
       });
     }
