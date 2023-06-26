@@ -15,6 +15,7 @@ import {
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { subcategories } from './entities/subcategoriesType';
 import { currentDateToVendorFilter } from 'src/helpers/date.helper';
+import { getVendorListingMapper } from './customer.mapper';
 
 @Injectable()
 export class CustomerRepository {
@@ -480,8 +481,10 @@ export class CustomerRepository {
           },
         });
 
+        const mappedVendors = getVendorListingMapper(result, dayObj);
+
         return {
-          data: result,
+          data: mappedVendors,
           page,
           take,
           totalCount,
@@ -662,6 +665,9 @@ export class CustomerRepository {
             },
           },
         });
+
+        const mappedVendors = getVendorListingMapper(vendors, dayObj);
+
         const totalCount = await this.prisma.userMaster.count({
           where: {
             isDeleted: false,
@@ -737,7 +743,7 @@ export class CustomerRepository {
         });
 
         return {
-          data: vendors,
+          data: mappedVendors,
           page,
           take,
           totalCount,

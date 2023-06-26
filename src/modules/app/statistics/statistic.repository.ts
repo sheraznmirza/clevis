@@ -282,7 +282,10 @@ export class StatisticRepository {
     }
   }
 
-  async vendorEarnings(query: StatisticUserAdminQueryDto) {
+  async vendorEarnings(
+    userMasterId: number,
+    query: StatisticUserAdminQueryDto,
+  ) {
     try {
       if (query.tabName === YearlyFilterDropdownType.YEARLY) {
         const currentYear = dayjs().format('01-01-YYYY');
@@ -291,7 +294,7 @@ export class StatisticRepository {
           fee: number;
           month: string;
         }> = await this.prisma.$queryRaw`SELECT
-    SUM(CASE WHEN public."Earnings"."userMasterId" != 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+    SUM(CASE WHEN public."Earnings"."userMasterId" = ${userMasterId} THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
     TO_CHAR(public."Earnings"."createdAt", 'Mon') AS "month"
     FROM public."Earnings"
     WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
@@ -337,7 +340,7 @@ export class StatisticRepository {
           fee: number;
           weekDay: string;
         }> = await this.prisma.$queryRaw`SELECT
-          SUM(CASE WHEN public."Earnings"."userMasterId" != 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+          SUM(CASE WHEN public."Earnings"."userMasterId" = ${userMasterId} THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
        TO_CHAR(public."Earnings"."createdAt", 'DD') AS "weekDay"
        FROM public."Earnings"
        WHERE public."Earnings"."createdAt" >= ${startOfTheWeek}::DATE
