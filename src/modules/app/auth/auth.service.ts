@@ -645,6 +645,7 @@ export class AuthService {
       user.userType,
       user.customer.customerId,
     );
+    console.log('Customer SignIn DTO: ', dto);
     if (dto?.playerId) {
       await this.prisma.device.create({
         data: {
