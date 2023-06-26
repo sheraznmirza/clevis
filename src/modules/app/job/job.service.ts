@@ -181,7 +181,7 @@ export class JobService {
             job?.vendor?.fullName,
           ),
           type: NotificationType.VendorCreatedJob,
-          entityType: EntityType.RIDER,
+          entityType: EntityType.JOB,
           entityId: job.id,
         },
       };
