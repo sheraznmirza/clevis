@@ -15,6 +15,7 @@ import {
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { subcategories } from './entities/subcategoriesType';
 import { currentDateToVendorFilter } from 'src/helpers/date.helper';
+import { getVendorListingMapper } from './customer.mapper';
 
 @Injectable()
 export class CustomerRepository {
@@ -433,29 +434,43 @@ export class CustomerRepository {
                 companyName: true,
                 serviceType: true,
                 isBusy: true,
-                userAddress: {
+                companySchedule: {
                   select: {
-                    city: {
-                      select: {
-                        cityName: true,
-                        cityId: true,
-                        State: {
-                          select: {
-                            stateName: true,
-                            stateId: true,
-                            country: {
-                              select: {
-                                countryName: true,
-                                countryId: true,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                    fullAddress: true,
-                    latitude: true,
-                    longitude: true,
+                    day: true,
+                    endTime: true,
+                    isActive: true,
+                    startTime: true,
+                  },
+                },
+                // userAddress: {
+                //   select: {
+                //     city: {
+                //       select: {
+                //         cityName: true,
+                //         cityId: true,
+                //         State: {
+                //           select: {
+                //             stateName: true,
+                //             stateId: true,
+                //             country: {
+                //               select: {
+                //                 countryName: true,
+                //                 countryId: true,
+                //               },
+                //             },
+                //           },
+                //         },
+                //       },
+                //     },
+                //     fullAddress: true,
+                //     latitude: true,
+                //     longitude: true,
+                //   },
+                // },
+                avgRating: true,
+                _count: {
+                  select: {
+                    review: true,
                   },
                 },
               },
@@ -480,8 +495,10 @@ export class CustomerRepository {
           },
         });
 
+        const mappedVendors = getVendorListingMapper(result, dayObj);
+
         return {
-          data: result,
+          data: mappedVendors,
           page,
           take,
           totalCount,
@@ -517,10 +534,6 @@ export class CustomerRepository {
             return service.serviceId;
           });
         }
-        console.log(
-          'customerCity.customer.userAddress[0].cityId: ',
-          customerCity.customer.userAddress[0].cityId,
-        );
 
         const vendors = await this.prisma.userMaster.findMany({
           where: {
@@ -628,40 +641,52 @@ export class CustomerRepository {
                 companyName: true,
                 serviceType: true,
                 isBusy: true,
-                userAddress: {
+                avgRating: true,
+                _count: {
                   select: {
-                    city: {
-                      select: {
-                        cityName: true,
-                        cityId: true,
-                        State: {
-                          select: {
-                            stateName: true,
-                            stateId: true,
-                            country: {
-                              select: {
-                                countryName: true,
-                                countryId: true,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                    fullAddress: true,
-                    latitude: true,
-                    longitude: true,
+                    review: true,
                   },
                 },
-                review: {
+                // userAddress: {
+                //   select: {
+                //     city: {
+                //       select: {
+                //         cityName: true,
+                //         cityId: true,
+                //         State: {
+                //           select: {
+                //             stateName: true,
+                //             stateId: true,
+                //             country: {
+                //               select: {
+                //                 countryName: true,
+                //                 countryId: true,
+                //               },
+                //             },
+                //           },
+                //         },
+                //       },
+                //     },
+                //     fullAddress: true,
+                //     latitude: true,
+                //     longitude: true,
+                //   },
+                // },
+                companySchedule: {
                   select: {
-                    rating: true,
+                    day: true,
+                    endTime: true,
+                    isActive: true,
+                    startTime: true,
                   },
                 },
               },
             },
           },
         });
+
+        const mappedVendors = getVendorListingMapper(vendors, dayObj);
+
         const totalCount = await this.prisma.userMaster.count({
           where: {
             isDeleted: false,
@@ -737,7 +762,7 @@ export class CustomerRepository {
         });
 
         return {
-          data: vendors,
+          data: mappedVendors,
           page,
           take,
           totalCount,
