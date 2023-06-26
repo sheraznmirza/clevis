@@ -17,10 +17,13 @@ import {
   byMonthArrayCompleted,
   byMonthArrayFee,
   byMonthArrays,
+  byWeekArrayFee,
+  byWeekVendors,
   byYearArray,
   byYearArrayFee,
   byYearArrays,
   byYearArrayscompleted,
+  customerCountByWeek,
 } from './constants';
 dayjs.extend(utc);
 @Injectable()
@@ -55,13 +58,11 @@ export class StatisticRepository {
           }
         }
         return byYearArray;
-
-        ///////
       } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
         const currentYear = dayjs().format('MM-01-YYYY');
         console.log('currentYear: ', currentYear);
 
-        const vendorByMonth: Array<{
+        const vendorsByMonth: Array<{
           laundryVendors: number;
           carWashVendors: number;
           day: number;
@@ -76,18 +77,46 @@ export class StatisticRepository {
        GROUP BY "day"
        ORDER BY "day" ASC;`;
 
-        for (let i = 0; i < vendorByMonth.length; i++) {
+        for (let i = 0; i < vendorsByMonth.length; i++) {
           for (let j = 0; j < byMonthArray.length; j++) {
-            if (byMonthArray[j].day === vendorByMonth[i].day) {
-              byMonthArray[j].carWashVendors = vendorByMonth[i].carWashVendors;
-              byMonthArray[j].laundryVendors = vendorByMonth[i].laundryVendors;
+            if (byMonthArray[j].day === vendorsByMonth[i].day) {
+              byMonthArray[j].carWashVendors = vendorsByMonth[i].carWashVendors;
+              byMonthArray[j].laundryVendors = vendorsByMonth[i].laundryVendors;
             }
           }
         }
 
         return byMonthArray;
       } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
-        return 'sorry sir yeh abhi nahi kiya';
+        const startOfTheWeek = dayjs().day(0).format('MM-DD-YYYY');
+        const endOfTheWeek = dayjs().day(6).format('MM-DD-YYYY');
+
+        const vendorsByWeek: Array<{
+          laundryVendors: number;
+          carWashVendors: number;
+          weekDay: string;
+        }> = await this.prisma.$queryRaw`SELECT
+        COUNT(CASE WHEN public."Vendor"."serviceType" = 'LAUNDRY' THEN 1 ELSE NULL END)::INTEGER AS "laundryVendors",
+        COUNT(CASE WHEN public."Vendor"."serviceType" = 'CAR_WASH' THEN 1 ELSE NULL END)::INTEGER AS "carWashVendors",
+        TO_CHAR(public."UserMaster"."createdAt", 'Dy') AS "weekDay"
+        FROM public."Vendor"
+        INNER JOIN public."UserMaster"
+        ON public."Vendor"."userMasterId" = public."UserMaster"."userMasterId"
+        WHERE
+          public."UserMaster"."createdAt" >= ${startOfTheWeek}::DATE
+          AND public."UserMaster"."createdAt" <= ${endOfTheWeek}::DATE
+        GROUP BY "weekDay";`;
+
+        for (let i = 0; i < byWeekVendors.length; i++) {
+          for (let j = 0; j < vendorsByWeek.length; j++) {
+            if (byWeekVendors[j].weekDay === byWeekVendors[i].weekDay) {
+              byWeekVendors[j].carWashVendors = byWeekVendors[i].carWashVendors;
+              byWeekVendors[j].laundryVendors = byWeekVendors[i].laundryVendors;
+            }
+          }
+        }
+
+        return byWeekVendors;
       } else {
         throw new BadRequestException('Send the correct tab');
       }
@@ -121,7 +150,6 @@ export class StatisticRepository {
         return byYearArrayFee;
       } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
         const currentYear = dayjs().format('MM-01-YYYY');
-        console.log('currentYear: ', currentYear);
 
         const feeByMonth: Array<{
           fee: number;
@@ -143,6 +171,31 @@ export class StatisticRepository {
         }
 
         return byMonthArrayFee;
+      } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
+        const startOfTheWeek = dayjs().day(0).format('MM-DD-YYYY');
+        const endOfTheWeek = dayjs().day(6).format('MM-DD-YYYY');
+
+        const feeByWeek: Array<{
+          fee: number;
+          weekDay: string;
+        }> = await this.prisma.$queryRaw`SELECT
+          SUM(CASE WHEN public."Earnings"."userMasterId" = 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+       TO_CHAR(public."Earnings"."createdAt", 'dy') AS "weekDay"
+       FROM public."Earnings"
+       WHERE public."Earnings"."createdAt" >= ${startOfTheWeek}::DATE
+       AND public."Earnings"."createdAt" <= ${endOfTheWeek}::DATE
+       GROUP BY "weekDay"
+       ORDER BY "weekDay" ASC;`;
+
+        for (let i = 0; i < byWeekArrayFee.length; i++) {
+          for (let j = 0; j < feeByWeek.length; j++) {
+            if (feeByWeek[j].weekDay === byWeekArrayFee[i].weekDay) {
+              feeByWeek[j].fee = byWeekArrayFee[i].fee || 0;
+            }
+          }
+        }
+
+        return byWeekArrayFee;
       }
     } catch (error) {
       throw error;
@@ -172,11 +225,8 @@ export class StatisticRepository {
           }
         }
         return byYearArrays;
-
-        ////
       } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
         const currentYear = dayjs().format('MM-01-YYYY');
-        console.log('currentYear: ', currentYear);
 
         const customerByMonth: Array<{
           customerCount: number;
@@ -199,7 +249,31 @@ export class StatisticRepository {
 
         return byMonthArrays;
       } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
-        return 'sorry sir yeh abhi nahi kiya';
+        const startOfTheWeek = dayjs().day(0).format('MM-DD-YYYY');
+        const endOfTheWeek = dayjs().day(6).format('MM-DD-YYYY');
+
+        const customerByMonth: Array<{
+          customerCount: number;
+          weekDay: string;
+        }> = await this.prisma.$queryRaw`SELECT
+          COUNT(CASE WHEN public."UserMaster"."userType" = 'CUSTOMER' THEN 1 ELSE NULL END)::INTEGER AS "customerCount",
+       TO_CHAR(public."UserMaster"."createdAt", 'dy') AS "weekDay"
+       FROM public."UserMaster"
+       WHERE public."UserMaster"."createdAt" >= ${startOfTheWeek}::DATE
+       AND public."UserMaster"."createdAt" <= ${endOfTheWeek}::DATE
+       GROUP BY "weekDay"
+       ORDER BY "weekDay" ASC;`;
+
+        for (let i = 0; i < customerByMonth.length; i++) {
+          for (let j = 0; j < customerCountByWeek.length; j++) {
+            if (customerCountByWeek[j].weekDay === customerByMonth[i].weekDay) {
+              customerCountByWeek[j].customerCount =
+                customerByMonth[i].customerCount;
+            }
+          }
+        }
+
+        return customerCountByWeek;
       } else {
         throw new BadRequestException('Send the correct tab');
       }
@@ -255,6 +329,31 @@ export class StatisticRepository {
         }
 
         return byMonthArrayFee;
+      } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
+        const startOfTheWeek = dayjs().day(0).format('MM-DD-YYYY');
+        const endOfTheWeek = dayjs().day(6).format('MM-DD-YYYY');
+
+        const feeByWeek: Array<{
+          fee: number;
+          weekDay: string;
+        }> = await this.prisma.$queryRaw`SELECT
+          SUM(CASE WHEN public."Earnings"."userMasterId" != 1 THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+       TO_CHAR(public."Earnings"."createdAt", 'DD') AS "weekDay"
+       FROM public."Earnings"
+       WHERE public."Earnings"."createdAt" >= ${startOfTheWeek}::DATE
+       AND public."Earnings"."createdAt" <= ${endOfTheWeek}::DATE
+       GROUP BY "weekDay"
+       ORDER BY "weekDay" ASC;`;
+
+        for (let i = 0; i < feeByWeek.length; i++) {
+          for (let j = 0; j < byWeekArrayFee.length; j++) {
+            if (byWeekArrayFee[j].weekDay === feeByWeek[i].weekDay) {
+              byWeekArrayFee[j].fee = feeByWeek[i].fee;
+            }
+          }
+        }
+
+        return byWeekArrayFee;
       }
     } catch (error) {}
   }
