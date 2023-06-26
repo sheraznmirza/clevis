@@ -58,8 +58,6 @@ export const vendorServiceByIdMappedCarWash = (vendorService) => {
 };
 
 export const getRiderDirectoryMapper = (riders, dayObj) => {
-  console.log('riders: ', riders);
-  console.log('dayObj: ', dayObj);
   const mappedRiders = [];
   for (let i = 0; i < riders.length; i++) {
     const riderObj = { ...riders[i] };

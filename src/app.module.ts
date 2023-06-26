@@ -37,7 +37,7 @@ import { EarningModule } from './modules/app/earning/earning.module';
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
-      serveRoot: '/tap-payment',
+      serveRoot: '/tap-payment/:authId',
       // renderPath: '/tap-api',
     }),
     ConfigModule.forRoot({ isGlobal: true }),

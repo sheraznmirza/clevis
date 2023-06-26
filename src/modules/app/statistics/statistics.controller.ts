@@ -48,8 +48,11 @@ export class StatisticsController {
 
   @Authorized(UserType.VENDOR)
   @Get('/dashboard/vendor/totalEarning')
-  vendorTotalEarning(@Query() query: StatisticUserAdminQueryDto) {
-    return this.StatisticsService.vendorEarning(query);
+  vendorTotalEarning(
+    @GetUser() user: GetUserType,
+    @Query() query: StatisticUserAdminQueryDto,
+  ) {
+    return this.StatisticsService.vendorEarning(user.userMasterId, query);
   }
 
   @Authorized(UserType.RIDER)
