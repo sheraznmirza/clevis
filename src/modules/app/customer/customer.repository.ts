@@ -468,6 +468,11 @@ export class CustomerRepository {
                 //   },
                 // },
                 avgRating: true,
+                _count: {
+                  select: {
+                    review: true,
+                  },
+                },
               },
             },
           },
@@ -637,6 +642,11 @@ export class CustomerRepository {
                 serviceType: true,
                 isBusy: true,
                 avgRating: true,
+                _count: {
+                  select: {
+                    review: true,
+                  },
+                },
                 // userAddress: {
                 //   select: {
                 //     city: {
