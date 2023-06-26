@@ -565,12 +565,13 @@ export class StatisticRepository {
         }> = await this.prisma.$queryRaw`SELECT
         COUNT(CASE WHEN public."Job"."jobStatus" = 'Completed' THEN 1 ELSE NULL END)::INTEGER AS "completedJobs",
         TO_CHAR(public."UserMaster"."createdAt", 'Mon') AS "month"
-        FROM public."Rider"
-        INNER JOIN public."UserMaster"
-        ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
-        INNER JOIN public."Job"
-        ON public."Job"."riderId" = public."Rider"."riderId"
-        WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+        FROM public."Job"
+        -- FROM public."Rider"
+        -- INNER JOIN public."UserMaster"
+        -- ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
+        -- INNER JOIN public."Job"
+        -- ON public."Job"."riderId" = public."Rider"."riderId"
+        WHERE public."Job"."createdAt" >= ${currentYear}::DATE
         GROUP BY "month";`;
 
         for (let i = 0; i < completedByYear.length; i++) {
@@ -593,13 +594,13 @@ export class StatisticRepository {
           day: number;
         }> = await this.prisma.$queryRaw`SELECT
          COUNT(CASE WHEN public."Job"."jobStatus" = 'Completed' THEN 1 ELSE NULL END)::INTEGER AS "completedJobs",
-       TO_CHAR(public."UserMaster"."createdAt", 'DD')::INTEGER AS "day"
-       FROM public."Rider"
-       INNER JOIN public."UserMaster"
-        ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
-        INNER JOIN public."Job"
-        ON public."Job"."riderId" = public."Rider"."riderId"
-       WHERE public."UserMaster"."createdAt" >= ${currentYear}::DATE
+       TO_CHAR(public."Job"."createdAt", 'DD')::INTEGER AS "day"
+       FROM public."Job"
+      --  INNER JOIN public."UserMaster"
+      --   ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
+      --   INNER JOIN public."Job"
+      --   ON public."Job"."riderId" = public."Rider"."riderId"
+       WHERE public."Job"."createdAt" >= ${currentYear}::DATE
        GROUP BY "day"
        ORDER BY "day" ASC;`;
 
