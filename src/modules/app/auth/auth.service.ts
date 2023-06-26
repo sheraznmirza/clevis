@@ -984,7 +984,7 @@ export class AuthService {
       await this.mail.sendEmail(
         data.email,
         this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - Reset Your Password`,
+        `Reset Your Password`,
         'resetPassword', // `.hbs` extension is appended automatically
         context,
       );
@@ -1085,7 +1085,7 @@ export class AuthService {
           await this.mail.sendEmail(
             this.config.get('MAIL_ADMIN'),
             this.config.get('MAIL_NO_REPLY'),
-            this.config.get('APP_NAME'),
+            '',
             'vendorApprovedRejected',
             context,
           );

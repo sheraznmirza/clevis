@@ -115,4 +115,10 @@ export class BookingController {
   ) {
     return this.bookingService.getBookingDetails(user, dto);
   }
+
+  @Authorized(UserType.VENDOR)
+  @Get('vendor/delivery')
+  getVendorDelivery(@GetUser() user: GetUserType) {
+    return this.bookingService.VendorDetail(user.userTypeId);
+  }
 }
