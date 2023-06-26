@@ -303,7 +303,7 @@ export class StatisticRepository {
         for (let i = 0; i < feeByYear.length; i++) {
           for (let j = 0; j < byYearArrayFee.length; j++) {
             if (byYearArrayFee[j].month === feeByYear[i].month) {
-              byYearArrayFee[j].fee = feeByYear[i].fee;
+              byYearArrayFee[j].fee = feeByYear[i].fee || 0;
             }
           }
         }
