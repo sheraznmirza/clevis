@@ -95,6 +95,44 @@ export const byMonthArray = [
   { day: 31, laundryVendors: 0, carWashVendors: 0 },
 ];
 
+export const byWeekVendors = [
+  {
+    weekDay: 'Mon',
+    laundryVendors: 0,
+    carWashVendors: 0,
+  },
+  {
+    weekDay: 'Tue',
+    laundryVendors: 0,
+    carWashVendors: 0,
+  },
+  {
+    weekDay: 'Wed',
+    laundryVendors: 0,
+    carWashVendors: 0,
+  },
+  {
+    weekDay: 'Thu',
+    laundryVendors: 0,
+    carWashVendors: 0,
+  },
+  {
+    weekDay: 'Fri',
+    laundryVendors: 0,
+    carWashVendors: 0,
+  },
+  {
+    weekDay: 'Sat',
+    laundryVendors: 0,
+    carWashVendors: 0,
+  },
+  {
+    weekDay: 'Sun',
+    laundryVendors: 0,
+    carWashVendors: 0,
+  },
+];
+
 export const byYearArrays = [
   {
     month: 'Jan',
@@ -178,6 +216,37 @@ export const byMonthArrays = [
   { day: 29, customerCount: 0 },
   { day: 30, customerCount: 0 },
   { day: 31, customerCount: 0 },
+];
+
+export const customerCountByWeek = [
+  {
+    weekDay: 'Mon',
+    customerCount: 0,
+  },
+  {
+    weekDay: 'Tue',
+    customerCount: 0,
+  },
+  {
+    weekDay: 'Wed',
+    customerCount: 0,
+  },
+  {
+    weekDay: 'Thu',
+    customerCount: 0,
+  },
+  {
+    weekDay: 'Fri',
+    customerCount: 0,
+  },
+  {
+    weekDay: 'Sat',
+    customerCount: 0,
+  },
+  {
+    weekDay: 'Sun',
+    customerCount: 0,
+  },
 ];
 
 export const byYearArrayscompleted = [
@@ -348,4 +417,35 @@ export const byMonthArrayFee = [
   { day: 29, fee: 0 },
   { day: 30, fee: 0 },
   { day: 31, fee: 0 },
+];
+
+export const byWeekArrayFee = [
+  {
+    weekDay: 'Mon',
+    fee: 0,
+  },
+  {
+    weekDay: 'Tue',
+    fee: 0,
+  },
+  {
+    weekDay: 'Wed',
+    fee: 0,
+  },
+  {
+    weekDay: 'Thu',
+    fee: 0,
+  },
+  {
+    weekDay: 'Fri',
+    fee: 0,
+  },
+  {
+    weekDay: 'Sat',
+    fee: 0,
+  },
+  {
+    weekDay: 'Sun',
+    fee: 0,
+  },
 ];
