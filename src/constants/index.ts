@@ -48,7 +48,7 @@ export enum NotificationBody {
   VENDOR_CREATED_JOB = 'Job Created by {Vendor}',
   ADMIN_APPROVED_RIDER = 'Welcome to Clevis.{rider} can now start accepting jobs and earning with our platform. Get ready to hit the road',
   RIDER_ACCEPT_JOB = '{rider} have accepted a new job request. Please proceed to the designated location and provide your excellent service. ',
-  RIDER_JOB_COMPLETED = '{rider} have successfully completed the assigned job {id }. ',
+  RIDER_JOB_COMPLETED = '{rider} have successfully completed the assigned job {id}. ',
   CUSTOMER_CREATE_ACCOUNT = 'Welcome to Clevis. Book Laundry & car wash service from the comfort of your home.',
 }
 
