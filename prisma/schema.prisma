@@ -237,6 +237,7 @@ model Vendor {
   UpdateApproval      UpdateApproval[]
   Job                 Job[]
   review              Review[]
+  avgRating           Float?            @default(0)
 }
 
 model Rider {

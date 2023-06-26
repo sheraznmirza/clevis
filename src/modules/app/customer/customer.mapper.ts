@@ -4,7 +4,7 @@ export const getVendorListingMapper = (vendors, dayObj) => {
   const mappedVendors = [];
   for (let i = 0; i < vendors.length; i++) {
     const vendorObj = { ...vendors[i] };
-    const todaySchedule = vendors[i].rider.companySchedule.find((element) => {
+    const todaySchedule = vendors[i].vendor.companySchedule.find((element) => {
       return element.day === dayObj.currentDay;
     });
 
@@ -19,7 +19,9 @@ export const getVendorListingMapper = (vendors, dayObj) => {
     }
 
     mappedVendors.push(vendorObj);
-    delete mappedVendors[i].rider.companySchedule;
+    delete mappedVendors[i].vendor.companySchedule;
   }
+  //   console.log('vendors: ', vendors[0]);
+  //   return vendors[0];
   return mappedVendors;
 };
