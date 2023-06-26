@@ -48,7 +48,7 @@ const AppConfig = {
     ONE_SIGNAL: {
       APP_KEY: process.env.APP_ONE_SIGNAL_APP_KEY || '',
       USER_KEY: process.env.APP_ONE_SIGNAL_USER_KEY || '',
-      APP_ID: process.env.APP_ONE_SIGNAL_APP_ID || '',
+      APP_ID: '22e5fe7f-9359-474e-9d87-25ecb296f192', //process.env.APP_ONE_SIGNAL_APP_ID || '',
       GOOGLE: {
         FIREBASE_PROJECT_ID: process.env.APP_FIREBASE_PROJECT_ID,
         FIREBASE_PRIVATE_KEY: process.env.APP_FIREBASE_PRIVATE_KEY?.replace(

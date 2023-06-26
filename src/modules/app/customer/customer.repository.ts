@@ -295,7 +295,7 @@ export class CustomerRepository {
       search,
       distance = 10000000000,
       currentDay,
-      vendorStatus = VendorStatus.OPEN,
+      vendorStatus,
     } = dto;
     try {
       const dayObj = currentDateToVendorFilter(currentDay);

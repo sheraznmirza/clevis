@@ -1152,6 +1152,13 @@ export class BookingRepository {
         },
         data: {
           status: dto.bookingStatus,
+          ...(dto.bookingStatus === BookingStatus.Confirmed && {
+            confirmationTime: dayjs().utc().format(),
+          }),
+
+          ...(dto.bookingStatus === BookingStatus.Completed && {
+            completionTime: dayjs().utc().format(),
+          }),
         },
         select: {
           bookingMasterId: true,
