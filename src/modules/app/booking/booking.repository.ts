@@ -1808,4 +1808,23 @@ export class BookingRepository {
       );
     }
   }
+
+  async getDetailVendor(vendorId: number) {
+    try {
+      return await this.prisma.bookingMaster.findFirst({
+        where: {
+          vendorId,
+          isWithDelivery: true,
+          OR: [
+            { status: BookingStatus.In_Progress },
+            { status: BookingStatus.Completed },
+          ],
+        },
+        select: {
+          bookingMasterId: true,
+          status: true,
+        },
+      });
+    } catch (error) {}
+  }
 }
