@@ -294,7 +294,7 @@ export class RiderService {
       await this.mail.sendEmail(
         user.email,
         this.config.get('MAIL_ADMIN'),
-        `${this.config.get('APP_NAME')} - ${
+        `${
           user.userType[0] + user.userType.slice(1).toLowerCase()
         } ${user.rider.status.toLowerCase()}`,
         'vendorApprovedRejected',
