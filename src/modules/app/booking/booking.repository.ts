@@ -1825,6 +1825,8 @@ export class BookingRepository {
           status: true,
         },
       });
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
 }
