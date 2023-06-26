@@ -53,7 +53,7 @@ export class OneSignalService {
     if (data) {
       Object.assign(notification, { ...data });
     }
-    console.log(notification, 'notification');
+    console.log('one_signal_notification: ', notification);
 
     return await this._client.createNotification(notification);
   }
