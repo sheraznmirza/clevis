@@ -434,29 +434,43 @@ export class CustomerRepository {
                 companyName: true,
                 serviceType: true,
                 isBusy: true,
-                userAddress: {
+                companySchedule: {
                   select: {
-                    city: {
-                      select: {
-                        cityName: true,
-                        cityId: true,
-                        State: {
-                          select: {
-                            stateName: true,
-                            stateId: true,
-                            country: {
-                              select: {
-                                countryName: true,
-                                countryId: true,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                    fullAddress: true,
-                    latitude: true,
-                    longitude: true,
+                    day: true,
+                    endTime: true,
+                    isActive: true,
+                    startTime: true,
+                  },
+                },
+                // userAddress: {
+                //   select: {
+                //     city: {
+                //       select: {
+                //         cityName: true,
+                //         cityId: true,
+                //         State: {
+                //           select: {
+                //             stateName: true,
+                //             stateId: true,
+                //             country: {
+                //               select: {
+                //                 countryName: true,
+                //                 countryId: true,
+                //               },
+                //             },
+                //           },
+                //         },
+                //       },
+                //     },
+                //     fullAddress: true,
+                //     latitude: true,
+                //     longitude: true,
+                //   },
+                // },
+                avgRating: true,
+                _count: {
+                  select: {
+                    review: true,
                   },
                 },
               },
@@ -520,10 +534,6 @@ export class CustomerRepository {
             return service.serviceId;
           });
         }
-        console.log(
-          'customerCity.customer.userAddress[0].cityId: ',
-          customerCity.customer.userAddress[0].cityId,
-        );
 
         const vendors = await this.prisma.userMaster.findMany({
           where: {
@@ -631,34 +641,43 @@ export class CustomerRepository {
                 companyName: true,
                 serviceType: true,
                 isBusy: true,
-                userAddress: {
+                avgRating: true,
+                _count: {
                   select: {
-                    city: {
-                      select: {
-                        cityName: true,
-                        cityId: true,
-                        State: {
-                          select: {
-                            stateName: true,
-                            stateId: true,
-                            country: {
-                              select: {
-                                countryName: true,
-                                countryId: true,
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                    fullAddress: true,
-                    latitude: true,
-                    longitude: true,
+                    review: true,
                   },
                 },
-                review: {
+                // userAddress: {
+                //   select: {
+                //     city: {
+                //       select: {
+                //         cityName: true,
+                //         cityId: true,
+                //         State: {
+                //           select: {
+                //             stateName: true,
+                //             stateId: true,
+                //             country: {
+                //               select: {
+                //                 countryName: true,
+                //                 countryId: true,
+                //               },
+                //             },
+                //           },
+                //         },
+                //       },
+                //     },
+                //     fullAddress: true,
+                //     latitude: true,
+                //     longitude: true,
+                //   },
+                // },
+                companySchedule: {
                   select: {
-                    rating: true,
+                    day: true,
+                    endTime: true,
+                    isActive: true,
+                    startTime: true,
                   },
                 },
               },
