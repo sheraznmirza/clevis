@@ -8,7 +8,9 @@ export const getVendorListingMapper = (vendors, dayObj) => {
       return element.day === dayObj.currentDay;
     });
 
-    if (
+    if (vendors[i].vendor.isBusy) {
+      vendorObj.companyStatus = VendorStatus.BUSY;
+    } else if (
       todaySchedule.isActive &&
       dayObj.currentTime >= todaySchedule.startTime &&
       dayObj.currentTime < todaySchedule.endTime

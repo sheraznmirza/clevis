@@ -65,6 +65,38 @@ export class BookingRepository {
       let pickupResponse: any;
       let dropoffResponse: any;
 
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId: dto.vendorId,
+        },
+        select: {
+          isBusy: true,
+          userAddress: {
+            where: {
+              isDeleted: false,
+            },
+            select: {
+              latitude: true,
+              longitude: true,
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+          deliverySchedule: {
+            select: {
+              kilometerFare: true,
+            },
+          },
+        },
+      });
+
+      if (vendor.isBusy) {
+        throw new BadRequestException(
+          'Vendor is busy, unable to create booking',
+        );
+      }
+
       const attachments = [];
       // console.log('dto.tapAuthId: ', dto.tapAuthId);
       const tapAuthorize = await this.tapService.retrieveAuthorize(
@@ -130,30 +162,6 @@ export class BookingRepository {
         }
       }
 
-      const vendor = await this.prisma.vendor.findUnique({
-        where: {
-          vendorId: dto.vendorId,
-        },
-        select: {
-          userAddress: {
-            where: {
-              isDeleted: false,
-            },
-            select: {
-              latitude: true,
-              longitude: true,
-            },
-            orderBy: {
-              createdAt: 'desc',
-            },
-          },
-          deliverySchedule: {
-            select: {
-              kilometerFare: true,
-            },
-          },
-        },
-      });
       if (pickupLocation && dropoffLocation) {
         pickupResponse = await mapsDistanceData(
           pickupLocation,
@@ -170,9 +178,6 @@ export class BookingRepository {
         );
       }
 
-      console.log('pickupResponse: ', pickupResponse);
-      console.log('dropoffResponse: ', dropoffResponse);
-
       const pickupDeliveryCharges = pickupResponse
         ? pickupResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
@@ -182,9 +187,6 @@ export class BookingRepository {
         ? dropoffResponse?.distanceValue *
           (vendor?.deliverySchedule?.kilometerFare || 8.5)
         : 0;
-
-      console.log('pickupDeliveryCharges: ', pickupDeliveryCharges);
-      console.log('dropoffDeliveryCharges: ', dropoffDeliveryCharges);
 
       const bookingDetailPrice: number[] = [];
 
@@ -335,6 +337,21 @@ export class BookingRepository {
 
   async createBookingCarWash(customerId, dto: CreateBookingCarWashDto) {
     try {
+      const vendor = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId: dto.vendorId,
+        },
+        select: {
+          isBusy: true,
+        },
+      });
+
+      if (vendor.isBusy) {
+        throw new BadRequestException(
+          'Vendor is busy, unable to create booking',
+        );
+      }
+
       const attachments = [];
 
       const tapAuthorize = await this.tapService.retrieveAuthorize(
@@ -1019,7 +1036,6 @@ export class BookingRepository {
           isDeleted: true,
           bookingDate: true,
           status: true,
-
           job: {
             select: {
               id: true,
@@ -1064,18 +1080,29 @@ export class BookingRepository {
         totalItems += item.quantity;
       });
 
-      if (result.status !== BookingStatus.Completed) {
-        delete result.job;
-      }
+      result?.job?.every((item) => {
+        console.log('item: ', item);
+        return item.jobType !== JobType.PICKUP;
+      });
 
       if (result?.job?.every((item) => item.jobType !== JobType.PICKUP)) {
         canPickup = true;
       }
 
-      if (result?.job?.every((item) => item.jobType !== JobType.DELIVERY)) {
+      if (
+        result?.job?.every((item) => item.jobType !== JobType.DELIVERY) &&
+        result?.job?.some(
+          (item) =>
+            item.jobType === JobType.PICKUP &&
+            item.jobStatus === RiderJobStatus.Completed,
+        )
+      ) {
         canDeliver = true;
       }
 
+      if (result.status !== BookingStatus.Completed) {
+        delete result.job;
+      }
       return { ...result, totalItems, canPickup, canDeliver };
     } catch (error) {
       if (error?.code === 'P2025') {

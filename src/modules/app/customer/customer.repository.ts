@@ -590,7 +590,10 @@ export class CustomerRepository {
                     },
                   },
                 }),
-
+              ...((vendorStatus === VendorStatus.CLOSED ||
+                vendorStatus === VendorStatus.OPEN) && {
+                isBusy: false,
+              }),
               ...(vendorStatus === VendorStatus.BUSY && {
                 isBusy: true,
               }),
@@ -742,10 +745,16 @@ export class CustomerRepository {
                     },
                   },
                 }),
+              ...(vendorStatus &&
+                vendorStatus === VendorStatus.BUSY && {
+                  isBusy: true,
+                }),
 
-              ...(vendorStatus === VendorStatus.BUSY && {
-                isBusy: true,
+              ...((vendorStatus === VendorStatus.CLOSED ||
+                vendorStatus === VendorStatus.OPEN) && {
+                isBusy: false,
               }),
+
               ...(search && {
                 companyName: {
                   contains: search,
@@ -790,6 +799,7 @@ export class CustomerRepository {
           vendor: {
             select: {
               vendorId: true,
+              avgRating: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',
@@ -1121,12 +1131,13 @@ export class CustomerRepository {
               },
             }),
           },
-          // distinct: ['categoryId'],
+          distinct: ['categoryId'],
           select: {
             id: true,
             price: true,
             vendorService: {
               select: {
+                vendorServiceId: true,
                 service: {
                   select: {
                     serviceId: true,
@@ -1171,6 +1182,10 @@ export class CustomerRepository {
           take: +take,
           skip: +take * (+page - 1),
           where: {
+            vendorService: {
+              vendorId,
+            },
+
             categoryId: +dto.categoryId,
 
             ...(search && {
@@ -1188,6 +1203,7 @@ export class CustomerRepository {
             price: true,
             vendorService: {
               select: {
+                vendorServiceId: true,
                 service: {
                   select: {
                     serviceId: true,
@@ -1207,7 +1223,20 @@ export class CustomerRepository {
 
         const totalCount = await this.prisma.allocatePrice.count({
           where: {
+            vendorService: {
+              vendorId,
+            },
+
             categoryId: +dto.categoryId,
+
+            ...(search && {
+              category: {
+                categoryName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
         });
 
