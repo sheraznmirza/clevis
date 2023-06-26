@@ -559,7 +559,9 @@ export class StatisticRepository {
   }
   async getCompletdJob(query: StatisticVendorAdminQueryDto) {
     try {
+      console.log('ja raha hai abhi tak?');
       if (query.tabName === YearlyFilterDropdownType.YEARLY) {
+        console.log('is it here');
         const currentYear = dayjs().format('01-01-YYYY');
 
         const completedByYear: Array<{
@@ -568,14 +570,16 @@ export class StatisticRepository {
         }> = await this.prisma.$queryRaw`SELECT
         COUNT(CASE WHEN public."Job"."jobStatus" = 'Completed' THEN 1 ELSE NULL END)::INTEGER AS "completedJobs",
         TO_CHAR(public."UserMaster"."createdAt", 'Mon') AS "month"
-        FROM public."Job"
-        -- FROM public."Rider"
-        -- INNER JOIN public."UserMaster"
-        -- ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
-        -- INNER JOIN public."Job"
-        -- ON public."Job"."riderId" = public."Rider"."riderId"
+        -- FROM public."Job"
+        FROM public."Rider"
+        INNER JOIN public."UserMaster"
+        ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
+        INNER JOIN public."Job"
+        ON public."Job"."riderId" = public."Rider"."riderId"
         WHERE public."Job"."createdAt" >= ${currentYear}::DATE
         GROUP BY "month";`;
+
+        console.log('byYearArrayscompleted: ', completedByYear);
 
         for (let i = 0; i < completedByYear.length; i++) {
           for (let j = 0; j < byYearArrayscompleted.length; j++) {
@@ -585,10 +589,9 @@ export class StatisticRepository {
             }
           }
         }
+        console.log('byYearArrayscompleted: ', byYearArrayscompleted);
         return byYearArrayscompleted;
-      }
-      ////
-      else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
+      } else if (query.tabName === YearlyFilterDropdownType.MONTHLY) {
         const currentYear = dayjs().format('MM-01-YYYY');
         console.log('currentYear: ', currentYear);
 

@@ -442,31 +442,31 @@ export class CustomerRepository {
                     startTime: true,
                   },
                 },
-                // userAddress: {
-                //   select: {
-                //     city: {
-                //       select: {
-                //         cityName: true,
-                //         cityId: true,
-                //         State: {
-                //           select: {
-                //             stateName: true,
-                //             stateId: true,
-                //             country: {
-                //               select: {
-                //                 countryName: true,
-                //                 countryId: true,
-                //               },
-                //             },
-                //           },
-                //         },
-                //       },
-                //     },
-                //     fullAddress: true,
-                //     latitude: true,
-                //     longitude: true,
-                //   },
-                // },
+                userAddress: {
+                  select: {
+                    city: {
+                      select: {
+                        cityName: true,
+                        cityId: true,
+                        State: {
+                          select: {
+                            stateName: true,
+                            stateId: true,
+                            country: {
+                              select: {
+                                countryName: true,
+                                countryId: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    fullAddress: true,
+                    latitude: true,
+                    longitude: true,
+                  },
+                },
                 avgRating: true,
                 _count: {
                   select: {
@@ -647,31 +647,31 @@ export class CustomerRepository {
                     review: true,
                   },
                 },
-                // userAddress: {
-                //   select: {
-                //     city: {
-                //       select: {
-                //         cityName: true,
-                //         cityId: true,
-                //         State: {
-                //           select: {
-                //             stateName: true,
-                //             stateId: true,
-                //             country: {
-                //               select: {
-                //                 countryName: true,
-                //                 countryId: true,
-                //               },
-                //             },
-                //           },
-                //         },
-                //       },
-                //     },
-                //     fullAddress: true,
-                //     latitude: true,
-                //     longitude: true,
-                //   },
-                // },
+                userAddress: {
+                  select: {
+                    city: {
+                      select: {
+                        cityName: true,
+                        cityId: true,
+                        State: {
+                          select: {
+                            stateName: true,
+                            stateId: true,
+                            country: {
+                              select: {
+                                countryName: true,
+                                countryId: true,
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    fullAddress: true,
+                    latitude: true,
+                    longitude: true,
+                  },
+                },
                 companySchedule: {
                   select: {
                     day: true,
