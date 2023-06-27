@@ -61,9 +61,15 @@ export class JobService {
           job: {
             where: {
               jobType: createJobDto.jobType,
+              ...(createJobDto.jobType === JobType.PICKUP && {
+                jobStatus: {
+                  not: RiderJobStatus.Rejected,
+                },
+              }),
             },
             select: {
               id: true,
+              jobStatus: true,
             },
           },
         },

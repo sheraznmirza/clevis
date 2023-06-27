@@ -121,7 +121,7 @@ export class BookingService {
 
   async VendorDetail(vendorId: number) {
     try {
-      await this.repository.getDetailVendor(vendorId);
+      return await this.repository.getDetailVendor(vendorId);
     } catch (error) {
       throw error;
     }

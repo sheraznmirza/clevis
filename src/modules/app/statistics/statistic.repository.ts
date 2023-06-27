@@ -294,7 +294,7 @@ export class StatisticRepository {
           fee: number;
           month: string;
         }> = await this.prisma.$queryRaw`SELECT
-    SUM(CASE WHEN public."Earnings"."userMasterId" = ${userMasterId} THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
+    SUM(CASE WHEN public."Earnings"."userMasterId" = ${userMasterId} THEN public."Earnings"."amount" ELSE NULL END)::FLOAT AS "fee",
     TO_CHAR(public."Earnings"."createdAt", 'Mon') AS "month"
     FROM public."Earnings"
     WHERE public."Earnings"."createdAt" >= ${currentYear}::DATE
@@ -358,7 +358,9 @@ export class StatisticRepository {
 
         return byWeekArrayFee;
       }
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getDashboard(user: GetUserType) {
@@ -423,35 +425,35 @@ export class StatisticRepository {
       const todayDate = dayjs().utc().format();
       const sevenDayBeforeDate = dayjs().utc().subtract(7, 'days').format();
 
-      const totalEarnings = await this.prisma.bookingMaster.aggregate({
+      const totalEarnings = await this.prisma.earnings.aggregate({
         where: {
-          vendorId: user.userTypeId,
+          userMasterId: user.userMasterId,
         },
         _sum: {
-          totalPrice: true,
+          amount: true,
         },
       });
 
-      const forLast7Days = await this.prisma.bookingMaster.aggregate({
+      const forLast7Days = await this.prisma.earnings.aggregate({
         where: {
-          vendorId: user.userTypeId,
+          userMasterId: user.userMasterId,
           createdAt: {
             gte: sevenDayBeforeDate,
             lte: todayDate,
           },
         },
         _sum: {
-          totalPrice: true,
+          amount: true,
         },
       });
 
       const sevenDayPercentage =
-        (+forLast7Days._sum.totalPrice / totalEarnings._sum.totalPrice) * 100;
+        (+forLast7Days._sum.amount / totalEarnings._sum.amount) * 100;
 
       return {
         reviewCount: ratings._count.rating,
         reviewAverage: ratings._avg.rating || 0,
-        totalEarning: totalEarnings._sum.totalPrice,
+        totalEarning: totalEarnings._sum.amount,
         last7Days: forLast7Days,
         last7DayPercentage: sevenDayPercentage,
       };
