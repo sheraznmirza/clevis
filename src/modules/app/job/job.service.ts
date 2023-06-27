@@ -61,9 +61,15 @@ export class JobService {
           job: {
             where: {
               jobType: createJobDto.jobType,
+              ...(createJobDto.jobType === JobType.PICKUP && {
+                jobStatus: {
+                  not: RiderJobStatus.Rejected,
+                },
+              }),
             },
             select: {
               id: true,
+              jobStatus: true,
             },
           },
         },
@@ -174,14 +180,14 @@ export class JobService {
         data: {
           title: NotificationTitle.VENDOR_CREATED_JOB.replace(
             '{vendor}',
-            job.vendor.fullName,
+            job?.vendor?.fullName,
           ),
           body: NotificationBody.VENDOR_CREATED_JOB.replace(
             '{vendor}',
-            job.vendor.fullName,
+            job?.vendor?.fullName,
           ),
           type: NotificationType.VendorCreatedJob,
-          entityType: EntityType.RIDER,
+          entityType: EntityType.JOB,
           entityId: job.id,
         },
       };
@@ -698,11 +704,11 @@ export class JobService {
               dto.jobStatus === RiderJobStatus.Accepted
                 ? NotificationBody.RIDER_ACCEPT_JOB.replace(
                     '{rider}',
-                    user.fullName,
+                    user?.fullName,
                   )
                 : NotificationBody.RIDER_JOB_COMPLETED.replace(
                     '{rider}',
-                    user.fullName,
+                    user?.fullName,
                   ).replace('{id}', jobId.toString()),
             type: NotificationType.RiderJob,
             entityType: EntityType.JOB,
@@ -737,25 +743,25 @@ export class JobService {
               booking.jobType === JobType.PICKUP
                 ? NotificationBody.JOB_PICKUP_ACCEPT.replace(
                     '{rider}',
-                    booking.rider.fullName,
+                    booking?.rider?.fullName,
                   )
                 : dto.jobStatus === RiderJobStatus.Accepted &&
                   booking.jobType === JobType.DELIVERY
                 ? NotificationBody.JOB_DELIVERY_ACCEPT.replace(
                     '{rider}',
-                    booking.rider.fullName,
+                    booking?.rider?.fullName,
                   )
                 : dto.jobStatus === RiderJobStatus.Completed &&
                   booking.jobType === JobType.PICKUP
                 ? NotificationBody.JOB_PICKUP_COMPLETED.replace(
                     '{rider}',
-                    booking.rider.fullName,
+                    booking?.rider?.fullName,
                   )
                 : dto.jobStatus === RiderJobStatus.Completed &&
                   booking.jobType === JobType.DELIVERY
                 ? NotificationBody.JOB_DELIVERY_COMPLETED.replace(
                     '{rider}',
-                    booking.rider.fullName,
+                    booking?.rider?.fullName,
                   )
                 : null,
             type: NotificationType.RiderJob,

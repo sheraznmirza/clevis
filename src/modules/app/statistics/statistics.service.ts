@@ -47,9 +47,9 @@ export class StatisticsService {
     }
   }
 
-  async vendorEarning(query: StatisticUserAdminQueryDto) {
+  async vendorEarning(userMasterId: number, query: StatisticUserAdminQueryDto) {
     try {
-      return await this.repository.vendorEarnings(query);
+      return await this.repository.vendorEarnings(userMasterId, query);
     } catch (error) {
       throw error;
     }
@@ -73,6 +73,7 @@ export class StatisticsService {
 
   async completedJob(query: StatisticVendorAdminQueryDto) {
     try {
+      console.log('logging in service completed jobs');
       return await this.repository.getCompletdJob(query);
     } catch (error) {}
   }

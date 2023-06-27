@@ -185,7 +185,7 @@ export class VendorController {
 
   @Authorized(UserType.ADMIN)
   @Delete('/:userMasterId')
-  deleteRider(@Param('userMasterId') userMasterId: number) {
+  deleteVendor(@Param('userMasterId') userMasterId: number) {
     return this.vendorService.deleteVendor(userMasterId);
   }
 

@@ -57,6 +57,23 @@ export class ReviewService {
         },
       });
 
+      const avgRating = await this.prisma.review.aggregate({
+        _avg: {
+          rating: true,
+        },
+      });
+
+      if (avgRating?._avg?.rating) {
+        await this.prisma.vendor.update({
+          where: {
+            vendorId: createReviewDto.vendorId,
+          },
+          data: {
+            avgRating: avgRating._avg.rating,
+          },
+        });
+      }
+
       return successResponse(201, 'Review successfully created');
     } catch (error) {
       if (error?.code === 'P2025') {

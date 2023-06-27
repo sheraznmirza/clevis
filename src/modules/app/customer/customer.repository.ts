@@ -15,6 +15,7 @@ import {
 import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { subcategories } from './entities/subcategoriesType';
 import { currentDateToVendorFilter } from 'src/helpers/date.helper';
+import { getVendorListingMapper } from './customer.mapper';
 
 @Injectable()
 export class CustomerRepository {
@@ -295,7 +296,7 @@ export class CustomerRepository {
       search,
       distance = 10000000000,
       currentDay,
-      vendorStatus = VendorStatus.OPEN,
+      vendorStatus,
     } = dto;
     try {
       const dayObj = currentDateToVendorFilter(currentDay);
@@ -433,6 +434,14 @@ export class CustomerRepository {
                 companyName: true,
                 serviceType: true,
                 isBusy: true,
+                companySchedule: {
+                  select: {
+                    day: true,
+                    endTime: true,
+                    isActive: true,
+                    startTime: true,
+                  },
+                },
                 userAddress: {
                   select: {
                     city: {
@@ -458,6 +467,12 @@ export class CustomerRepository {
                     longitude: true,
                   },
                 },
+                avgRating: true,
+                _count: {
+                  select: {
+                    review: true,
+                  },
+                },
               },
             },
           },
@@ -480,8 +495,10 @@ export class CustomerRepository {
           },
         });
 
+        const mappedVendors = getVendorListingMapper(result, dayObj);
+
         return {
-          data: result,
+          data: mappedVendors,
           page,
           take,
           totalCount,
@@ -517,10 +534,6 @@ export class CustomerRepository {
             return service.serviceId;
           });
         }
-        console.log(
-          'customerCity.customer.userAddress[0].cityId: ',
-          customerCity.customer.userAddress[0].cityId,
-        );
 
         const vendors = await this.prisma.userMaster.findMany({
           where: {
@@ -577,7 +590,10 @@ export class CustomerRepository {
                     },
                   },
                 }),
-
+              ...((vendorStatus === VendorStatus.CLOSED ||
+                vendorStatus === VendorStatus.OPEN) && {
+                isBusy: false,
+              }),
               ...(vendorStatus === VendorStatus.BUSY && {
                 isBusy: true,
               }),
@@ -628,6 +644,12 @@ export class CustomerRepository {
                 companyName: true,
                 serviceType: true,
                 isBusy: true,
+                avgRating: true,
+                _count: {
+                  select: {
+                    review: true,
+                  },
+                },
                 userAddress: {
                   select: {
                     city: {
@@ -653,15 +675,21 @@ export class CustomerRepository {
                     longitude: true,
                   },
                 },
-                review: {
+                companySchedule: {
                   select: {
-                    rating: true,
+                    day: true,
+                    endTime: true,
+                    isActive: true,
+                    startTime: true,
                   },
                 },
               },
             },
           },
         });
+
+        const mappedVendors = getVendorListingMapper(vendors, dayObj);
+
         const totalCount = await this.prisma.userMaster.count({
           where: {
             isDeleted: false,
@@ -717,10 +745,16 @@ export class CustomerRepository {
                     },
                   },
                 }),
+              ...(vendorStatus &&
+                vendorStatus === VendorStatus.BUSY && {
+                  isBusy: true,
+                }),
 
-              ...(vendorStatus === VendorStatus.BUSY && {
-                isBusy: true,
+              ...((vendorStatus === VendorStatus.CLOSED ||
+                vendorStatus === VendorStatus.OPEN) && {
+                isBusy: false,
               }),
+
               ...(search && {
                 companyName: {
                   contains: search,
@@ -737,7 +771,7 @@ export class CustomerRepository {
         });
 
         return {
-          data: vendors,
+          data: mappedVendors,
           page,
           take,
           totalCount,
@@ -765,6 +799,7 @@ export class CustomerRepository {
           vendor: {
             select: {
               vendorId: true,
+              avgRating: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',
@@ -1096,12 +1131,13 @@ export class CustomerRepository {
               },
             }),
           },
-          // distinct: ['categoryId'],
+          distinct: ['categoryId'],
           select: {
             id: true,
             price: true,
             vendorService: {
               select: {
+                vendorServiceId: true,
                 service: {
                   select: {
                     serviceId: true,
@@ -1146,6 +1182,10 @@ export class CustomerRepository {
           take: +take,
           skip: +take * (+page - 1),
           where: {
+            vendorService: {
+              vendorId,
+            },
+
             categoryId: +dto.categoryId,
 
             ...(search && {
@@ -1163,6 +1203,7 @@ export class CustomerRepository {
             price: true,
             vendorService: {
               select: {
+                vendorServiceId: true,
                 service: {
                   select: {
                     serviceId: true,
@@ -1182,7 +1223,20 @@ export class CustomerRepository {
 
         const totalCount = await this.prisma.allocatePrice.count({
           where: {
+            vendorService: {
+              vendorId,
+            },
+
             categoryId: +dto.categoryId,
+
+            ...(search && {
+              category: {
+                categoryName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              },
+            }),
           },
         });
 

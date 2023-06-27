@@ -119,6 +119,14 @@ export class BookingService {
     }
   }
 
+  async VendorDetail(vendorId: number) {
+    try {
+      return await this.repository.getDetailVendor(vendorId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   //   async deleteCustomer(id: number) {
   //     try {
   //       return await this.repository.deleteCustomer(id);

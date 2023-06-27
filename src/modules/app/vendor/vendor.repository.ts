@@ -656,6 +656,15 @@ export class VendorRepository {
         },
       });
 
+      const vendorBusyStatus = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId,
+        },
+        select: {
+          isBusy: true,
+        },
+      });
+
       const totalCount = await this.prisma.vendorService.count({
         where: {
           vendorId: vendorId,
@@ -671,7 +680,13 @@ export class VendorRepository {
         },
       });
 
-      return { data: vendorServices, page, take, totalCount };
+      return {
+        data: vendorServices,
+        isBusy: vendorBusyStatus.isBusy,
+        page,
+        take,
+        totalCount,
+      };
     } catch (error) {
       throw error;
     }
