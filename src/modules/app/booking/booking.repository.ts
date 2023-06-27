@@ -1043,6 +1043,7 @@ export class BookingRepository {
               jobType: true,
               rider: {
                 select: {
+                  description: true,
                   fullName: true,
                   companyEmail: true,
                   companyName: true,
