@@ -1838,13 +1838,29 @@ export class BookingRepository {
 
   async getDetailVendor(vendorId: number) {
     try {
-      return await this.prisma.bookingMaster.findFirst({
+      return await this.prisma.bookingMaster.findMany({
         where: {
           vendorId,
           isWithDelivery: true,
           OR: [
-            { status: BookingStatus.In_Progress },
-            { status: BookingStatus.Completed },
+            {
+              status: BookingStatus.In_Progress,
+              job: {
+                some: {
+                  jobType: JobType.PICKUP,
+                  jobStatus: RiderJobStatus.Completed,
+                },
+                none: {
+                  jobType: JobType.DELIVERY,
+                },
+              },
+            },
+            {
+              status: BookingStatus.Confirmed,
+              job: {
+                none: {},
+              },
+            },
           ],
         },
         select: {
@@ -1853,6 +1869,7 @@ export class BookingRepository {
         },
       });
     } catch (error) {
+      console.log('hello again');
       throw error;
     }
   }
