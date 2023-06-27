@@ -1852,13 +1852,20 @@ export class BookingRepository {
                 },
                 none: {
                   jobType: JobType.DELIVERY,
+                  // NOT: {
+                  //   jobStatus: RiderJobStatus.Rejected
+                  // }
                 },
               },
             },
             {
               status: BookingStatus.Confirmed,
-              job: {
-                none: {},
+              NOT: {
+                job: {
+                  every: {
+                    jobStatus: RiderJobStatus.Rejected,
+                  },
+                },
               },
             },
           ],
