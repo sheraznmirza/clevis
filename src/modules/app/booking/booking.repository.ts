@@ -1821,6 +1821,11 @@ export class BookingRepository {
           ],
         },
         select: {
+          customer: {
+            select: {
+              fullName: true,
+            },
+          },
           bookingMasterId: true,
           status: true,
         },

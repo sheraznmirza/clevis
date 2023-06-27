@@ -172,10 +172,8 @@ export class JobService {
         type: NotificationType.VendorCreatedJob,
         userId: riderIds,
         data: {
-          title: NotificationTitle.VENDOR_CREATED_JOB.replace(
-            '{vendor}',
-            job.vendor.fullName,
-          ),
+          title: NotificationTitle.VENDOR_CREATED_JOB,
+
           body: NotificationBody.VENDOR_CREATED_JOB.replace(
             '{vendor}',
             job.vendor.fullName,
