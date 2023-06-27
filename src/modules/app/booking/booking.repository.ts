@@ -1861,13 +1861,13 @@ export class BookingRepository {
             },
             {
               status: BookingStatus.Confirmed,
-              NOT: {
-                job: {
-                  every: {
-                    jobStatus: RiderJobStatus.Rejected,
-                  },
-                },
-              },
+              // NOT: {
+              //   job: {
+              //     every: {
+              //       jobStatus: RiderJobStatus.Rejected,
+              //     },
+              //   },
+              // },
             },
           ],
         },
