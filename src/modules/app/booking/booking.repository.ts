@@ -546,6 +546,13 @@ export class BookingRepository {
             status: dto.status,
           }),
 
+          ...(dto?.dateRange && {
+            bookingDate: {
+              gte: dto.dateRange.start,
+              lte: dto.dateRange.end,
+            },
+          }),
+
           ...(serviceIds &&
             serviceIds.length > 0 && {
               bookingDetail: {
@@ -613,6 +620,13 @@ export class BookingRepository {
             }),
           },
 
+          ...(dto?.dateRange && {
+            bookingDate: {
+              gte: dto.dateRange.start,
+              lte: dto.dateRange.end,
+            },
+          }),
+
           ...(dto?.status && {
             status: dto.status,
           }),
@@ -634,7 +648,17 @@ export class BookingRepository {
         },
       });
 
-      return { data: bookings, page: +page, take: +take, totalCount };
+      const bookedDates = bookings.map((booking) =>
+        dayjs(booking.bookingDate).format('YYYY-MM-DD'),
+      );
+
+      return {
+        data: bookings,
+        page: +page,
+        take: +take,
+        totalCount,
+        bookedDates,
+      };
     } catch (error) {
       return unknowError(
         417,
@@ -1242,16 +1266,16 @@ export class BookingRepository {
         const createCharge = await this.tapService.createCharge(chargePayload);
         console.log('createCharge: ', createCharge);
 
-        const platform = await this.prisma.platformSetup.findFirst({
-          orderBy: {
-            createdAt: 'desc',
-          },
-          where: {
-            isDeleted: false,
-          },
-        });
-
         if (!booking.isWithDelivery) {
+          const platform = await this.prisma.platformSetup.findFirst({
+            orderBy: {
+              createdAt: 'desc',
+            },
+            where: {
+              isDeleted: false,
+            },
+          });
+
           const admin = await this.prisma.admin.findUnique({
             where: {
               userMasterId: 1,
