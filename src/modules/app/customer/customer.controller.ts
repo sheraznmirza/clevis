@@ -14,11 +14,7 @@ import {
 import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  CustomerListingParams,
-  CustomerVendorListingParams,
-  GetUserType,
-} from '../../../core/dto';
+import { CustomerListingParams, GetUserType } from '../../../core/dto';
 import { CustomerService } from './customer.service';
 import { RolesGuard } from '../../../core/guards';
 import { Authorized } from '../../../core/decorators';

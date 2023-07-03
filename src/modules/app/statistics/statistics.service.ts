@@ -73,8 +73,9 @@ export class StatisticsService {
 
   async completedJob(query: StatisticVendorAdminQueryDto) {
     try {
-      console.log('logging in service completed jobs');
       return await this.repository.getCompletdJob(query);
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
 }
