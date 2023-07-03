@@ -216,32 +216,12 @@ export class JobService {
         where: {
           riderId: riderId,
           isDeleted: false,
-          ...(search && {
-            OR: [
-              {
-                customer: {
-                  fullName: {
-                    contains: search,
-                    mode: 'insensitive',
-                  },
-                },
-              },
-              {
-                vendor: {
-                  fullName: {
-                    contains: search,
-                    mode: 'insensitive',
-                  },
-                },
-              },
-            ],
-          }),
         },
         select: {
           cityId: true,
         },
         orderBy: {
-          createdAt: listingParams?.orderBy || 'desc',
+          createdAt: 'desc',
         },
       });
 
@@ -290,6 +270,29 @@ export class JobService {
             ],
           }),
 
+          ...(search && {
+            OR: [
+              {
+                bookingMaster: {
+                  customer: {
+                    fullName: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+              {
+                vendor: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }),
+
           vendor: {
             userAddress: {
               some: {
@@ -298,12 +301,16 @@ export class JobService {
             },
           },
         },
+        orderBy: {
+          createdAt: listingParams?.orderBy || 'desc',
+        },
         select: {
           id: true,
           jobType: true,
           jobStatus: true,
           jobDate: true,
           jobTime: true,
+          createdAt: true,
           bookingMaster: {
             select: {
               pickupLocation: {

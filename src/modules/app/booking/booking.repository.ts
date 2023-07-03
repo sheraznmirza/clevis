@@ -519,6 +519,7 @@ export class BookingRepository {
     const { page = 1, take = 10, search } = dto;
     try {
       let serviceIds: number[] = [];
+      let bookedDates: string[] = [];
 
       if (dto.services) {
         serviceIds = dto.services.map((service) => {
@@ -648,16 +649,20 @@ export class BookingRepository {
         },
       });
 
-      const bookedDates = bookings.map((booking) =>
-        dayjs(booking.bookingDate).format('YYYY-MM-DD'),
-      );
+      if (dto.dateRange) {
+        bookedDates = bookings.map((booking) =>
+          dayjs(booking.bookingDate).format('YYYY-MM-DD'),
+        );
+      }
 
       return {
         data: bookings,
         page: +page,
         take: +take,
         totalCount,
-        bookedDates,
+        ...(dto.dateRange && {
+          bookedDates,
+        }),
       };
     } catch (error) {
       return unknowError(
