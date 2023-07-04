@@ -449,6 +449,11 @@ export class JobService {
               status: true,
             },
           },
+          rider: {
+            select: {
+              companyName: true,
+            },
+          },
         },
         take: +take,
         skip: +take * (+page - 1),
@@ -718,6 +723,13 @@ export class JobService {
           UserType.RIDER,
         );
 
+        let riderDetail = null;
+        if (dto.jobStatus === RiderJobStatus.Accepted)
+          riderDetail = await this.prisma.rider.findUnique({
+            where: { riderId: user.userTypeId },
+            select: { fullName: true },
+          });
+
         const payloads: SQSSendNotificationArgs<NotificationData> = {
           type: NotificationType.RiderJob,
           userId: [booking.bookingMaster.customer.userMasterId],
@@ -741,13 +753,13 @@ export class JobService {
               booking.jobType === JobType.PICKUP
                 ? NotificationBody.JOB_PICKUP_ACCEPT.replace(
                     '{rider}',
-                    booking?.rider?.fullName,
+                    riderDetail?.fullName,
                   )
                 : dto.jobStatus === RiderJobStatus.Accepted &&
                   booking.jobType === JobType.DELIVERY
                 ? NotificationBody.JOB_DELIVERY_ACCEPT.replace(
                     '{rider}',
-                    booking?.rider?.fullName,
+                    riderDetail?.fullName,
                   )
                 : dto.jobStatus === RiderJobStatus.Completed &&
                   booking.jobType === JobType.PICKUP
@@ -849,6 +861,8 @@ export class JobService {
                   },
                 },
               },
+              dropoffDeliveryCharges: true,
+              pickupDeliveryCharges: true,
             },
           },
           jobDate: true,

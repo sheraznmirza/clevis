@@ -8,6 +8,8 @@ export const dynamicUrl = (userType: UserType) => {
       return 'ADMIN_URL';
     case UserType.VENDOR:
       return 'VENDOR_URL';
+    case UserType.CUSTOMER:
+      return 'ADMIN_URL';
     default:
       break;
   }

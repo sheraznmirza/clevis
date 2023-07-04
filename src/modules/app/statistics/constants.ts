@@ -449,3 +449,34 @@ export const byWeekArrayFee = [
     fee: 0,
   },
 ];
+
+export const byWeekArrayCompleted = [
+  {
+    weekDay: 'Mon',
+    completedJobs: 0,
+  },
+  {
+    weekDay: 'Tue',
+    completedJobs: 0,
+  },
+  {
+    weekDay: 'Wed',
+    completedJobs: 0,
+  },
+  {
+    weekDay: 'Thu',
+    completedJobs: 0,
+  },
+  {
+    weekDay: 'Fri',
+    completedJobs: 0,
+  },
+  {
+    weekDay: 'Sat',
+    completedJobs: 0,
+  },
+  {
+    weekDay: 'Sun',
+    fee: 0,
+  },
+];

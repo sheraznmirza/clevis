@@ -175,6 +175,7 @@ export class AuthService {
       );
 
       this.queue.createCustomerTapAndMail(response, user);
+      // this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
 
       return {
         tokens: response,
@@ -337,7 +338,7 @@ export class AuthService {
       this.queue.sendVerificationEmail(user, UserType.VENDOR);
       return successResponse(
         201,
-        'Vendor successfully created, you will receive an email when the admin reviews and approves your profile.',
+        'Account successfully created, you will receive a verification email.',
       );
     } catch (error) {
       console.log('error: ', error);
@@ -474,7 +475,7 @@ export class AuthService {
       this.sendEncryptedDataToMail(user, UserType.RIDER);
       return successResponse(
         201,
-        'Rider successfully created, you will receive an email when the admin reviews and approves your profile.',
+        'Account successfully created, you will receive a verification email.',
       );
     } catch (error) {
       console.log('error: ', error);
@@ -1072,7 +1073,14 @@ export class AuthService {
             isEmailVerified: true,
           },
         });
-        if (user.userType === UserType.RIDER || UserType.VENDOR) {
+        if (
+          user.userType === UserType.RIDER ||
+          user.userType === UserType.VENDOR
+        ) {
+          console.log(
+            'user[user.userType.toLowerCase()].fullName: ',
+            user[user.userType.toLowerCase()].fullName,
+          );
           const context = {
             app_name: this.config.get('APP_NAME'),
             app_url: `${this.config.get(dynamicUrl(user.userType))}`,
@@ -1082,10 +1090,11 @@ export class AuthService {
             } has signed up and waiting for approval.`}`,
             copyright_year: this.config.get('COPYRIGHT_YEAR'),
           };
+
           await this.mail.sendEmail(
             this.config.get('MAIL_ADMIN'),
             this.config.get('MAIL_NO_REPLY'),
-            '',
+            `${user.userType.toLowerCase()} approval request`,
             'vendorApprovedRejected',
             context,
           );
@@ -1253,7 +1262,7 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
         ...(userType !== UserType.CUSTOMER && {
-          expiresIn: '2 days',
+          expiresIn: 60,
         }),
         secret: jwtSecret,
       }),
@@ -1422,7 +1431,7 @@ export class AuthService {
     this.mail.sendEmail(
       user.email,
       this.config.get('MAIL_ADMIN'),
-      this.config.get('APP_NAME'),
+      'Verify email',
       'userRegistration',
       context,
     );
