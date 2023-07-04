@@ -1262,7 +1262,7 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(payload, {
         ...(userType !== UserType.CUSTOMER && {
-          expiresIn: 60,
+          expiresIn: '2 days',
         }),
         secret: jwtSecret,
       }),
