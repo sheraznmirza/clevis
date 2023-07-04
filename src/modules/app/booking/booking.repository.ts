@@ -64,6 +64,8 @@ export class BookingRepository {
       let pickupLocation: UserAddress;
       let pickupResponse: any;
       let dropoffResponse: any;
+      const attachments = [];
+      let count = 0;
 
       const vendor = await this.prisma.vendor.findUnique({
         where: {
@@ -86,6 +88,8 @@ export class BookingRepository {
           deliverySchedule: {
             select: {
               kilometerFare: true,
+              deliveryItemMin: true,
+              deliveryItemMax: true,
             },
           },
         },
@@ -97,25 +101,28 @@ export class BookingRepository {
         );
       }
 
-      const attachments = [];
+      for (let i = 0; i < dto.articles.length; i++) {
+        count += dto.articles[i].quantity;
+      }
+
+      if (count > vendor.deliverySchedule.deliveryItemMax) {
+        throw new BadRequestException(
+          'Exceeded the item quantity limit for the vendor.',
+        );
+      }
+
+      if (count < vendor.deliverySchedule.deliveryItemMin) {
+        throw new BadRequestException(
+          'The order does not meet the minimum requirements for the item quantity limit.',
+        );
+      }
+
       // console.log('dto.tapAuthId: ', dto.tapAuthId);
       const tapAuthorize = await this.tapService.retrieveAuthorize(
         dto.tapAuthId,
       );
       if (tapAuthorize.status === 'FAILED') {
         throw new BadRequestException('Payment is not authorized.');
-      }
-
-      if (dto.attachments && dto.attachments.length > 0) {
-        dto.attachments.forEach(async (item) => {
-          const result = await this.prisma.media.create({
-            data: item,
-            select: {
-              id: true,
-            },
-          });
-          attachments.push(result);
-        });
       }
 
       if (dto.isWithDelivery) {
@@ -274,6 +281,18 @@ export class BookingRepository {
         })),
       });
 
+      if (dto.attachments && dto.attachments.length > 0) {
+        dto.attachments.forEach(async (item) => {
+          const result = await this.prisma.media.create({
+            data: item,
+            select: {
+              id: true,
+            },
+          });
+          attachments.push(result);
+        });
+      }
+
       if (attachments && attachments.length > 0) {
         await this.prisma.bookingAttachments.createMany({
           data: attachments.map((item) => ({
@@ -324,7 +343,10 @@ export class BookingRepository {
         UserType.VENDOR,
       );
 
-      return successResponse(201, 'Booking created successfully.');
+      return {
+        ...successResponse(201, 'Booking created successfully.'),
+        bookingMasterId: bookingMaster.bookingMasterId,
+      };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('Vendor does not exist');
