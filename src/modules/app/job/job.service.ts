@@ -229,7 +229,7 @@ export class JobService {
         where: {
           ...(jobType && { jobType: jobType }),
 
-          ...(listingParams.status === RiderJobStatus.Pending && {
+          ...(status === RiderJobStatus.Pending && {
             AND: [
               { jobStatus: RiderJobStatus.Pending },
               // {
@@ -242,7 +242,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Accepted && {
+          ...(status === RiderJobStatus.Accepted && {
             AND: [
               { jobStatus: RiderJobStatus.Accepted },
               {
@@ -256,7 +256,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Completed && {
+          ...(status === RiderJobStatus.Completed && {
             AND: [
               { jobStatus: RiderJobStatus.Completed },
               {
@@ -292,14 +292,15 @@ export class JobService {
               },
             ],
           }),
-
-          vendor: {
-            userAddress: {
-              some: {
-                cityId: rider.cityId,
+          ...(status === RiderJobStatus.Pending && {
+            vendor: {
+              userAddress: {
+                some: {
+                  cityId: rider.cityId,
+                },
               },
             },
-          },
+          }),
         },
         orderBy: {
           createdAt: listingParams?.orderBy || 'desc',
@@ -348,7 +349,7 @@ export class JobService {
         where: {
           ...(jobType && { jobType: jobType }),
 
-          ...(listingParams.status === RiderJobStatus.Pending && {
+          ...(status === RiderJobStatus.Pending && {
             AND: [
               { jobStatus: RiderJobStatus.Pending },
               // {
@@ -361,7 +362,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Accepted && {
+          ...(status === RiderJobStatus.Accepted && {
             AND: [
               { jobStatus: RiderJobStatus.Accepted },
               {
@@ -375,7 +376,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Completed && {
+          ...(status === RiderJobStatus.Completed && {
             AND: [
               { jobStatus: RiderJobStatus.Completed },
               {
@@ -389,13 +390,15 @@ export class JobService {
             ],
           }),
 
-          vendor: {
-            userAddress: {
-              some: {
-                cityId: rider.cityId,
+          ...(status === RiderJobStatus.Pending && {
+            vendor: {
+              userAddress: {
+                some: {
+                  cityId: rider.cityId,
+                },
               },
             },
-          },
+          }),
         },
       });
 

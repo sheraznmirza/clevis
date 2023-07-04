@@ -929,6 +929,12 @@ export class CustomerRepository {
                   },
                 },
               },
+              deliverySchedule: {
+                select: {
+                  deliveryItemMin: true,
+                  deliveryItemMax: true,
+                },
+              },
             },
           },
         },
@@ -959,6 +965,7 @@ export class CustomerRepository {
                 },
               },
             }),
+            isDeleted: false,
           },
           select: {
             vendorServiceId: true,
@@ -974,6 +981,7 @@ export class CustomerRepository {
         const totalCount = await this.prisma.vendorService.count({
           where: {
             vendorId,
+            isDeleted: false,
           },
         });
 

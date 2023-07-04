@@ -683,8 +683,8 @@ export class VendorRepository {
       return {
         data: vendorServices,
         isBusy: vendorBusyStatus.isBusy,
-        page,
-        take,
+        page: +page,
+        take: +take,
         totalCount,
       };
     } catch (error) {
@@ -1582,6 +1582,13 @@ export class VendorRepository {
 
       return successResponse(201, 'Vendor service successfully created');
     } catch (error) {
+      if (error.code === 'P2003') {
+        throw new BadRequestException(
+          `Foreign key constraint failed on the field: ${error.meta.field_name}`,
+        );
+      } else if (error.code === 'P2025') {
+        throw new BadRequestException('One of the Id does not exist');
+      }
       throw error;
     }
   }

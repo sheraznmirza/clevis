@@ -127,7 +127,7 @@ export class AuthController {
     UserType.VENDOR,
   ])
   @Post('/logout')
-  logout(@Body() dto: LogoutDto) {
-    return this.authService.logout(dto);
+  logout(@GetUser() user: GetUserType, @Body() dto: LogoutDto) {
+    return this.authService.logout(user, dto);
   }
 }

@@ -46,6 +46,7 @@ import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { GetUserType } from 'src/core/dto';
 
 @Injectable()
 export class AuthService {
@@ -530,21 +531,6 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
-    if (dto.playerId) {
-      const index = user.device.findIndex((item) => {
-        return dto.playerId === item.playerId;
-      });
-
-      if (index < 0) {
-        await this.prisma.device.create({
-          data: {
-            playerId: dto.playerId,
-            userMasterId: user.userMasterId,
-          },
-        });
-      }
-    }
-
     const pwMatches = await argon.verify(user.password, dto.password);
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
@@ -1017,8 +1003,8 @@ export class AuthService {
           otpId: true,
         },
       });
-
-      if (dayjs().diff(otp.createdAt, 'minute') > 9) {
+      console.log('otp: ', otp);
+      if (dayjs().diff(otp?.createdAt, 'minute') > 9) {
         await this.prisma.otp.update({
           where: {
             otpId: otp.otpId,
@@ -1198,7 +1184,7 @@ export class AuthService {
 
       const pwMatches = await argon.verify(user.password, dto.oldPassword);
 
-      if (!pwMatches) throw new BadRequestException('Incorrect password.');
+      if (!pwMatches) throw new BadRequestException('Incorrect old password.');
 
       await this.updatePassword(user.userMasterId, dto.newPassword);
 
@@ -1208,7 +1194,7 @@ export class AuthService {
     }
   }
 
-  async logout(dto: LogoutDto) {
+  async logout(user: GetUserType, dto: LogoutDto) {
     try {
       await this.prisma.refreshToken.update({
         where: {
@@ -1218,6 +1204,21 @@ export class AuthService {
           deleted: true,
         },
       });
+
+      if (user.userType === UserType.CUSTOMER && dto?.playerId) {
+        await this.prisma.device.updateMany({
+          where: {
+            playerId: dto.playerId,
+            isDeleted: false,
+            customerId: user.userTypeId,
+            userMasterId: user.userMasterId,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
       return successResponse(200, 'Logged out successfully.');
     } catch (error) {
       throw new BadRequestException(error.meta.cause);
