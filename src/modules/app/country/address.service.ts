@@ -234,6 +234,9 @@ export class AddressService {
             equals: null,
           },
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       // if (!address) {

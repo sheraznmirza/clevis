@@ -562,9 +562,7 @@ export class StatisticRepository {
   }
   async getCompletdJob(query: StatisticVendorAdminQueryDto) {
     try {
-      console.log('ja raha hai abhi tak?');
       if (query.tabName === YearlyFilterDropdownType.YEARLY) {
-        console.log('is it here');
         const currentYear = dayjs().format('01-01-YYYY');
 
         const completedByYear: Array<{

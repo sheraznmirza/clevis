@@ -74,6 +74,7 @@ export class VendorService {
           'Subcategory is Not Allowed for Car Wash Booking',
         );
       }
+
       const vendorService = await this.repository.createVendorService(
         dto,
         user.userMasterId,

@@ -216,32 +216,12 @@ export class JobService {
         where: {
           riderId: riderId,
           isDeleted: false,
-          ...(search && {
-            OR: [
-              {
-                customer: {
-                  fullName: {
-                    contains: search,
-                    mode: 'insensitive',
-                  },
-                },
-              },
-              {
-                vendor: {
-                  fullName: {
-                    contains: search,
-                    mode: 'insensitive',
-                  },
-                },
-              },
-            ],
-          }),
         },
         select: {
           cityId: true,
         },
         orderBy: {
-          createdAt: listingParams?.orderBy || 'desc',
+          createdAt: 'desc',
         },
       });
 
@@ -249,7 +229,7 @@ export class JobService {
         where: {
           ...(jobType && { jobType: jobType }),
 
-          ...(listingParams.status === RiderJobStatus.Pending && {
+          ...(status === RiderJobStatus.Pending && {
             AND: [
               { jobStatus: RiderJobStatus.Pending },
               // {
@@ -262,7 +242,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Accepted && {
+          ...(status === RiderJobStatus.Accepted && {
             AND: [
               { jobStatus: RiderJobStatus.Accepted },
               {
@@ -276,7 +256,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Completed && {
+          ...(status === RiderJobStatus.Completed && {
             AND: [
               { jobStatus: RiderJobStatus.Completed },
               {
@@ -290,13 +270,40 @@ export class JobService {
             ],
           }),
 
-          vendor: {
-            userAddress: {
-              some: {
-                cityId: rider.cityId,
+          ...(search && {
+            OR: [
+              {
+                bookingMaster: {
+                  customer: {
+                    fullName: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                },
+              },
+              {
+                vendor: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }),
+          ...(status === RiderJobStatus.Pending && {
+            vendor: {
+              userAddress: {
+                some: {
+                  cityId: rider.cityId,
+                },
               },
             },
-          },
+          }),
+        },
+        orderBy: {
+          createdAt: listingParams?.orderBy || 'desc',
         },
         select: {
           id: true,
@@ -304,6 +311,7 @@ export class JobService {
           jobStatus: true,
           jobDate: true,
           jobTime: true,
+          createdAt: true,
           bookingMaster: {
             select: {
               pickupLocation: {
@@ -341,7 +349,7 @@ export class JobService {
         where: {
           ...(jobType && { jobType: jobType }),
 
-          ...(listingParams.status === RiderJobStatus.Pending && {
+          ...(status === RiderJobStatus.Pending && {
             AND: [
               { jobStatus: RiderJobStatus.Pending },
               // {
@@ -354,7 +362,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Accepted && {
+          ...(status === RiderJobStatus.Accepted && {
             AND: [
               { jobStatus: RiderJobStatus.Accepted },
               {
@@ -368,7 +376,7 @@ export class JobService {
             ],
           }),
 
-          ...(listingParams.status === RiderJobStatus.Completed && {
+          ...(status === RiderJobStatus.Completed && {
             AND: [
               { jobStatus: RiderJobStatus.Completed },
               {
@@ -382,13 +390,15 @@ export class JobService {
             ],
           }),
 
-          vendor: {
-            userAddress: {
-              some: {
-                cityId: rider.cityId,
+          ...(status === RiderJobStatus.Pending && {
+            vendor: {
+              userAddress: {
+                some: {
+                  cityId: rider.cityId,
+                },
               },
             },
-          },
+          }),
         },
       });
 

@@ -1,6 +1,8 @@
 import {
   IsArray,
+  IsDateString,
   IsEnum,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -12,6 +14,17 @@ import { ListingParams } from 'src/core/dto';
 import { ServiceNames } from '../../customer/dto';
 import { Type } from 'class-transformer';
 
+class RangeDate {
+  @ApiProperty()
+  @IsDateString()
+  @IsNotEmpty()
+  start: string;
+
+  @ApiProperty()
+  @IsDateString()
+  @IsNotEmpty()
+  end: string;
+}
 export class CustomerGetBookingsDto {
   @ApiProperty({
     required: false,
@@ -64,6 +77,15 @@ export class CustomerGetBookingsDto {
   @Type(() => ServiceNames)
   @IsOptional()
   services: ServiceNames[];
+
+  @ApiProperty({
+    required: false,
+    type: RangeDate,
+  })
+  @ValidateNested()
+  @Type(() => RangeDate)
+  @IsOptional()
+  dateRange: RangeDate;
 }
 
 export class VendorGetBookingsDto extends ListingParams {
