@@ -1,15 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { JobType } from '@prisma/client';
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 import { ListingParams } from 'src/core/dto';
 
 export class RiderEarning extends ListingParams {
   @ApiProperty({
     required: false,
-    description: 'Listing parameters Page Number',
+    description: 'JobType',
+    enum: JobType,
   })
   @IsOptional()
-  @IsString()
+  @IsEnum(JobType)
   jobType?: JobType;
 
   @ApiProperty({

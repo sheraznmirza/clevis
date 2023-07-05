@@ -1196,6 +1196,23 @@ export class AuthService {
 
       await this.updatePassword(user.userMasterId, dto.newPassword);
 
+      const payloads: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.ChangePassword,
+        userId: [user.userMasterId],
+        data: {
+          title: NotificationTitle.CHANGE_PASSWORD,
+
+          body: NotificationBody.CHANGE_PASSWORD,
+
+          type: NotificationType.ChangePassword,
+          entityType: EntityType.CUSTOMER,
+          entityId: user.userMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payloads,
+        UserType.CUSTOMER,
+      );
       return successResponse(200, 'Password successfully changed.');
     } catch (error) {
       throw error;

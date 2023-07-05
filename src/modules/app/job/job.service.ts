@@ -33,12 +33,15 @@ import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
 import { vendors } from 'src/seeders/constants';
+import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
+import { MailService } from 'src/modules/mail/mail.service';
 dayjs.extend(utc);
 
 @Injectable()
 export class JobService {
   constructor(
     private prisma: PrismaService,
+    private mail: MailService,
     private notificationService: NotificationService,
     private tapService: TapService,
     private config: ConfigService,
@@ -56,8 +59,18 @@ export class JobService {
           bookingMasterId: createJobDto.bookingMasterId,
         },
         select: {
+          customer: {
+            select: {
+              fullName: true,
+            },
+          },
           status: true,
           isWithDelivery: true,
+          bookingDate: true,
+          pickupTimeFrom: true,
+          pickupTimeTo: true,
+          dropoffTimeFrom: true,
+          dropoffTimeTo: true,
           job: {
             where: {
               jobType: createJobDto.jobType,
@@ -70,6 +83,16 @@ export class JobService {
             select: {
               id: true,
               jobStatus: true,
+            },
+          },
+          pickupLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          dropoffLocation: {
+            select: {
+              fullAddress: true,
             },
           },
         },
@@ -131,6 +154,7 @@ export class JobService {
           id: true,
           vendor: {
             select: {
+              companyName: true,
               fullName: true,
               userAddress: {
                 where: {
@@ -169,10 +193,16 @@ export class JobService {
         select: {
           userMasterId: true,
           fullName: true,
+          userMaster: {
+            select: {
+              email: true,
+            },
+          },
         },
       });
 
       const riderIds = rider.map((obj) => obj.userMasterId);
+      // const riderNames = rider.map((obj) => obj.fullName);
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.VendorCreatedJob,
@@ -193,6 +223,53 @@ export class JobService {
         payload,
         UserType.RIDER,
       );
+
+      for (let i = 0; i < rider.length; i++) {
+        const context = {
+          app_name: this.config.get('APP_NAME'),
+          first_name: rider[i].fullName,
+          message: `A new job has been created by ${job.vendor.companyName}`,
+          list: `<h1><em>Booking Details</em></h1>
+        <ul>
+<li> Location:${
+            createJobDto.jobType === JobType.PICKUP
+              ? booking.pickupLocation.fullAddress
+              : booking.dropoffLocation.fullAddress
+          } </li> 
+<li>Customer Name: ${booking.customer.fullName} </li>
+<li>Delivery Date: ${dayjs(booking.bookingDate)
+            .utc()
+            .local()
+            .format('DD/MM/YYYY')}</li>
+          <li>Delivery: ${
+            createJobDto.jobType === JobType.PICKUP
+              ? `${dayjs(booking.pickupTimeFrom)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}-${dayjs(booking.pickupTimeTo)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}`
+              : `${dayjs(booking.dropoffTimeFrom)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}-${dayjs(booking.dropoffTimeTo)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}`
+          } </li>
+</ul>`,
+
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+        await this.mail.sendEmail(
+          rider[i].userMaster.email,
+          this.config.get('MAIL_NO_REPLY'),
+          `Quick Reminder:New Job Has Been Posted`,
+          'vendor-create-job',
+          context, // `.hbs` extension is appended automatically
+        );
+      }
 
       return successResponse(201, 'Job created successfully.');
     } catch (error) {

@@ -28,6 +28,7 @@ export enum NotificationTitle {
   RIDER_ACCEPT_JOB = 'Job Request Accepted',
   RIDER_JOB_COMPLETED = 'Job Completed',
   CUSTOMER_CREATE_ACCOUNT = 'Account Created',
+  CHANGE_PASSWORD = 'Password Change',
 }
 
 export enum NotificationBody {
@@ -50,6 +51,7 @@ export enum NotificationBody {
   RIDER_ACCEPT_JOB = '{rider} have accepted a new job request. Please proceed to the designated location and provide your excellent service. ',
   RIDER_JOB_COMPLETED = '{rider} have successfully completed the assigned job {id}. ',
   CUSTOMER_CREATE_ACCOUNT = 'Welcome to Clevis. Book Laundry & car wash service from the comfort of your home.',
+  CHANGE_PASSWORD = 'Your password has been changed successfully.',
 }
 
 export enum EventType {

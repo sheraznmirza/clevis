@@ -894,32 +894,27 @@ export class RiderRepository {
         });
       }
 
-      // const payload: SQSSendNotificationArgs<NotificationData> = {
-      //   type: NotificationType.UpdateByAdmin,
-      //   userId: [rider.userMasterId],
-      //   data: {
-      //     title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
-      //     body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
-      //     type: NotificationType.UpdateByAdmin,
-      //     entityType: EntityType.RIDER,
-      //     entityId: rider.rider.riderId,
-      //   },
-      // };
-      // await this.notificationService.HandleNotifications(
-      //   payload,
-      //   UserType.RIDER,
-      // );
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.UpdateByAdmin,
+        userId: [rider.userMasterId],
+        data: {
+          title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
+          body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+          type: NotificationType.UpdateByAdmin,
+          entityType: EntityType.RIDER,
+          entityId: rider.rider.riderId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.RIDER,
+      );
 
       return {
         ...successResponse(200, 'Rider updated successfully.'),
         ...rider,
       };
     } catch (error) {
-      // unknowError(
-      //   417,
-      //   error,
-      //   'The request was well-formed but was unable to be followed due to semantic errors',
-      // );
       throw error;
     }
   }

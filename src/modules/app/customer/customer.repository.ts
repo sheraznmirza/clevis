@@ -5,7 +5,14 @@ import {
   CustomerListingParams,
   CustomerVendorListingParams,
 } from '../../../core/dto';
-import { Media, Status, UserType } from '@prisma/client';
+import {
+  EntityType,
+  Media,
+  NotificationType,
+  Status,
+  UserType,
+  VendorServiceStatus,
+} from '@prisma/client';
 import {
   UpdateCustomerDto,
   VendorLocationDto,
@@ -16,10 +23,18 @@ import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { subcategories } from './entities/subcategoriesType';
 import { currentDateToVendorFilter } from 'src/helpers/date.helper';
 import { getVendorListingMapper } from './customer.mapper';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
+import { NotificationBody, NotificationTitle } from 'src/constants';
+import { riders } from 'src/seeders/constants';
+import { NotificationService } from 'src/modules/notification-socket/notification.service';
 
 @Injectable()
 export class CustomerRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
 
   async getCustomerById(id: number) {
     try {
@@ -275,6 +290,21 @@ export class CustomerRepository {
         },
       });
 
+      const payload: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.UpdateByAdmin,
+        userId: [customer.userMasterId],
+        data: {
+          title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
+          body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+          type: NotificationType.UpdateByAdmin,
+          entityType: EntityType.CUSTOMER,
+          entityId: customer.customer.customerId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload,
+        UserType.CUSTOMER,
+      );
       return {
         ...successResponse(200, 'Customer updated successfully.'),
         ...customer,
@@ -956,7 +986,7 @@ export class CustomerRepository {
           skip: +take * (+page - 1),
           where: {
             vendorId,
-
+            status: VendorServiceStatus.Available,
             ...(search && {
               service: {
                 serviceName: {
@@ -981,6 +1011,7 @@ export class CustomerRepository {
         const totalCount = await this.prisma.vendorService.count({
           where: {
             vendorId,
+            status: VendorServiceStatus.Available,
             isDeleted: false,
           },
         });
@@ -997,7 +1028,7 @@ export class CustomerRepository {
           skip: +take * (+page - 1),
           where: {
             vendorServiceId: +dto.vendorServiceId,
-
+            vendorService: { isDeleted: false },
             ...(search && {
               category: {
                 categoryName: {
@@ -1023,6 +1054,7 @@ export class CustomerRepository {
         const totalCount = await this.prisma.allocatePrice.count({
           where: {
             vendorServiceId: +dto.vendorServiceId,
+            vendorService: { isDeleted: false },
           },
         });
 
@@ -1039,6 +1071,7 @@ export class CustomerRepository {
           where: {
             vendorServiceId: +dto.vendorServiceId,
             categoryId: +dto.categoryId,
+            vendorService: { isDeleted: false },
 
             ...(search && {
               subcategory: {
@@ -1065,6 +1098,7 @@ export class CustomerRepository {
         const totalCount = await this.prisma.allocatePrice.count({
           where: {
             vendorServiceId: +dto.vendorServiceId,
+            vendorService: { isDeleted: false },
           },
         });
 
@@ -1087,48 +1121,14 @@ export class CustomerRepository {
     const { page = 1, take = 10, search } = dto;
     try {
       if (!dto.categoryId) {
-        // const vendorService = await this.prisma.vendorService.findMany({
-        //   take: +take,
-        //   skip: +take * (+page - 1),
-        //   where: {
-        //     vendorId,
-        //     ...(search && {
-        //       service: {
-        //         serviceName: {
-        //           contains: search,
-        //           mode: 'insensitive',
-        //         },
-        //       },
-        //     }),
-        //   },
-        //   select: {
-        //     vendorServiceId: true,
-        //     AllocatePrice: {
-        //       select: {
-        //         id: true,
-        //         category: {
-        //           select: {
-        //             categoryId: true,
-        //             categoryName: true,
-        //           },
-        //         },
-        //       },
-        //     },
-        //     // service: {
-        //     //   select: {
-        //     //     serviceId: true,
-        //     //     serviceName: true,
-        //     //   },
-        //     // },
-        //   },
-        // });
-
         const allocatePrice = await this.prisma.allocatePrice.findMany({
           take: +take,
           skip: +take * (+page - 1),
           where: {
             vendorService: {
               vendorId,
+              status: VendorServiceStatus.Available,
+              isDeleted: false,
             },
             ...(search && {
               category: {
@@ -1167,6 +1167,8 @@ export class CustomerRepository {
           where: {
             vendorService: {
               vendorId,
+              status: VendorServiceStatus.Available,
+              isDeleted: false,
             },
             ...(search && {
               category: {
@@ -1192,6 +1194,8 @@ export class CustomerRepository {
           where: {
             vendorService: {
               vendorId,
+              status: VendorServiceStatus.Available,
+              isDeleted: false,
             },
 
             categoryId: +dto.categoryId,
@@ -1233,6 +1237,8 @@ export class CustomerRepository {
           where: {
             vendorService: {
               vendorId,
+              status: VendorServiceStatus.Available,
+              isDeleted: false,
             },
 
             categoryId: +dto.categoryId,

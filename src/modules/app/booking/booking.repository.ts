@@ -118,12 +118,12 @@ export class BookingRepository {
       }
 
       // console.log('dto.tapAuthId: ', dto.tapAuthId);
-      const tapAuthorize = await this.tapService.retrieveAuthorize(
-        dto.tapAuthId,
-      );
-      if (tapAuthorize.status === 'FAILED') {
-        throw new BadRequestException('Payment is not authorized.');
-      }
+      // const tapAuthorize = await this.tapService.retrieveAuthorize(
+      //   dto.tapAuthId,
+      // );
+      // if (tapAuthorize.status === 'FAILED') {
+      //   throw new BadRequestException('Payment is not authorized.');
+      // }
 
       if (dto.isWithDelivery) {
         if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
@@ -301,6 +301,39 @@ export class BookingRepository {
           })),
         });
       }
+
+      const context = {
+        message:
+          'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
+        list: `<ul>
+            <li>Date: ${dayjs(bookingMaster.bookingDate)
+              .utc()
+              .local()
+              .format('DD/MM/YYYY')}</li>
+              <li>Time: ${dayjs(bookingMaster.bookingDate)
+                .utc()
+                .format('HH:mm')}</li>
+              <li>Amount: ${bookingMaster.totalPrice}</li>
+          </ul>`,
+        customer_name: bookingMaster.customer.fullName,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .local()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `New Booking`,
+        'booking.hbs', // `.hbs` extension is appended automatically
+        context,
+      );
 
       // const context = {
       //   first_paragraph:
@@ -899,6 +932,17 @@ export class BookingRepository {
         take: +take,
         skip: +take * (+page - 1),
         select: {
+          bookingAttachments: {
+            select: {
+              media: {
+                select: {
+                  name: true,
+                  location: true,
+                  key: true,
+                },
+              },
+            },
+          },
           bookingMasterId: true,
           isWithDelivery: true,
           customer: {
@@ -1339,6 +1383,105 @@ export class BookingRepository {
           await this.tapService.createCharge(adminChargePayload);
         }
       }
+
+      const context = {
+        message:
+          dto.bookingStatus === BookingStatus.Confirmed
+            ? 'Your booking has been confirmed successfully. Please check the details of your booking in Bookings section'
+            : dto.bookingStatus === BookingStatus.In_Progress
+            ? 'Your booking is In Progress. Please check the details of your booking in Bookings section'
+            : dto.bookingStatus === BookingStatus.Completed
+            ? 'Your booking has been Completed successfully. Please check the details of your booking in Bookings section'
+            : dto.bookingStatus === BookingStatus.Rejected
+            ? 'Your booking request has been rejected. Please check the details of your request in Bookings section'
+            : '',
+
+        list:
+          dto.bookingStatus === BookingStatus.Rejected
+            ? `<ul>
+                <li>Date: ${booking.bookingMasterId}</li>
+                  <li>Time: ${dayjs(booking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${booking.totalPrice}</li>
+              </ul>`
+            : dto.bookingStatus === BookingStatus.Confirmed
+            ? `<ul>
+                <li>Booking ID: ${dayjs(booking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                <li>Date: ${dayjs(booking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                  <li>Time: ${dayjs(booking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${booking.totalPrice}</li>
+              </ul>`
+            : dto.bookingStatus === BookingStatus.In_Progress
+            ? `<ul>
+                <li>Booking ID: ${dayjs(booking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                <li>Date: ${dayjs(booking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                  <li>Time: ${dayjs(booking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${booking.totalPrice}</li>
+              </ul>`
+            : dto.bookingStatus === BookingStatus.Completed
+            ? `<ul>
+                <li>Booking ID: ${dayjs(booking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                <li>Date: ${dayjs(booking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                  <li>Time: ${dayjs(booking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${booking.totalPrice}</li>
+              </ul>`
+            : '',
+
+        customer_name: booking.customer.fullName,
+        booking_id: booking.bookingMasterId,
+        service_type: booking.vendor.serviceType,
+        booking_date: dayjs(booking.bookingDate).utc().format('DD/MM/YYYY'),
+        booking_time: dayjs(booking.bookingDate).utc().format('HH:mm'),
+        total_amount: booking.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+      const status =
+        dto.bookingStatus === BookingStatus.Completed
+          ? 'Booking Completed'
+          : dto.bookingStatus === BookingStatus.Confirmed
+          ? 'Booking Confirmed'
+          : dto.bookingStatus === BookingStatus.In_Progress
+          ? 'Booking In Progress'
+          : dto.bookingStatus === BookingStatus.Rejected
+          ? 'Booking Rejected'
+          : '';
+      await this.mail.sendEmail(
+        booking.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        status,
+        'booking.hbs', // `.hbs` extension is appended automatically
+        context,
+      );
 
       // const context = {
       //   first_paragraph:
