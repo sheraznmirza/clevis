@@ -520,8 +520,42 @@ export class VendorService {
         },
       });
       if (error.response.data) {
-        throw new BadRequestException(
-          error.response.data.errors[0].description,
+        const context = {
+          app_name: this.config.get('APP_NAME'),
+          first_name: vendor.fullName,
+          message: `Your account has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+
+        console.log('context: ', context);
+        await this.mail.sendEmail(
+          vendor.userMaster.email,
+          this.config.get('MAIL_NO_REPLY'),
+          `${
+            vendor.userMaster.userType[0] +
+            vendor.userMaster.userType.slice(1).toLowerCase()
+          } ${Status.REJECTED.toLowerCase()}`,
+          'vendorApprovedRejected',
+          context, // `.hbs` extension is appended automatically
+        );
+
+        const context2 = {
+          app_name: this.config.get('APP_NAME'),
+          first_name: '',
+          message: `The account of ${vendor.fullName} has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+        console.log('context2: ', context2);
+
+        await this.mail.sendEmail(
+          this.config.get('MAIL_ADMIN'),
+          this.config.get('MAIL_NO_REPLY'),
+          `${
+            vendor.userMaster.userType[0] +
+            vendor.userMaster.userType.slice(1).toLowerCase()
+          } ${Status.REJECTED.toLowerCase()}`,
+          'vendorApprovedRejected',
+          context2, // `.hbs` extension is appended automatically
         );
       }
       throw error;

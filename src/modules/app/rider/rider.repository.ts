@@ -42,6 +42,16 @@ export class RiderRepository {
         data: {
           status: dto.status,
         },
+        select: {
+          riderId: true,
+          fullName: true,
+          userMaster: {
+            select: {
+              email: true,
+              userType: true,
+            },
+          },
+        },
       });
       return rider;
     } catch (error) {
