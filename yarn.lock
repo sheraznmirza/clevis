@@ -2438,6 +2438,14 @@
     socket.io "4.6.1"
     tslib "2.5.2"
 
+"@nestjs/schedule@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@nestjs/schedule/-/schedule-3.0.1.tgz#a736e982bf935ca12e07aebe2a3aaafd611639da"
+  integrity sha512-4CAFu4rE/QPYnz/icRg3GiuLmY1bXopG8bWTJ9d7bXzaHBaPKIjGvZ20wsK8P+MncrVCkmK0iYhQrNj0cwX9+A==
+  dependencies:
+    cron "2.3.1"
+    uuid "9.0.0"
+
 "@nestjs/schematics@^9.0.0", "@nestjs/schematics@^9.0.4":
   version "9.0.4"
   resolved "https://registry.yarnpkg.com/@nestjs/schematics/-/schematics-9.0.4.tgz#ab612f5a8e006ca1d617eddc8143ee00b766312b"
@@ -2697,6 +2705,14 @@
   dependencies:
     "@types/node" "*"
 
+"@types/cron@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/cron/-/cron-2.0.1.tgz#d8bf7a24475f64197c7ac868c362b41be596e5f8"
+  integrity sha512-WHa/1rtNtD2Q/H0+YTTZoty+/5rcE66iAFX2IY+JuUoOACsevYyFkSYu/2vdw+G5LrmO7Lxowrqm0av4k3qWNQ==
+  dependencies:
+    "@types/luxon" "*"
+    "@types/node" "*"
+
 "@types/ejs@^3.0.3":
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/@types/ejs/-/ejs-3.1.2.tgz#75d277b030bc11b3be38c807e10071f45ebc78d9"
@@ -2797,6 +2813,11 @@
   integrity sha512-c5ltxazpWabia/4UzhIoaDcIza4KViOQhdbjRlfcIGVnsE3c3brkz9Z+F/EeJIECOQP7W7US2hNE930cWWkPiw==
   dependencies:
     "@types/node" "*"
+
+"@types/luxon@*":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.3.0.tgz#a61043a62c0a72696c73a0a305c544c96501e006"
+  integrity sha512-uKRI5QORDnrGFYgcdAVnHvEIvEZ8noTpP/Bg+HeUzZghwinDlIS87DEenV5r1YoOF9G4x600YsUXLWZ19rmTmg==
 
 "@types/mime@*":
   version "3.0.1"
@@ -4153,6 +4174,13 @@ cron-parser@^4.2.1:
   version "4.8.1"
   resolved "https://registry.yarnpkg.com/cron-parser/-/cron-parser-4.8.1.tgz#47062ea63d21d78c10ddedb08ea4c5b6fc2750fb"
   integrity sha512-jbokKWGcyU4gl6jAfX97E1gDpY12DJ1cLJZmoDzaAln/shZ+S3KBFBuA2Q6WeUN4gJf/8klnV1EfvhA2lK5IRQ==
+  dependencies:
+    luxon "^3.2.1"
+
+cron@2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/cron/-/cron-2.3.1.tgz#71caa566ffef60ada9183b8677df4afa9a214ad7"
+  integrity sha512-1eRRlIT0UfIqauwbG9pkg3J6CX9A6My2ytJWqAXoK0T9oJnUZTzGBNPxao0zjodIbPgf8UQWjE62BMb9eVllSQ==
   dependencies:
     luxon "^3.2.1"
 

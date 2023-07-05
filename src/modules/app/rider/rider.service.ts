@@ -168,6 +168,13 @@ export class RiderService {
               userMasterId: true,
               status: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   userAddressId: true,
                   fullAddress: true,

@@ -680,6 +680,13 @@ export class AuthService {
             businessLicense: true,
             description: true,
             userAddress: {
+              where: {
+                isDeleted: false,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
               select: {
                 userAddressId: true,
                 fullAddress: true,
@@ -778,6 +785,13 @@ export class AuthService {
             businessLicense: true,
             description: true,
             userAddress: {
+              where: {
+                isDeleted: false,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
               select: {
                 userAddressId: true,
                 fullAddress: true,
