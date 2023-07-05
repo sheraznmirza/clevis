@@ -477,6 +477,6 @@ export const byWeekArrayCompleted = [
   },
   {
     weekDay: 'Sun',
-    fee: 0,
+    completedJobs: 0,
   },
 ];
