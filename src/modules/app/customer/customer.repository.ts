@@ -909,7 +909,7 @@ export class CustomerRepository {
                   id: true,
                   body: true,
                   rating: true,
-                  updatedAt: true,
+                  createdAt: true,
                   customer: {
                     select: {
                       fullName: true,

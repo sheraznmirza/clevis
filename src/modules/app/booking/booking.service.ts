@@ -11,6 +11,7 @@ import {
   VendorGetBookingsDto,
 } from './dto';
 import { GetUserType } from 'src/core/dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class BookingService {
@@ -122,6 +123,15 @@ export class BookingService {
   async VendorDetail(vendorId: number) {
     try {
       return await this.repository.getDetailVendor(vendorId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Cron('10 * * * * *')
+  async timeOut() {
+    try {
+      console.log('below job');
     } catch (error) {
       throw error;
     }
