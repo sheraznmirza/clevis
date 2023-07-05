@@ -800,6 +800,7 @@ export class CustomerRepository {
             select: {
               vendorId: true,
               avgRating: true,
+              isBusy: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',

@@ -135,6 +135,16 @@ export class VendorRepository {
         data: {
           status: dto.status,
         },
+        select: {
+          vendorId: true,
+          fullName: true,
+          userMaster: {
+            select: {
+              email: true,
+              userType: true,
+            },
+          },
+        },
       });
 
       return vendor;

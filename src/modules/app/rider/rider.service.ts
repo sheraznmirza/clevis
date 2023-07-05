@@ -297,7 +297,6 @@ export class RiderService {
             : 'Your account has been rejected. Please contact our support for further information.',
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
-      // await this.notification.HandleNotifications()
       await this.mail.sendEmail(
         user.email,
         this.config.get('MAIL_ADMIN'),
@@ -342,8 +341,38 @@ export class RiderService {
         },
       });
       if (error.response.data) {
-        throw new BadRequestException(
-          error.response.data.errors[0].description,
+        const context = {
+          app_name: this.config.get('APP_NAME'),
+          first_name: rider.fullName,
+          message: `Your account has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+        await this.mail.sendEmail(
+          rider.userMaster.email,
+          this.config.get('MAIL_NO_REPLY'),
+          `${
+            rider.userMaster.userType[0] +
+            rider.userMaster.userType.slice(1).toLowerCase()
+          } ${Status.REJECTED.toLowerCase()}`,
+          'vendorApprovedRejected',
+          context, // `.hbs` extension is appended automatically
+        );
+
+        const context2 = {
+          app_name: this.config.get('APP_NAME'),
+          first_name: '',
+          message: `The account of ${rider.fullName} has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+        await this.mail.sendEmail(
+          this.config.get('MAIL_ADMIN'),
+          this.config.get('MAIL_NO_REPLY'),
+          `${
+            rider.userMaster.userType[0] +
+            rider.userMaster.userType.slice(1).toLowerCase()
+          } ${Status.REJECTED.toLowerCase()}`,
+          'vendorApprovedRejected',
+          context2, // `.hbs` extension is appended automatically
         );
       }
       throw error;
