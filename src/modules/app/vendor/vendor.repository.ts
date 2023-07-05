@@ -524,6 +524,10 @@ export class VendorRepository {
                 where: {
                   isDeleted: false,
                 },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {
@@ -998,6 +1002,13 @@ export class VendorRepository {
                 },
               },
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {
@@ -1184,6 +1195,13 @@ export class VendorRepository {
               companyName: true,
               serviceType: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {

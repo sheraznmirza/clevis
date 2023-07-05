@@ -180,6 +180,10 @@ export class RiderRepository {
                 where: {
                   isDeleted: false,
                 },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {
@@ -504,6 +508,10 @@ export class RiderRepository {
                 where: {
                   isDeleted: false,
                 },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {
@@ -836,6 +844,10 @@ export class RiderRepository {
                 where: {
                   isDeleted: false,
                 },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {
