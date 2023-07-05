@@ -17,6 +17,7 @@ import {
   byMonthArrayCompleted,
   byMonthArrayFee,
   byMonthArrays,
+  byWeekArrayCompleted,
   byWeekArrayFee,
   byWeekVendors,
   byYearArray,
@@ -341,7 +342,7 @@ export class StatisticRepository {
           weekDay: string;
         }> = await this.prisma.$queryRaw`SELECT
           SUM(CASE WHEN public."Earnings"."userMasterId" = ${userMasterId} THEN public."Earnings"."amount" ELSE NULL END)::INTEGER AS "fee",
-       TO_CHAR(public."Earnings"."createdAt", 'DD') AS "weekDay"
+       TO_CHAR(public."Earnings"."createdAt", 'Dy') AS "weekDay"
        FROM public."Earnings"
        WHERE public."Earnings"."createdAt" >= ${startOfTheWeek}::DATE
        AND public."Earnings"."createdAt" <= ${endOfTheWeek}::DATE
@@ -620,6 +621,37 @@ export class StatisticRepository {
         }
 
         return byMonthArrayCompleted;
+      } else if (query.tabName === YearlyFilterDropdownType.WEEKLY) {
+        const startOfTheWeek = dayjs().day(0).format('MM-DD-YYYY');
+        const endOfTheWeek = dayjs().day(6).format('MM-DD-YYYY');
+
+        const completedByWeek: Array<{
+          completedJobs: number;
+          weekDay: string;
+        }> = await this.prisma.$queryRaw`SELECT
+         COUNT(CASE WHEN public."Job"."jobStatus" = 'Completed' THEN 1 ELSE NULL END)::INTEGER AS "completedJobs",
+       TO_CHAR(public."Job"."createdAt", 'Dy')::INTEGER AS "weekDay"
+       FROM public."Job"
+      --  INNER JOIN public."UserMaster"
+      --   ON public."Rider"."userMasterId" = public."UserMaster"."userMasterId"
+      --   INNER JOIN public."Job"
+      --   ON public."Job"."riderId" = public."Rider"."riderId"
+       WHERE public."Job"."createdAt" >= ${startOfTheWeek}::DATE
+       AND public."Job"."createdAt" <= ${endOfTheWeek}::DATE
+       GROUP BY "weekDay"
+       ORDER BY "weekDay" ASC;`;
+
+        for (let i = 0; i < completedByWeek.length; i++) {
+          for (let j = 0; j < byWeekArrayCompleted.length; j++) {
+            if (
+              byWeekArrayCompleted[j].weekDay === completedByWeek[i].weekDay
+            ) {
+              byWeekArrayCompleted[j].completedJobs =
+                completedByWeek[i].completedJobs;
+            }
+          }
+        }
+        return byWeekArrayCompleted;
       }
     } catch (error) {
       throw error;
