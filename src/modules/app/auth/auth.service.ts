@@ -175,7 +175,6 @@ export class AuthService {
       );
 
       this.queue.createCustomerTapAndMail(response, user);
-      // this.sendEncryptedDataToMail(user, UserType.CUSTOMER);
 
       return {
         tokens: response,
