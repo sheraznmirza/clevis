@@ -519,7 +519,12 @@ export class VendorService {
           status: Status.REJECTED,
         },
       });
-      throw new BadRequestException(error.response.data.errors[0].description);
+      if (error.response.data) {
+        throw new BadRequestException(
+          error.response.data.errors[0].description,
+        );
+      }
+      throw error;
     }
   }
 }
