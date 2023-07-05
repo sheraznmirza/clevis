@@ -67,7 +67,13 @@ export class AuthService {
 
     try {
       const userCount = await this.prisma.userMaster.count({
-        where: { email: dto.email, userType: UserType.CUSTOMER },
+        where: {
+          email: {
+            equals: dto.email,
+            mode: 'insensitive',
+          },
+          userType: UserType.CUSTOMER,
+        },
       });
       const cityCount = await this.prisma.city.count({
         where: { cityId: dto.cityId },
@@ -196,7 +202,13 @@ export class AuthService {
 
     try {
       const userCount = await this.prisma.userMaster.count({
-        where: { email: dto.email, userType: UserType.VENDOR },
+        where: {
+          email: {
+            equals: dto.email,
+            mode: 'insensitive',
+          },
+          userType: UserType.VENDOR,
+        },
       });
 
       if (userCount > 0) {
@@ -355,7 +367,13 @@ export class AuthService {
 
     try {
       const userCount = await this.prisma.userMaster.count({
-        where: { email: dto.email, userType: UserType.RIDER },
+        where: {
+          email: {
+            equals: dto.email,
+            mode: 'insensitive',
+          },
+          userType: UserType.RIDER,
+        },
       });
 
       if (userCount > 0) {
@@ -489,7 +507,10 @@ export class AuthService {
   async signinAdmin(dto: LoginDto) {
     const user = await this.prisma.userMaster.findFirst({
       where: {
-        email: dto.email,
+        email: {
+          equals: dto.email,
+          mode: 'insensitive',
+        },
         userType: UserType.ADMIN,
       },
       select: {
@@ -551,7 +572,10 @@ export class AuthService {
   async signinCustomer(dto: LoginDto) {
     const user = await this.prisma.userMaster.findFirst({
       where: {
-        email: dto.email,
+        email: {
+          equals: dto.email,
+          mode: 'insensitive',
+        },
         userType: UserType.CUSTOMER,
         isDeleted: false,
       },
@@ -650,7 +674,10 @@ export class AuthService {
   async signinVendor(dto: LoginDto) {
     const user = await this.prisma.userMaster.findFirst({
       where: {
-        email: dto.email,
+        email: {
+          equals: dto.email,
+          mode: 'insensitive',
+        },
         userType: UserType.VENDOR,
         isDeleted: false,
       },
@@ -756,7 +783,10 @@ export class AuthService {
   async signinRider(dto: LoginDto) {
     const user = await this.prisma.userMaster.findFirst({
       where: {
-        email: dto.email,
+        email: {
+          equals: dto.email,
+          mode: 'insensitive',
+        },
         userType: UserType.RIDER,
         isDeleted: false,
       },

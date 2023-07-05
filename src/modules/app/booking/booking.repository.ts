@@ -549,7 +549,6 @@ export class BookingRepository {
           return service.serviceId;
         });
       }
-      console.log('search: ', search);
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           customerId: customerId,
@@ -592,8 +591,11 @@ export class BookingRepository {
               },
             }),
         },
-        take: +take,
-        skip: +take * (+page - 1),
+        ...(!dto?.dateRange && {
+          take: +take,
+          skip: +take * (+page - 1),
+        }),
+
         select: {
           bookingMasterId: true,
           status: true,
@@ -1176,11 +1178,33 @@ export class BookingRepository {
           bookingMasterId,
         },
         select: {
+          bookingMasterId: true,
+          bookingDate: true,
+          totalPrice: true,
+          customerId: true,
+          vendorId: true,
           status: true,
+          tapAuthId: true,
           isWithDelivery: true,
           vendor: {
             select: {
+              fullName: true,
               serviceType: true,
+              tapMerchantId: true,
+              userMasterId: true,
+              userMaster: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+          customer: {
+            select: {
+              userMasterId: true,
+              email: true,
+              fullName: true,
+              tapCustomerId: true,
             },
           },
         },
@@ -1226,75 +1250,28 @@ export class BookingRepository {
         }
       }
 
-      const booking = await this.prisma.bookingMaster.update({
-        where: {
-          bookingMasterId,
-        },
-        data: {
-          status: dto.bookingStatus,
-          ...(dto.bookingStatus === BookingStatus.Confirmed && {
-            confirmationTime: dayjs().utc().format(),
-          }),
-
-          ...(dto.bookingStatus === BookingStatus.Completed && {
-            completionTime: dayjs().utc().format(),
-          }),
-        },
-        select: {
-          bookingMasterId: true,
-          bookingDate: true,
-          totalPrice: true,
-          customerId: true,
-          vendorId: true,
-          status: true,
-          tapAuthId: true,
-          isWithDelivery: true,
-          vendor: {
-            select: {
-              fullName: true,
-              serviceType: true,
-              tapMerchantId: true,
-              userMasterId: true,
-              userMaster: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          },
-          customer: {
-            select: {
-              userMasterId: true,
-              email: true,
-              fullName: true,
-              tapCustomerId: true,
-            },
-          },
-        },
-      });
-
       if (dto.bookingStatus === BookingStatus.Completed) {
         const chargePayload: createChargeRequestInterface = {
-          amount: booking.totalPrice,
+          amount: findBooking.totalPrice,
           currency: 'SAR',
           customer: {
-            id: booking.customer.tapCustomerId,
+            id: findBooking.customer.tapCustomerId,
           },
           merchant: {
-            id: booking.vendor.tapMerchantId,
+            id: findBooking.vendor.tapMerchantId,
           },
-          source: { id: booking.tapAuthId, type: 'CARD' },
+          source: { id: findBooking.tapAuthId, type: 'CARD' },
           redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
           post: {
             url: `${this.config.get('APP_URL')}/tap/charge/${
-              booking.vendor.userMasterId
+              findBooking.vendor.userMasterId
             }/${ChargeEntityTypes.booking}/${bookingMasterId}`,
           },
         };
         const createCharge = await this.tapService.createCharge(chargePayload);
         console.log('createCharge: ', createCharge);
 
-        if (!booking.isWithDelivery) {
+        if (!findBooking.isWithDelivery) {
           const platform = await this.prisma.platformSetup.findFirst({
             orderBy: {
               createdAt: 'desc',
@@ -1324,12 +1301,12 @@ export class BookingRepository {
             amount: platform.fee,
             currency: 'SAR',
             customer: {
-              id: booking.customer.tapCustomerId,
+              id: findBooking.customer.tapCustomerId,
             },
             merchant: {
               id: admin.tapMerchantId,
             },
-            source: { id: booking.tapAuthId, type: 'CARD' },
+            source: { id: findBooking.tapAuthId, type: 'CARD' },
             redirect: { url: `${this.config.get('APP_URL')}/tap-payment` },
             post: {
               url: `${this.config.get('APP_URL')}/tap/charge/${
@@ -1340,6 +1317,22 @@ export class BookingRepository {
           await this.tapService.createCharge(adminChargePayload);
         }
       }
+
+      await this.prisma.bookingMaster.update({
+        where: {
+          bookingMasterId,
+        },
+        data: {
+          status: dto.bookingStatus,
+          ...(dto.bookingStatus === BookingStatus.Confirmed && {
+            confirmationTime: dayjs().utc().format(),
+          }),
+
+          ...(dto.bookingStatus === BookingStatus.Completed && {
+            completionTime: dayjs().utc().format(),
+          }),
+        },
+      });
 
       // const context = {
       //   first_paragraph:
@@ -1376,7 +1369,7 @@ export class BookingRepository {
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingStatus,
-        userId: [booking.customer.userMasterId],
+        userId: [findBooking.customer.userMasterId],
         data: {
           title:
             dto.bookingStatus === BookingStatus.In_Progress
@@ -1401,11 +1394,11 @@ export class BookingRepository {
                 )
               : NotificationBody.BOOKING_REJECTED.replace(
                   '{vendor}',
-                  booking.vendor.fullName,
+                  findBooking.vendor.fullName,
                 ),
           type: NotificationType.BookingStatus,
           entityType: EntityType.BOOKINGMASTER,
-          entityId: booking.bookingMasterId,
+          entityId: findBooking.bookingMasterId,
         },
       };
       await this.notificationService.HandleNotifications(
@@ -1422,6 +1415,8 @@ export class BookingRepository {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
       }
+      console.log('error response: ', error?.response);
+      console.log('error: ', error);
       throw error;
     }
   }
