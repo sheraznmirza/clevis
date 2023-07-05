@@ -168,6 +168,13 @@ export class RiderService {
               userMasterId: true,
               status: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   userAddressId: true,
                   fullAddress: true,
@@ -326,6 +333,19 @@ export class RiderService {
         UserType.RIDER,
       );
     } catch (error) {
+      await this.prisma.rider.update({
+        where: {
+          riderId: rider.riderId,
+        },
+        data: {
+          status: Status.REJECTED,
+        },
+      });
+      if (error.response.data) {
+        throw new BadRequestException(
+          error.response.data.errors[0].description,
+        );
+      }
       throw error;
     }
   }

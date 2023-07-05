@@ -344,6 +344,13 @@ export class VendorService {
               userMasterId: true,
               status: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   userAddressId: true,
                   fullAddress: true,
@@ -432,7 +439,7 @@ export class VendorService {
         ],
       };
       const tapbusiness = await this.tapService.createBusniess(payload);
-
+      console.log('tap business: ', tapbusiness);
       const merchantPayload: createMerchantRequestInterface = {
         display_name: user.vendor.fullName,
         branch_id: tapbusiness.entity.branches[0].id,
@@ -442,7 +449,7 @@ export class VendorService {
       };
 
       const merchantTap = await this.tapService.createMerchant(merchantPayload);
-
+      console.log('merchant tap: ', merchantTap);
       await this.prisma.vendor.update({
         where: {
           vendorId: user.vendor.vendorId,
@@ -499,6 +506,25 @@ export class VendorService {
         payloads,
         UserType.VENDOR,
       );
-    } catch (error) {}
+    } catch (error) {
+      console.log(
+        'error in queue: ',
+        error.response.data.errors[0].description,
+      );
+      await this.prisma.vendor.update({
+        where: {
+          vendorId: vendor.vendorId,
+        },
+        data: {
+          status: Status.REJECTED,
+        },
+      });
+      if (error.response.data) {
+        throw new BadRequestException(
+          error.response.data.errors[0].description,
+        );
+      }
+      throw error;
+    }
   }
 }

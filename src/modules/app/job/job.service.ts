@@ -305,7 +305,7 @@ export class JobService {
       const jobs = await this.prisma.job.findMany({
         where: {
           ...(jobType && { jobType: jobType }),
-
+          riderId,
           ...(status === RiderJobStatus.Pending && {
             AND: [
               { jobStatus: RiderJobStatus.Pending },

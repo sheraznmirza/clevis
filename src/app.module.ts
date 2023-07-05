@@ -33,8 +33,10 @@ import { join } from 'path';
 import { BullQueueModule } from './modules/queue/bull-queue.module';
 import { ReviewModule } from './modules/app/review/review.module';
 import { EarningModule } from './modules/app/earning/earning.module';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'),
       serveRoot: '/tap-payment/:authId',
