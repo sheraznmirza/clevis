@@ -17,12 +17,12 @@ export class VendorEarning extends ListingParams {
   })
   @IsDateString()
   @IsOptional()
-  timeFrom?: string;
+  dateFrom?: string;
 
   @ApiProperty({
     required: false,
   })
   @IsDateString()
   @IsOptional()
-  timeTill?: string;
+  dateTill?: string;
 }

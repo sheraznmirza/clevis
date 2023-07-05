@@ -141,8 +141,8 @@ export class EarningService {
       take = 10,
       search,
       serviceType,
-      timeFrom,
-      timeTill,
+      dateFrom,
+      dateTill,
     } = dto;
 
     const platform = await this.prisma.platformSetup.findFirst({
@@ -172,8 +172,8 @@ export class EarningService {
           },
         },
 
-        ...(timeFrom &&
-          timeTill && { createdAt: { gte: timeFrom, lte: timeTill } }),
+        ...(dateFrom &&
+          dateTill && { createdAt: { gte: dateFrom, lte: dateTill } }),
       },
       select: {
         id: true,

@@ -1466,7 +1466,7 @@ export class AuthService {
 
     this.mail.sendEmail(
       user.email,
-      this.config.get('MAIL_ADMIN'),
+      this.config.get('MAIL_NO_REPLY'),
       this.config.get('APP_NAME'),
       'userRegistration',
       context,
