@@ -507,8 +507,19 @@ export class VendorService {
         UserType.VENDOR,
       );
     } catch (error) {
-      console.log('error in queue: ', error);
-      throw error;
+      console.log(
+        'error in queue: ',
+        error.response.data.errors[0].description,
+      );
+      await this.prisma.vendor.update({
+        where: {
+          vendorId: vendor.vendorId,
+        },
+        data: {
+          status: Status.REJECTED,
+        },
+      });
+      throw new BadRequestException(error.response.data.errors[0].description);
     }
   }
 }
