@@ -74,7 +74,7 @@ export class AuthController {
     return this.authService.signinRider(dto);
   }
 
-  @Throttle(1, 60)
+  @Throttle(3, 60)
   @UseGuards(JwtRefreshGuard)
   @Post('/refresh')
   refreshTokens(@Body() refreshToken: RefreshDto) {
