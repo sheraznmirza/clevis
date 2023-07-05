@@ -439,7 +439,7 @@ export class VendorService {
         ],
       };
       const tapbusiness = await this.tapService.createBusniess(payload);
-
+      console.log('tap business: ', tapbusiness);
       const merchantPayload: createMerchantRequestInterface = {
         display_name: user.vendor.fullName,
         branch_id: tapbusiness.entity.branches[0].id,
@@ -449,7 +449,7 @@ export class VendorService {
       };
 
       const merchantTap = await this.tapService.createMerchant(merchantPayload);
-
+      console.log('merchant tap: ', merchantTap);
       await this.prisma.vendor.update({
         where: {
           vendorId: user.vendor.vendorId,
@@ -506,6 +506,9 @@ export class VendorService {
         payloads,
         UserType.VENDOR,
       );
-    } catch (error) {}
+    } catch (error) {
+      console.log('error in queue: ', error);
+      throw error;
+    }
   }
 }
