@@ -9,6 +9,7 @@ import { VendorService } from '../app/vendor/vendor.service';
 import { MailModule } from '../mail/mail.module';
 import { BullQueueService } from './bull-queue.service';
 import { MailProcessor } from './jobs/mail.processor';
+import { ConfigService } from '@nestjs/config';
 
 @Global()
 @Module({
@@ -25,7 +26,13 @@ import { MailProcessor } from './jobs/mail.processor';
     VendorModule,
     RiderModule,
   ],
-  providers: [BullQueueService, MailProcessor, VendorService, VendorRepository],
+  providers: [
+    BullQueueService,
+    MailProcessor,
+    VendorService,
+    VendorRepository,
+    ConfigService,
+  ],
   exports: [BullQueueService],
 })
 export class BullQueueModule {}

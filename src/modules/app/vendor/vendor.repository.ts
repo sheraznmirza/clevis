@@ -650,14 +650,14 @@ export class VendorRepository {
     vendorId: number,
     listingParams: VendorServiceListingParams,
   ) {
-    const { page = 1, take = 10, search, order = 'asc' } = listingParams;
+    const { page = 1, take = 10, search, orderBy = 'asc' } = listingParams;
     try {
       const vendorServices = await this.prisma.vendorService.findMany({
         take: +take,
         skip: +take * (+page - 1),
         orderBy: {
           service: {
-            serviceName: order,
+            serviceName: orderBy,
           },
         },
         where: {

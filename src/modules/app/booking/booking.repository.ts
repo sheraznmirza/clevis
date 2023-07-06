@@ -36,6 +36,7 @@ import { NotificationTitle } from 'src/constants';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody } from 'src/constants';
 import { MailService } from 'src/modules/mail/mail.service';
+import { BullQueueService } from 'src/modules/queue/bull-queue.service';
 
 @Injectable()
 export class BookingRepository {
@@ -46,6 +47,7 @@ export class BookingRepository {
     private tapService: TapService,
     private notificationService: NotificationService,
     private mail: MailService,
+    private queue: BullQueueService,
   ) {}
 
   // async bookingPayment(dto) {
@@ -225,7 +227,7 @@ export class BookingRepository {
           tapAuthId: dto.tapAuthId,
           pickupDeliveryCharges: Math.round(pickupDeliveryCharges),
           dropoffDeliveryCharges: Math.round(dropoffDeliveryCharges),
-          bookingDate: dto.bookingDate,
+          bookingDate: dayjs(dto.bookingDate).utc().format(),
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
           }),
@@ -387,6 +389,11 @@ export class BookingRepository {
       } else if (error?.code === 'P2002') {
         throw new BadRequestException('tapAuthId already used.');
       }
+      if (error.response.data) {
+        throw new BadRequestException(
+          error.response.data.errors[0].description,
+        );
+      }
       throw error;
     }
   }
@@ -455,7 +462,7 @@ export class BookingRepository {
           customerId,
           vendorId: dto.vendorId,
           tapAuthId: dto.tapAuthId,
-          bookingDate: dto.bookingDate,
+          bookingDate: dayjs(dto.bookingDate).utc().format(),
           ...(dto.carNumberPlate && {
             carNumberPlate: dto.carNumberPlate,
           }),
@@ -567,21 +574,29 @@ export class BookingRepository {
       if (error?.code === 'P2025') {
         throw new BadRequestException('Vendor does not exist');
       }
+      if (error.response.data) {
+        throw new BadRequestException(
+          error.response.data.errors[0].description,
+        );
+      }
       throw error;
     }
   }
 
   async getCustomerBookings(customerId: number, dto: CustomerGetBookingsDto) {
-    const { page = 1, take = 10, search } = dto;
+    const { page = 1, take = 10, search, dateRange } = dto;
     try {
       let serviceIds: number[] = [];
-      let bookedDates: string[] = [];
+      let bookedDates: Date[] = [];
 
       if (dto.services) {
         serviceIds = dto.services.map((service) => {
           return service.serviceId;
         });
       }
+
+      const startDate = dayjs(dateRange.start).utc().startOf('month').format();
+      const endDate = dayjs(dateRange.start).utc().endOf('month').format();
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           customerId: customerId,
@@ -604,8 +619,8 @@ export class BookingRepository {
 
           ...(dto?.dateRange && {
             bookingDate: {
-              gte: dto.dateRange.start,
-              lte: dto.dateRange.end,
+              gte: startDate,
+              lte: endDate,
             },
           }),
 
@@ -634,6 +649,8 @@ export class BookingRepository {
           status: true,
           bookingDate: true,
           totalPrice: true,
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           vendor: {
             select: {
               companyName: true,
@@ -681,8 +698,8 @@ export class BookingRepository {
 
           ...(dto?.dateRange && {
             bookingDate: {
-              gte: dto.dateRange.start,
-              lte: dto.dateRange.end,
+              gte: startDate,
+              lte: endDate,
             },
           }),
 
@@ -708,13 +725,30 @@ export class BookingRepository {
       });
 
       if (dto.dateRange) {
-        bookedDates = bookings.map((booking) =>
-          dayjs(booking.bookingDate).format('YYYY-MM-DD'),
-        );
+        bookedDates = bookings.map((booking) => booking.bookingDate);
       }
 
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
+      const mappedBookings = bookings.map((booking) => {
+        return {
+          ...booking,
+          platformFee: platformFee.fee,
+        };
+      });
+
       return {
-        data: bookings,
+        data: mappedBookings,
         page: +page,
         take: +take,
         totalCount,
@@ -927,8 +961,8 @@ export class BookingRepository {
           ...(dto.dateFrom &&
             dto.dateTill && {
               bookingDate: {
-                gte: dto.dateFrom,
-                lte: dto.dateTill,
+                gte: dayjs(dto.dateFrom).utc().format(),
+                lte: dayjs(dto.dateTill).utc().format(),
               },
             }),
         },
@@ -1026,8 +1060,8 @@ export class BookingRepository {
           ...(dto.dateFrom &&
             dto.dateTill && {
               bookingDate: {
-                gte: dto.dateFrom,
-                lte: dto.dateTill,
+                gte: dayjs(dto.dateFrom).utc().format(),
+                lte: dayjs(dto.dateTill).utc().format(),
               },
             }),
         },
@@ -1525,8 +1559,11 @@ export class BookingRepository {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
       }
-      console.log('error response: ', error?.response);
-      console.log('error: ', error);
+      if (error.response.data) {
+        throw new BadRequestException(
+          error.response.data.errors[0].description,
+        );
+      }
       throw error;
     }
   }
@@ -1563,8 +1600,8 @@ export class BookingRepository {
           ...(dto.dateFrom &&
             dto.dateTill && {
               bookingDate: {
-                gte: dto.dateFrom,
-                lte: dto.dateTill,
+                gte: dayjs(dto.dateFrom).utc().format(),
+                lte: dayjs(dto.dateTill).utc().format(),
               },
             }),
           ...(dto?.serviceType && {
@@ -1632,8 +1669,8 @@ export class BookingRepository {
           ...(dto.dateFrom &&
             dto.dateTill && {
               bookingDate: {
-                gte: dto.dateFrom,
-                lte: dto.dateTill,
+                gte: dayjs(dto.dateFrom).utc().format(),
+                lte: dayjs(dto.dateTill).utc().format(),
               },
             }),
         },
@@ -2048,6 +2085,89 @@ export class BookingRepository {
       });
     } catch (error) {
       console.log('hello again');
+      throw error;
+    }
+  }
+
+  async timeOutBooking() {
+    try {
+      const expiredTime = dayjs().subtract(48, 'hours').utc().format();
+      await this.prisma.bookingMaster.updateMany({
+        where: {
+          status: BookingStatus.Pending,
+          createdAt: {
+            lte: expiredTime,
+          },
+        },
+        data: {
+          status: BookingStatus.Rejected,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async bookingTimeReminder() {
+    try {
+      const currentDay = dayjs().utc().startOf('day').format();
+      const bookings = await this.prisma.bookingMaster.findMany({
+        where: {
+          status: BookingStatus.Pending,
+          bookingDate: {
+            gte: currentDay,
+          },
+        },
+        select: {
+          bookingMasterId: true,
+          bookingDate: true,
+          // bookingDetail: {
+          //   select: {
+          //     allocatePrice: {
+          //       select: {
+          //         vendorService: {
+          //           select: {
+          //             service: {
+          //               select: {
+          //                 serviceName:true
+          //               }
+          //             }
+          //           }
+          //         }
+          //       }
+          //     }
+          //   }
+          // },
+          vendor: {
+            select: {
+              vendorId: true,
+              fullName: true,
+            },
+          },
+          customer: {
+            select: {
+              fullName: true,
+            },
+          },
+        },
+      });
+
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
+      console.log('bookings: ', bookings);
+
+      this.queue.bookingEmailAlertForVendor(bookings, platformFee.fee);
+    } catch (error) {
       throw error;
     }
   }

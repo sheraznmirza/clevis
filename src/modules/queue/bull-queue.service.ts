@@ -64,4 +64,15 @@ export class BullQueueService {
       { lifo: false },
     );
   }
+
+  async bookingEmailAlertForVendor(bookings: any, platformFee: number) {
+    await this.emailQueue.add(
+      AppConfig.QUEUE.BOOKING.SEND_ALERT_EMAIL,
+      {
+        bookings,
+        platformFee,
+      },
+      { lifo: false },
+    );
+  }
 }
