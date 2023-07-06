@@ -813,6 +813,9 @@ export class CustomerRepository {
                 },
               },
               vendorService: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   vendorServiceId: true,
                   description: true,
