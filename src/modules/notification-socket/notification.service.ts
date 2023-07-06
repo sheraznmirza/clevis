@@ -68,7 +68,12 @@ export class NotificationService {
         });
         if (userDevices.length > 0) {
           const playerIds = userDevices.map((device) => device.playerId);
-          await this._oneSignalService.sendNotification(playerIds, title, body);
+          await this._oneSignalService.sendNotification(
+            playerIds,
+            title,
+            body,
+            { bookingMasterId: entityId },
+          );
         }
       }
 

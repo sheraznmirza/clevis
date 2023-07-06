@@ -210,7 +210,14 @@ export class JobService {
   }
 
   async getAllRiderJobs(riderId: number, listingParams: GetRiderJobsDto) {
-    const { page = 1, take = 10, search, jobType, status } = listingParams;
+    const {
+      page = 1,
+      take = 10,
+      search,
+      jobType,
+      status,
+      orderBy,
+    } = listingParams;
     try {
       const rider = await this.prisma.userAddress.findFirst({
         where: {
@@ -228,18 +235,11 @@ export class JobService {
       const jobs = await this.prisma.job.findMany({
         where: {
           ...(jobType && { jobType: jobType }),
-          riderId,
+          ...(!status && {
+            riderId,
+          }),
           ...(status === RiderJobStatus.Pending && {
-            AND: [
-              { jobStatus: RiderJobStatus.Pending },
-              // {
-              //   riderJob: {
-              //     none: {
-              //       riderId: user.userTypeId,
-              //     },
-              //   },
-              // },
-            ],
+            AND: [{ jobStatus: RiderJobStatus.Pending }],
           }),
 
           ...(status === RiderJobStatus.Accepted && {
@@ -303,7 +303,7 @@ export class JobService {
           }),
         },
         orderBy: {
-          createdAt: listingParams?.orderBy || 'desc',
+          createdAt: orderBy || 'desc',
         },
         select: {
           id: true,
@@ -348,18 +348,11 @@ export class JobService {
       const totalCount = await this.prisma.job.count({
         where: {
           ...(jobType && { jobType: jobType }),
-
+          ...(!status && {
+            riderId,
+          }),
           ...(status === RiderJobStatus.Pending && {
-            AND: [
-              { jobStatus: RiderJobStatus.Pending },
-              // {
-              //   riderJob: {
-              //     none: {
-              //       riderId: user.userTypeId,
-              //     },
-              //   },
-              // },
-            ],
+            AND: [{ jobStatus: RiderJobStatus.Pending }],
           }),
 
           ...(status === RiderJobStatus.Accepted && {
@@ -414,14 +407,22 @@ export class JobService {
   }
 
   async getAllVendorJobs(vendorId: number, listingParams: GetVendorJobsDto) {
-    const { page = 1, take = 10, search, jobType } = listingParams;
+    const {
+      page = 1,
+      take = 10,
+      search,
+      jobType,
+      status,
+      timeFrom,
+      timeTill,
+    } = listingParams;
     try {
       const jobs = await this.prisma.job.findMany({
         where: {
           ...(jobType && { jobType: jobType }),
           vendorId: vendorId,
-          ...(listingParams.status && {
-            jobStatus: listingParams.status,
+          ...(status && {
+            jobStatus: status,
           }),
           ...(search && {
             bookingMaster: {
@@ -433,11 +434,11 @@ export class JobService {
               },
             },
           }),
-          ...(listingParams.timeFrom &&
-            listingParams.timeTill && {
+          ...(timeFrom &&
+            timeTill && {
               jobDate: {
-                gte: listingParams.timeFrom,
-                lte: listingParams.timeTill,
+                gte: timeFrom,
+                lte: timeTill,
               },
             }),
         },
@@ -835,6 +836,18 @@ export class JobService {
               userMaster: {
                 select: {
                   phone: true,
+                },
+              },
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
+                select: {
+                  fullAddress: true,
                 },
               },
             },

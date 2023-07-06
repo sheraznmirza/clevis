@@ -50,9 +50,13 @@ export class CustomerRepository {
               fullName: true,
               customerId: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   userAddressId: true,
                   fullAddress: true,
+                  isActive: true,
                   city: {
                     select: {
                       cityName: true,
@@ -99,13 +103,13 @@ export class CustomerRepository {
   }
 
   async getAllCustomers(listingParams: CustomerListingParams) {
-    const { page = 1, take = 10, search } = listingParams;
+    const { page = 1, take = 10, search, orderBy } = listingParams;
     try {
       const customers = await this.prisma.userMaster.findMany({
         take: +take,
         skip: +take * (+page - 1),
         orderBy: {
-          createdAt: 'desc',
+          createdAt: orderBy || 'desc',
         },
 
         where: {
