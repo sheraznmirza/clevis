@@ -1065,6 +1065,22 @@ export class BookingRepository {
               },
             },
           },
+          vendor: {
+            select: {
+              userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                take: 1,
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                select: {
+                  fullAddress: true,
+                },
+              },
+            },
+          },
           vat: true,
           pickupDeliveryCharges: true,
           dropoffDeliveryCharges: true,
@@ -1701,6 +1717,12 @@ export class BookingRepository {
             if (isNaN(values[i].distanceValue)) {
               throw new BadRequestException(
                 'Route does not exist between the vendor and one of these locations',
+              );
+            }
+
+            if (Math.round(+values[i].distanceValue) < 1) {
+              throw new BadRequestException(
+                'You cannot create a delivery with the same location',
               );
             }
 
