@@ -418,6 +418,9 @@ export class CustomerRepository {
               select: {
                 vendorId: true,
                 vendorService: {
+                  where: {
+                    isDeleted: false,
+                  },
                   select: {
                     service: {
                       select: {
@@ -627,6 +630,9 @@ export class CustomerRepository {
               select: {
                 vendorId: true,
                 vendorService: {
+                  where: {
+                    isDeleted: false,
+                  },
                   select: {
                     vendorServiceId: true,
                     service: {
