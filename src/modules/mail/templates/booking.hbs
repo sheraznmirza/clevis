@@ -40,13 +40,21 @@
                       <h1
                         style='font-size:16px;margin: 0;font-weight:700;font-family:Verdana,Arial,sans-serif;text-align: center;color:#2B4576'
                       >
-                        Dear&nbsp;{{first_name}}</h1>
+                        Hi&nbsp;{{customer_name}}</h1>
                       <p
                         style='margin:0;font-size:14px;line-height:24px;font-family:Verdana,Arial,sans-serif;color:#545454;margin: 15px 0px;'
                       >
-                        {{{message}}}</p>
+                        {{message}}</p>
+                        
 
+ {{!-- <p style='margin:0;font-size:14px;line-height:24px;font-family:Verdana,Arial,sans-serif;color:#545454;margin: 15px 0px;'>
+                       <ul>
+  <li>Date: {{booking_date}}</li>
+  <li>Time: {{booking_time}}</li>
+  <li>Ammount: {{total_amount}}</li>
+</ul>  </p> --}}
                         {{{list}}}
+
                       <p
                         style='margin:0;font-size:14px;line-height:24px;font-family:Verdana,Arial,sans-serif;color:#545454;font-weight:700;'
                       >
@@ -78,5 +86,4 @@
       </tr>
     </table>
   </body>
-
 </html>

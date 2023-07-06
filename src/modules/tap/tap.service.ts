@@ -20,12 +20,19 @@ import { AxiosResponse } from 'axios';
 import { ChargeDto, ChargeParams } from './dto/charge.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChargeEntityTypes } from 'src/core/dto';
+import { job } from 'cron';
+import dayjs from 'dayjs';
+import { ConfigService } from '@nestjs/config';
+import { MailService } from '../mail/mail.service';
+import { UserType } from '@prisma/client';
 
 @Injectable()
 export class TapService {
   constructor(
     private httpService: HttpService,
     private prisma: PrismaService,
+    private mail: MailService,
+    private config: ConfigService,
   ) {}
 
   async tapAuthorize(dto) {
@@ -41,7 +48,7 @@ export class TapService {
       if (dto.status === 'CAPTURED') {
         console.log('charge dto: ', dto);
         console.log('charge params: ', params);
-        await this.prisma.earnings.create({
+        const earning = await this.prisma.earnings.create({
           data: {
             amount: dto.amount,
             userMasterId: +params.userMasterId,
@@ -55,7 +62,132 @@ export class TapService {
             tapCustomerId: dto.customer.id,
             tapAuthId: dto.source.id,
           },
+          select: {
+            createdAt: true,
+            bookingMaster: {
+              select: {
+                bookingMasterId: true,
+                pickupDeliveryCharges: true,
+                dropoffDeliveryCharges: true,
+                totalPrice: true,
+                customer: { select: { fullName: true } },
+              },
+            },
+            job: {
+              select: { id: true, vendor: { select: { fullName: true } } },
+            },
+            userMaster: {
+              select: {
+                userMasterId: true,
+                userType: true,
+                vendor: { select: { fullName: true } },
+                rider: { select: { fullName: true } },
+                email: true,
+              },
+            },
+          },
         });
+
+        console.log('EARNING:  ', earning);
+        if (earning.userMaster.userType === UserType.VENDOR) {
+          const context2 = {
+            customer_name: earning.userMaster.vendor.fullName,
+            message: `We would like to inform you that a payment has been credited to your Account. Please find below the details of the transaction`,
+            list: `<ul>
+              <li>Booking ID: ${earning?.bookingMaster?.bookingMasterId}</li>
+              <li>Booking Customer Name:${
+                earning.bookingMaster.customer.fullName
+              } </li>
+              <li>Credited Amount: ${dto.amount}</li>
+              <li>Date: ${dayjs(earning.createdAt).format('DD-MM-YYYY')}</li>
+            </ul>`,
+            app_name: this.config.get('APP_NAME'),
+
+            copyright_year: this.config.get('COPYRIGHT_YEAR'),
+            // otp: randomOtp,
+          };
+          await this.mail.sendEmail(
+            earning.userMaster.email,
+            this.config.get('MAIL_NO_REPLY'),
+            `Payment Credited for Booking`,
+            'booking', // `.hbs` extension is appended automatically
+            context2,
+          );
+        }
+
+        if (earning.userMaster.userType === UserType.RIDER) {
+          const context2 = {
+            customer_name: earning.userMaster.rider.fullName,
+            message: `We would like to inform you that a payment has been credited to your Account. Please find below the details of the transaction`,
+            list: `<ul>
+              <li>Job ID: ${earning?.job?.id}</li>
+              <li>Job Vendor Name:${earning.job.vendor.fullName} </li>
+              <li>Credited Amount: ${dto.amount}</li>
+              <li>Date: ${dayjs(earning.createdAt).format('DD-MM-YYYY')}</li>
+            </ul>`,
+            app_name: this.config.get('APP_NAME'),
+
+            copyright_year: this.config.get('COPYRIGHT_YEAR'),
+            // otp: randomOtp,
+          };
+          await this.mail.sendEmail(
+            earning.userMaster.email,
+            this.config.get('MAIL_NO_REPLY'),
+            `Payment Credited for Job`,
+            'booking', // `.hbs` extension is appended automatically
+            context2,
+          );
+        }
+
+        if (+params.userMasterId === 1) {
+          const booking = await this.prisma.bookingMaster.findUnique({
+            where: {
+              bookingMasterId: +params.entityId,
+            },
+            select: {
+              bookingMasterId: true,
+              pickupDeliveryCharges: true,
+              dropoffDeliveryCharges: true,
+              totalPrice: true,
+              customer: {
+                select: {
+                  fullName: true,
+                },
+              },
+            },
+          });
+
+          const context = {
+            customer_name: 'Admin',
+            message: `We would like to inform you that a payment has been made by the customer for booking ${booking.bookingMasterId}. Please find below the details of the transaction`,
+            list: `<ul>
+                    <li> Booking ID: ${booking.bookingMasterId}</li>
+                    <li>Customer Name:${booking.customer.fullName} </li>
+                    <li>Service Amount: ${booking.totalPrice}</li>
+                    <li>Pickup Delivery Charges Amount: ${
+                      booking.pickupDeliveryCharges
+                    }</li>
+                    <li>Dropoff Delivery Charges Amount: ${
+                      booking.dropoffDeliveryCharges
+                    }</li>
+                    <li>PlatformFee Amount: ${dto.amount}</li>
+                    <li>Date: ${dayjs(earning.createdAt).format(
+                      'DD-MM-YYYY',
+                    )}</li>  
+                  </ul>`,
+            app_name: this.config.get('APP_NAME'),
+
+            copyright_year: this.config.get('COPYRIGHT_YEAR'),
+            // otp: randomOtp,
+          };
+          await this.mail.sendEmail(
+            this.config.get('MAIL_ADMIN'),
+            this.config.get('MAIL_NO_REPLY'),
+            `Payment Received for Booking`,
+            'booking', // `.hbs` extension is appended automatically
+            context,
+          );
+        }
       }
     } catch (error) {
       throw error;

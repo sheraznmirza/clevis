@@ -33,12 +33,15 @@ import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
 import { vendors } from 'src/seeders/constants';
+import { dynamicUrl } from 'src/helpers/dynamic-url.helper';
+import { MailService } from 'src/modules/mail/mail.service';
 dayjs.extend(utc);
 
 @Injectable()
 export class JobService {
   constructor(
     private prisma: PrismaService,
+    private mail: MailService,
     private notificationService: NotificationService,
     private tapService: TapService,
     private config: ConfigService,
@@ -56,8 +59,18 @@ export class JobService {
           bookingMasterId: createJobDto.bookingMasterId,
         },
         select: {
+          customer: {
+            select: {
+              fullName: true,
+            },
+          },
           status: true,
           isWithDelivery: true,
+          bookingDate: true,
+          pickupTimeFrom: true,
+          pickupTimeTo: true,
+          dropoffTimeFrom: true,
+          dropoffTimeTo: true,
           job: {
             where: {
               jobType: createJobDto.jobType,
@@ -70,6 +83,16 @@ export class JobService {
             select: {
               id: true,
               jobStatus: true,
+            },
+          },
+          pickupLocation: {
+            select: {
+              fullAddress: true,
+            },
+          },
+          dropoffLocation: {
+            select: {
+              fullAddress: true,
             },
           },
         },
@@ -131,6 +154,7 @@ export class JobService {
           id: true,
           vendor: {
             select: {
+              companyName: true,
               fullName: true,
               userAddress: {
                 where: {
@@ -169,10 +193,16 @@ export class JobService {
         select: {
           userMasterId: true,
           fullName: true,
+          userMaster: {
+            select: {
+              email: true,
+            },
+          },
         },
       });
 
       const riderIds = rider.map((obj) => obj.userMasterId);
+      // const riderNames = rider.map((obj) => obj.fullName);
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.VendorCreatedJob,
@@ -193,6 +223,54 @@ export class JobService {
         payload,
         UserType.RIDER,
       );
+
+      for (let i = 0; i < rider.length; i++) {
+        const context = {
+          app_name: this.config.get('APP_NAME'),
+          secondmessage: 'If you have any question , please contact admin.',
+          first_name: rider[i].fullName,
+          message: `A new job has been created by ${job.vendor.companyName}`,
+          list: `<h1><em>Booking Details: </em></h1>
+        <ul>
+<li> Location:${
+            createJobDto.jobType === JobType.PICKUP
+              ? booking.pickupLocation.fullAddress
+              : booking.dropoffLocation.fullAddress
+          } </li> 
+<li>Customer Name: ${booking.customer.fullName} </li>
+<li>Delivery Date: ${dayjs(booking.bookingDate)
+            .utc()
+            .local()
+            .format('DD/MM/YYYY')}</li>
+          <li>Delivery: ${
+            createJobDto.jobType === JobType.PICKUP
+              ? `${dayjs(booking.pickupTimeFrom)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}-${dayjs(booking.pickupTimeTo)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}`
+              : `${dayjs(booking.dropoffTimeFrom)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}-${dayjs(booking.dropoffTimeTo)
+                  .utc()
+                  .local()
+                  .format('HH:mm')}`
+          } </li>
+</ul>`,
+
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+        await this.mail.sendEmail(
+          rider[i].userMaster.email,
+          this.config.get('MAIL_NO_REPLY'),
+          `Quick Reminder:New Job Has Been Posted`,
+          'vendor-create-job',
+          context, // `.hbs` extension is appended automatically
+        );
+      }
 
       return successResponse(201, 'Job created successfully.');
     } catch (error) {
@@ -504,6 +582,7 @@ export class JobService {
           riderId: true,
           vendor: {
             select: {
+              fullName: true,
               userMasterId: true,
             },
           },
@@ -526,6 +605,14 @@ export class JobService {
           },
           bookingMaster: {
             select: {
+              pickupLocation: {
+                select: { fullAddress: true },
+              },
+              dropoffLocation: {
+                select: {
+                  fullAddress: true,
+                },
+              },
               bookingMasterId: true,
               tapAuthId: true,
               pickupDeliveryCharges: true,
@@ -795,6 +882,61 @@ export class JobService {
           UserType.CUSTOMER,
         );
       }
+
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+
+        vendor_name: booking.vendor.fullName,
+        message:
+          dto.jobStatus === RiderJobStatus.Accepted
+            ? 'A rider has accepted your job request. They are on their way to provide the requested service.'
+            : dto.jobStatus === RiderJobStatus.Completed &&
+              booking.jobType === JobType.PICKUP
+            ? 'The rider has successfully completed the pickup for your job.'
+            : dto.jobStatus === RiderJobStatus.Completed &&
+              booking.jobType === JobType.DELIVERY
+            ? 'The rider has successfully completed the dropoff for your job.'
+            : '',
+        list: `<h1><em>Please find job details below: </em></h1>
+      <ul>
+      <li> 
+      Job ID:${jobId} </li>
+      <li> Booking ID:${booking.bookingMaster.bookingMasterId} </li>
+       <li> Rider Name:${booking.rider.fullName} </li>
+<li> Pickup Location:${booking.bookingMaster.pickupLocation.fullAddress} </li> 
+<li> Dropoff Location:${booking.bookingMaster.dropoffLocation.fullAddress} </li>
+<li>Amount: ${
+          dto.jobStatus === RiderJobStatus.Completed &&
+          booking.jobType === JobType.DELIVERY
+            ? booking.bookingMaster.dropoffDeliveryCharges
+            : dto.jobStatus === RiderJobStatus.Completed &&
+              booking.jobType === JobType.PICKUP
+            ? booking.bookingMaster.pickupDeliveryCharges
+            : ''
+        }</li>
+</ul>`,
+
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+
+      const status =
+        dto.jobStatus === RiderJobStatus.Accepted
+          ? 'Job Request Accepted'
+          : dto.jobStatus === RiderJobStatus.Completed &&
+            booking.jobType === JobType.PICKUP
+          ? 'Pickup Completed'
+          : dto.jobStatus === RiderJobStatus.Completed &&
+            booking.jobType === JobType.DELIVERY
+          ? 'Dropoff Completed'
+          : '';
+
+      await this.mail.sendEmail(
+        user.email,
+        this.config.get('MAIL_NO_REPLY'),
+        status,
+        'rider-job-status',
+        context, // `.hbs` extension is appended automatically
+      );
 
       return successResponse(200, `Job status successfully ${dto.jobStatus}`);
     } catch (error) {

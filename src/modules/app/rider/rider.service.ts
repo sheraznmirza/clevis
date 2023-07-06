@@ -300,9 +300,7 @@ export class RiderService {
       await this.mail.sendEmail(
         user.email,
         this.config.get('MAIL_ADMIN'),
-        `${
-          user.userType[0] + user.userType.slice(1).toLowerCase()
-        } ${user.rider.status.toLowerCase()}`,
+        '',
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );

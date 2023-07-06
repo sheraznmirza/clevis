@@ -44,6 +44,8 @@ import { NotificationService } from 'src/modules/notification-socket/notificatio
 import { currentDateToVendorFilter } from 'src/helpers/date.helper';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { MailService } from 'src/modules/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 dayjs.extend(utc);
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
@@ -52,6 +54,8 @@ export class VendorRepository {
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
+    private mail: MailService,
+    private config: ConfigService,
   ) {}
 
   async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
@@ -278,6 +282,7 @@ export class VendorRepository {
           userMasterId,
         },
         select: {
+          email: true,
           vendor: {
             select: {
               vendorId: true,
@@ -606,6 +611,29 @@ export class VendorRepository {
         await this.notificationService.HandleNotifications(
           payload,
           UserType.VENDOR,
+        );
+      }
+
+      if (Boolean(dto?.isActive) === true || Boolean(dto?.isActive) === false) {
+        const status = dto.isActive
+          ? 'Account Activated'
+          : 'Account Deactivated';
+
+        const context = {
+          name: vendor.vendor.fullName,
+          message: dto.isActive
+            ? `<p>Your account has been activated , you can now login using your registered email and password</p> <p>If you have any question , please contact admin.</p>`
+            : `<p> Unfortunately your account has been deactivated</p> <p>If you have any question, please contact admin for further assistance regarding this issue.</p>`,
+          app_name: this.config.get('APP_NAME'),
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+
+        this.mail.sendEmail(
+          user.email,
+          this.config.get('MAIL_NO_REPLY'),
+          status,
+          'inactive',
+          context,
         );
       }
 
@@ -1106,6 +1134,12 @@ export class VendorRepository {
                   startTime: true,
                   endTime: true,
                   isActive: true,
+                },
+              },
+              deliverySchedule: {
+                select: {
+                  serviceDurationMin: true,
+                  serviceDurationMax: true,
                 },
               },
             },

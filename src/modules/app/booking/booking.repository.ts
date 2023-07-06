@@ -305,6 +305,39 @@ export class BookingRepository {
         });
       }
 
+      const context = {
+        message:
+          'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
+        list: `<ul>
+            <li>Date: ${dayjs(bookingMaster.bookingDate)
+              .utc()
+              .local()
+              .format('DD/MM/YYYY')}</li>
+              <li>Time: ${dayjs(bookingMaster.bookingDate)
+                .utc()
+                .format('HH:mm')}</li>
+              <li>Amount: ${bookingMaster.totalPrice}</li>
+          </ul>`,
+        customer_name: bookingMaster.customer.fullName,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .local()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `New Booking`,
+        'booking.hbs', // `.hbs` extension is appended automatically
+        context,
+      );
+
       // const context = {
       //   first_paragraph:
       //     'You have received a new booking request. Please review the details below and take necessary action:',
@@ -936,6 +969,17 @@ export class BookingRepository {
         take: +take,
         skip: +take * (+page - 1),
         select: {
+          bookingAttachments: {
+            select: {
+              media: {
+                select: {
+                  name: true,
+                  location: true,
+                  key: true,
+                },
+              },
+            },
+          },
           bookingMasterId: true,
           isWithDelivery: true,
           customer: {
@@ -1352,6 +1396,105 @@ export class BookingRepository {
         }
       }
 
+      const context = {
+        message:
+          dto.bookingStatus === BookingStatus.Confirmed
+            ? 'Your booking has been confirmed successfully. Please check the details of your booking in Bookings section'
+            : dto.bookingStatus === BookingStatus.In_Progress
+            ? 'Your booking is In Progress. Please check the details of your booking in Bookings section'
+            : dto.bookingStatus === BookingStatus.Completed
+            ? 'Your booking has been Completed successfully. Please check the details of your booking in Bookings section'
+            : dto.bookingStatus === BookingStatus.Rejected
+            ? 'Your booking request has been rejected. Please check the details of your request in Bookings section'
+            : '',
+
+        list:
+          dto.bookingStatus === BookingStatus.Rejected
+            ? `<ul>
+                <li>Date: ${findBooking.bookingMasterId}</li>
+                  <li>Time: ${dayjs(findBooking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${findBooking.totalPrice}</li>
+              </ul>`
+            : dto.bookingStatus === BookingStatus.Confirmed
+            ? `<ul>
+                <li>Booking ID: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                <li>Date: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                  <li>Time: ${dayjs(findBooking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${findBooking.totalPrice}</li>
+              </ul>`
+            : dto.bookingStatus === BookingStatus.In_Progress
+            ? `<ul>
+                <li>Booking ID: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                <li>Date: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                  <li>Time: ${dayjs(findBooking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${findBooking.totalPrice}</li>
+              </ul>`
+            : dto.bookingStatus === BookingStatus.Completed
+            ? `<ul>
+                <li>Booking ID: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                <li>Date: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD/MM/YYYY')}</li>
+                  <li>Time: ${dayjs(findBooking.bookingDate)
+                    .utc()
+                    .local()
+                    .format('HH:mm')}</li>
+                  <li>Amount: ${findBooking.totalPrice}</li>
+              </ul>`
+            : '',
+
+        customer_name: findBooking.customer.fullName,
+        booking_id: findBooking.bookingMasterId,
+        service_type: findBooking.vendor.serviceType,
+        booking_date: dayjs(findBooking.bookingDate).utc().format('DD/MM/YYYY'),
+        booking_time: dayjs(findBooking.bookingDate).utc().format('HH:mm'),
+        total_amount: findBooking.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+      const status =
+        dto.bookingStatus === BookingStatus.Completed
+          ? 'Booking Completed'
+          : dto.bookingStatus === BookingStatus.Confirmed
+          ? 'Booking Confirmed'
+          : dto.bookingStatus === BookingStatus.In_Progress
+          ? 'Booking In Progress'
+          : dto.bookingStatus === BookingStatus.Rejected
+          ? 'Booking Rejected'
+          : '';
+      await this.mail.sendEmail(
+        findBooking.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        status,
+        'booking.hbs', // `.hbs` extension is appended automatically
+        context,
+      );
+
       await this.prisma.bookingMaster.update({
         where: {
           bookingMasterId,
@@ -1367,39 +1510,6 @@ export class BookingRepository {
           }),
         },
       });
-
-      // const context = {
-      //   first_paragraph:
-      //     booking.status === BookingStatus.Confirmed
-      //       ? `The booking request for ${dayjs(booking.bookingDate)
-      //           .utc()
-      //           .format('DD/MM/YYYY')} & ${dayjs(booking.bookingDate)
-      //           .utc()
-      //           .format('HH:mm')} has been accepted`
-      //       : booking.status === BookingStatus.In_Progress
-      //       ? "The status of the following booking has been changed to 'In Progress':"
-      //       : booking.status === BookingStatus.Completed
-      //       ? 'The following booking has been successfully completed:'
-      //       : '',
-      //   vendor_name: booking.vendor.fullName,
-      //   customer_name: booking.customer.fullName,
-      //   booking_id: booking.bookingMasterId,
-      //   service_type: booking.vendor.serviceType,
-      //   booking_date: dayjs(booking.bookingDate).utc().format('DD/MM/YYYY'),
-      //   booking_time: dayjs(booking.bookingDate).utc().format('HH:mm'),
-      //   total_amount: booking.totalPrice,
-      //   app_name: this.config.get('APP_NAME'),
-      //   // app_url: this.config.get(dynamicUrl(user.userType)),
-      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
-      //   // otp: randomOtp,
-      // };
-      // await this.mail.sendEmail(
-      //   booking.vendor.userMaster.email,
-      //   this.config.get('MAIL_ADMIN'),
-      //   `${this.config.get('APP_NAME')} - New Booking`,
-      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
-      //   context,
-      // );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingStatus,

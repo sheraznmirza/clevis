@@ -467,20 +467,23 @@ export class VendorService {
 
       const context = {
         app_name: this.config.get('APP_NAME'),
-        app_url: `${this.config.get(dynamicUrl(user.userType))}`,
         first_name: user.vendor.fullName,
         message:
-          user.vendor.status === Status.APPROVED
-            ? 'Great news! Your Vendor account has been approved.\n We are happy to have you on board. To start , add in services and set up profile to get bookings.\n If you have any question , please contact admin. \n For Payments, goto Tap.Company and use this Email to login after recovering password from forgot password.   '
-            : 'We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.\n Please contact admin if you have any questions regarding this issue ',
+          dto.status === Status.APPROVED
+            ? `<p>Great news! Your Vendor account has been approved </p> <p> We are happy to have you on board. To start , add in services and set up profile to get bookings </p> <p>If you have any question , please contact admin. </p><p> For Payments, goto Tap.Company and use this Email to login after recovering password from forgot password.</p>`
+            : `<p>We regret to inform you that your Vendor account application has been rejected. We appreciate your interest and encourage you to reapply if you meet the requirements.</p> <p>Please contact admin if you have any questions regarding this issue </p>`,
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
+      const status =
+        dto.status === Status.APPROVED
+          ? 'Account Approved'
+          : dto.status === Status.REJECTED
+          ? 'Application Rejected'
+          : '';
       await this.mail.sendEmail(
         user.email,
         this.config.get('MAIL_NO_REPLY'),
-        `${
-          user.userType[0] + user.userType.slice(1).toLowerCase()
-        } ${user.vendor.status.toLowerCase()}`,
+        status,
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );

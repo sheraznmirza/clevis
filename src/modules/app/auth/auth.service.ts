@@ -1080,10 +1080,17 @@ export class AuthService {
           userMasterId: masterId,
         },
         select: {
+          updatedAt: true,
           userMasterId: true,
           email: true,
           rider: true,
-          vendor: true,
+          vendor: {
+            select: {
+              fullName: true,
+              companyName: true,
+              serviceType: true,
+            },
+          },
           userType: true,
           isEmailVerified: true,
         },
@@ -1113,10 +1120,26 @@ export class AuthService {
           const context = {
             app_name: this.config.get('APP_NAME'),
             app_url: `${this.config.get(dynamicUrl(user.userType))}`,
-            first_name: user[user.userType.toLowerCase()].fullName,
-            message: `${`${
-              user[user.userType.toLowerCase()].fullName
-            } has signed up and waiting for approval.`}`,
+            first_name: 'Admin',
+            message: `This is to inform you that a vendor has submitted an account approval request. Please review the request and take appropriate actions. The details of the vendor are as follows:`,
+            list: `<ul>
+<li>Name: ${
+              user.userType === UserType.RIDER
+                ? user.rider.fullName
+                : user.vendor.fullName
+            } </li>
+<li> Vendor Email: ${
+              user.userType === UserType.RIDER ? user.email : user.email
+            }</li>
+<li>Vendor Company: ${
+              user.userType === UserType.RIDER
+                ? user.rider.companyName
+                : user.vendor.companyName
+            } </li>
+Approval Date: ${dayjs(user.updatedAt).format()}
+
+
+            </ul>`,
             copyright_year: this.config.get('COPYRIGHT_YEAR'),
           };
 
@@ -1240,6 +1263,23 @@ export class AuthService {
 
       await this.updatePassword(user.userMasterId, dto.newPassword);
 
+      const payloads: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.ChangePassword,
+        userId: [user.userMasterId],
+        data: {
+          title: NotificationTitle.CHANGE_PASSWORD,
+
+          body: NotificationBody.CHANGE_PASSWORD,
+
+          type: NotificationType.ChangePassword,
+          entityType: EntityType.CUSTOMER,
+          entityId: user.userMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payloads,
+        UserType.CUSTOMER,
+      );
       return successResponse(200, 'Password successfully changed.');
     } catch (error) {
       throw error;
