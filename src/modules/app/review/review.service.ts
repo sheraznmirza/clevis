@@ -58,6 +58,9 @@ export class ReviewService {
       });
 
       const avgRating = await this.prisma.review.aggregate({
+        where: {
+          vendorId: createReviewDto.vendorId,
+        },
         _avg: {
           rating: true,
         },
