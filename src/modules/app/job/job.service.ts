@@ -939,6 +939,11 @@ export class JobService {
 
       return successResponse(200, `Job status successfully ${dto.jobStatus}`);
     } catch (error) {
+      if (error.response.data) {
+        throw new BadRequestException(
+          error.response.data.errors[0].description,
+        );
+      }
       throw error;
     }
   }

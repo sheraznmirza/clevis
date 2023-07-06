@@ -830,6 +830,7 @@ export class CustomerRepository {
             select: {
               vendorId: true,
               avgRating: true,
+              isBusy: true,
               companySchedule: {
                 orderBy: {
                   id: 'asc',
@@ -842,6 +843,9 @@ export class CustomerRepository {
                 },
               },
               vendorService: {
+                where: {
+                  isDeleted: false,
+                },
                 select: {
                   vendorServiceId: true,
                   description: true,

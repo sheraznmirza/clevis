@@ -40,11 +40,11 @@ export class ReviewService {
         );
       }
 
-      if (booking?.vendor?.review?.length > 0) {
-        throw new BadRequestException(
-          'You have already given this booking a review.',
-        );
-      }
+      // if (booking?.vendor?.review?.length > 0) {
+      //   throw new BadRequestException(
+      //     'You have already given this booking a review.',
+      //   );
+      // }
 
       await this.prisma.review.create({
         data: {
@@ -58,6 +58,9 @@ export class ReviewService {
       });
 
       const avgRating = await this.prisma.review.aggregate({
+        where: {
+          vendorId: createReviewDto.vendorId,
+        },
         _avg: {
           rating: true,
         },
