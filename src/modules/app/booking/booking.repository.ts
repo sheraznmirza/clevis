@@ -121,12 +121,12 @@ export class BookingRepository {
       }
 
       // console.log('dto.tapAuthId: ', dto.tapAuthId);
-      // const tapAuthorize = await this.tapService.retrieveAuthorize(
-      //   dto.tapAuthId,
-      // );
-      // if (tapAuthorize.status === 'FAILED') {
-      //   throw new BadRequestException('Payment is not authorized.');
-      // }
+      const tapAuthorize = await this.tapService.retrieveAuthorize(
+        dto.tapAuthId,
+      );
+      if (tapAuthorize.status === 'FAILED') {
+        throw new BadRequestException('Payment is not authorized.');
+      }
 
       if (dto.isWithDelivery) {
         if (dto.pickupLocation && !dto.pickupLocation.userAddressId) {
