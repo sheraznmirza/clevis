@@ -24,6 +24,8 @@ import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
 import { NotificationData } from 'src/modules/notification-socket/types';
 import { NotificationBody, NotificationTitle } from 'src/constants';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { MailService } from 'src/modules/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 // import { CategoryCreateDto, CategoryUpdateDto } from './dto';
 
 @Injectable()
@@ -31,7 +33,11 @@ export class RiderRepository {
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationService,
-  ) {}
+    private mail: MailService,
+    private config: ConfigService,
+  ) {
+    // this.config = new ConfigService();
+  }
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
@@ -624,8 +630,10 @@ export class RiderRepository {
           userMasterId,
         },
         select: {
+          email: true,
           rider: {
             select: {
+              fullName: true,
               riderId: true,
             },
           },
@@ -922,6 +930,28 @@ export class RiderRepository {
         UserType.RIDER,
       );
 
+      if (Boolean(dto?.isActive) === true || Boolean(dto?.isActive) === false) {
+        const status = dto.isActive
+          ? 'Account Activated'
+          : 'Account Deactivated';
+
+        const context = {
+          name: rider.rider.fullName,
+          message: dto.isActive
+            ? `<p>Your account has been activated , you can now login using your registered email and password</p><p>If you have any question , please contact admin.</p>`
+            : `<p> Unfortunately your account has been deactivated</p> <p>If you have any question, please contact admin for further assistance regarding this issue.</p>`,
+          app_name: this.config.get('APP_NAME'),
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+
+        this.mail.sendEmail(
+          user.email,
+          this.config.get('MAIL_NO_REPLY'),
+          status,
+          'inactive',
+          context,
+        );
+      }
       return {
         ...successResponse(200, 'Rider updated successfully.'),
         ...rider,

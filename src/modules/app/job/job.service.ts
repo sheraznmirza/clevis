@@ -227,9 +227,10 @@ export class JobService {
       for (let i = 0; i < rider.length; i++) {
         const context = {
           app_name: this.config.get('APP_NAME'),
+          secondmessage: 'If you have any question , please contact admin.',
           first_name: rider[i].fullName,
           message: `A new job has been created by ${job.vendor.companyName}`,
-          list: `<h1><em>Booking Details</em></h1>
+          list: `<h1><em>Booking Details: </em></h1>
         <ul>
 <li> Location:${
             createJobDto.jobType === JobType.PICKUP
@@ -580,6 +581,7 @@ export class JobService {
           riderId: true,
           vendor: {
             select: {
+              fullName: true,
               userMasterId: true,
             },
           },
@@ -602,6 +604,14 @@ export class JobService {
           },
           bookingMaster: {
             select: {
+              pickupLocation: {
+                select: { fullAddress: true },
+              },
+              dropoffLocation: {
+                select: {
+                  fullAddress: true,
+                },
+              },
               bookingMasterId: true,
               tapAuthId: true,
               pickupDeliveryCharges: true,
@@ -871,6 +881,61 @@ export class JobService {
           UserType.CUSTOMER,
         );
       }
+
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+
+        vendor_name: booking.vendor.fullName,
+        message:
+          dto.jobStatus === RiderJobStatus.Accepted
+            ? 'A rider has accepted your job request. They are on their way to provide the requested service.'
+            : dto.jobStatus === RiderJobStatus.Completed &&
+              booking.jobType === JobType.PICKUP
+            ? 'The rider has successfully completed the pickup for your job.'
+            : dto.jobStatus === RiderJobStatus.Completed &&
+              booking.jobType === JobType.DELIVERY
+            ? 'The rider has successfully completed the dropoff for your job.'
+            : '',
+        list: `<h1><em>Please find job details below: </em></h1>
+      <ul>
+      <li> 
+      Job ID:${jobId} </li>
+      <li> Booking ID:${booking.bookingMaster.bookingMasterId} </li>
+       <li> Rider Name:${booking.rider.fullName} </li>
+<li> Pickup Location:${booking.bookingMaster.pickupLocation.fullAddress} </li> 
+<li> Dropoff Location:${booking.bookingMaster.dropoffLocation.fullAddress} </li>
+<li>Amount: ${
+          dto.jobStatus === RiderJobStatus.Completed &&
+          booking.jobType === JobType.DELIVERY
+            ? booking.bookingMaster.dropoffDeliveryCharges
+            : dto.jobStatus === RiderJobStatus.Completed &&
+              booking.jobType === JobType.PICKUP
+            ? booking.bookingMaster.pickupDeliveryCharges
+            : ''
+        }</li>
+</ul>`,
+
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+
+      const status =
+        dto.jobStatus === RiderJobStatus.Accepted
+          ? 'Job Request Accepted'
+          : dto.jobStatus === RiderJobStatus.Completed &&
+            booking.jobType === JobType.PICKUP
+          ? 'Pickup Completed'
+          : dto.jobStatus === RiderJobStatus.Completed &&
+            booking.jobType === JobType.DELIVERY
+          ? 'Dropoff Completed'
+          : '';
+
+      await this.mail.sendEmail(
+        user.email,
+        this.config.get('MAIL_NO_REPLY'),
+        status,
+        'rider-job-status',
+        context, // `.hbs` extension is appended automatically
+      );
 
       return successResponse(200, `Job status successfully ${dto.jobStatus}`);
     } catch (error) {

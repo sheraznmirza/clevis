@@ -963,6 +963,8 @@ export class CustomerRepository {
                 select: {
                   deliveryItemMin: true,
                   deliveryItemMax: true,
+                  serviceDurationMin: true,
+                  serviceDurationMax: true,
                 },
               },
             },

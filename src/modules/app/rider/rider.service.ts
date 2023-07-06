@@ -298,12 +298,11 @@ export class RiderService {
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
       // await this.notification.HandleNotifications()
-      await this.mail.sendEmail(
+
+      const status = await this.mail.sendEmail(
         user.email,
         this.config.get('MAIL_ADMIN'),
-        `${
-          user.userType[0] + user.userType.slice(1).toLowerCase()
-        } ${user.rider.status.toLowerCase()}`,
+        '',
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );
