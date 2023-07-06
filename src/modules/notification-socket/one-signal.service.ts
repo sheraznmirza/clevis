@@ -38,7 +38,12 @@ export class OneSignalService {
     playerIds: string[],
     title: string,
     content: string,
-    data?: { url?: string; web_url?: string; app_url?: string },
+    data?: {
+      bookingMasterId: number;
+      url?: string;
+      web_url?: string;
+      app_url?: string;
+    },
   ): Promise<CreateNotificationSuccessResponse> {
     const notification = new OneSignal.Notification();
     notification.app_id = AppConfig.NOTIFICATION.ONE_SIGNAL.APP_ID;
@@ -51,7 +56,8 @@ export class OneSignalService {
       en: title,
     };
     if (data) {
-      Object.assign(notification, { ...data });
+      // Object.assign(notification, data);
+      notification.data = data;
     }
     console.log('one_signal_notification: ', notification);
 

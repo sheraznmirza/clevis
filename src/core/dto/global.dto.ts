@@ -86,7 +86,7 @@ export class CustomerListingParams extends ListingParams {
   })
   @IsOptional()
   @IsEnum(OrderOf)
-  order?: OrderOf;
+  orderBy?: OrderOf;
 
   @ApiProperty({
     required: false,
@@ -106,7 +106,7 @@ export class VendorServiceListingParams extends ListingParams {
   })
   @IsOptional()
   @IsEnum(OrderOf)
-  order?: OrderOf;
+  orderBy?: OrderOf;
 }
 
 export class VendorListingParams extends ListingParams {

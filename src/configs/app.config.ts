@@ -177,6 +177,9 @@ const AppConfig = {
       RIDER_APPROVAL: 'rider-approval',
       NOTIFICATION_JOB: 'notification-job',
     },
+    BOOKING: {
+      SEND_ALERT_EMAIL: 'booking-alert',
+    },
   },
 };
 

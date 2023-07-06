@@ -11,7 +11,7 @@ import {
   VendorGetBookingsDto,
 } from './dto';
 import { GetUserType } from 'src/core/dto';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class BookingService {
@@ -128,10 +128,19 @@ export class BookingService {
     }
   }
 
-  @Cron('10 * * * * *')
-  async timeOut() {
+  @Cron(CronExpression.EVERY_HOUR)
+  async timeOutBooking() {
     try {
-      console.log('below job');
+      return await this.repository.timeOutBooking();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_NOON)
+  async bookingTimeReminder() {
+    try {
+      return await this.repository.bookingTimeReminder();
     } catch (error) {
       throw error;
     }
