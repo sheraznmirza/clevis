@@ -381,7 +381,6 @@ export class RiderService {
           context2, // `.hbs` extension is appended automatically
         );
       }
-      throw error;
     }
   }
 }

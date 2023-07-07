@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import {
   UpdateRequestDto,
@@ -118,9 +122,9 @@ export class VendorService {
   }
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
+    const user = await this.repository.approveVendor(id, dto);
     try {
-      const user = await this.repository.approveVendor(id, dto);
-
+      // throw new InternalServerErrorException('ERROR');
       this.queue.createBusinessAndMerchantForVendorRider(
         user,
         dto,
@@ -131,6 +135,8 @@ export class VendorService {
         `Vendor successfully ${dto.status.toLowerCase()}.`,
       );
     } catch (error) {
+      // console.log('ERRRRR');
+      // await this.sendEmailOnReject(user, error);
       throw error;
     }
   }
@@ -330,7 +336,6 @@ export class VendorService {
     dto: VendorUpdateStatusDto,
   ) {
     try {
-      console.log('vendor queue initiated');
       const user = await this.prisma.userMaster.findFirst({
         where: { vendor: { vendorId: vendor.vendorId } },
         select: {
@@ -513,8 +518,15 @@ export class VendorService {
     } catch (error) {
       console.log(
         'error in queue: ',
-        error.response.data.errors[0].description,
+        // error.response.data.errors[0].description,
       );
+      await this.sendEmailOnReject(vendor, error);
+      console.log('ERRRRRRRRRRRRRRRRRRRR');
+    }
+  }
+
+  async sendEmailOnReject(vendor, error) {
+    try {
       await this.prisma.vendor.update({
         where: {
           vendorId: vendor.vendorId,
@@ -524,46 +536,35 @@ export class VendorService {
         },
       });
 
-      if (error.response.data) {
-        const context = {
-          app_name: this.config.get('APP_NAME'),
-          first_name: vendor.fullName,
-          message: `Your account has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
-          copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        };
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+        first_name: vendor.fullName,
+        message: `Your account has been rejected due to the following reason:${error.response.data.errors[0].description}. Please contact our support for further information.`,
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
 
-        console.log('context: ', context);
-        await this.mail.sendEmail(
-          vendor.userMaster.email,
-          this.config.get('MAIL_NO_REPLY'),
-          `${
-            vendor.userMaster.userType[0] +
-            vendor.userMaster.userType.slice(1).toLowerCase()
-          } ${Status.REJECTED.toLowerCase()} vendorr`,
-          'vendorApprovedRejected',
-          context, // `.hbs` extension is appended automatically
-        );
+      this.mail.sendEmail(
+        vendor.userMaster.email,
+        this.config.get('MAIL_NO_REPLY'),
+        `Vendor Rejected`,
+        'vendorApprovedRejected',
+        context, // `.hbs` extension is appended automatically
+      );
 
-        const context2 = {
-          app_name: this.config.get('APP_NAME'),
-          first_name: '',
-          message: `The account of ${vendor.fullName} has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
-          copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        };
-        console.log('context2: ', context2);
+      const context2 = {
+        app_name: this.config.get('APP_NAME'),
+        first_name: '',
+        message: `The account of ${vendor.fullName} has been rejected due to the following reason:${error.response.data.errors[0].description}. Please contact our support for further information.`,
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
 
-        await this.mail.sendEmail(
-          this.config.get('MAIL_ADMIN'),
-          this.config.get('MAIL_NO_REPLY'),
-          `${
-            vendor.userMaster.userType[0] +
-            vendor.userMaster.userType.slice(1).toLowerCase()
-          } ${Status.REJECTED.toLowerCase()}`,
-          'vendorApprovedRejected',
-          context2, // `.hbs` extension is appended automatically
-        );
-      }
-      throw error;
-    }
+      this.mail.sendEmail(
+        this.config.get('MAIL_ADMIN'),
+        this.config.get('MAIL_NO_REPLY'),
+        `Vendor Rejected`,
+        'vendorApprovedRejected',
+        context2, // `.hbs` extension is appended automatically
+      );
+    } catch (error) {}
   }
 }

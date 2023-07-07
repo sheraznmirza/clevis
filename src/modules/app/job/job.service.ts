@@ -298,10 +298,7 @@ export class JobService {
     } = listingParams;
     try {
       const rider = await this.prisma.userAddress.findFirst({
-        where: {
-          riderId: riderId,
-          isDeleted: false,
-        },
+        where: { isActive: true, riderId: riderId, isDeleted: false },
         select: {
           cityId: true,
         },
