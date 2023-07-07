@@ -233,6 +233,9 @@ export class AddressService {
           cityId: {
             equals: null,
           },
+          title: {
+            not: null,
+          },
         },
         orderBy: {
           createdAt: 'desc',
