@@ -906,6 +906,13 @@ export class CustomerRepository {
               companyName: true,
               serviceType: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {
