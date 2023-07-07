@@ -295,21 +295,21 @@ export class CustomerRepository {
         },
       });
 
-      const payload: SQSSendNotificationArgs<NotificationData> = {
-        type: NotificationType.UpdateByAdmin,
-        userId: [customer.userMasterId],
-        data: {
-          title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
-          body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
-          type: NotificationType.UpdateByAdmin,
-          entityType: EntityType.CUSTOMER,
-          entityId: customer.customer.customerId,
-        },
-      };
-      await this.notificationService.HandleNotifications(
-        payload,
-        UserType.CUSTOMER,
-      );
+      // const payload: SQSSendNotificationArgs<NotificationData> = {
+      //   type: NotificationType.UpdateByAdmin,
+      //   userId: [customer.userMasterId],
+      //   data: {
+      //     title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
+      //     body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+      //     type: NotificationType.UpdateByAdmin,
+      //     entityType: EntityType.CUSTOMER,
+      //     entityId: customer.customer.customerId,
+      //   },
+      // };
+      // await this.notificationService.HandleNotifications(
+      //   payload,
+      //   UserType.CUSTOMER,
+      // );
       return {
         ...successResponse(200, 'Customer updated successfully.'),
         ...customer,
