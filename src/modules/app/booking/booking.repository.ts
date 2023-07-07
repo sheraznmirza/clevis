@@ -569,7 +569,10 @@ export class BookingRepository {
         UserType.VENDOR,
       );
 
-      return successResponse(201, 'Booking created successfully.');
+      return {
+        ...successResponse(201, 'Booking created successfully.'),
+        bookingMasterId: bookingMaster.bookingMasterId,
+      };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('Vendor does not exist');
@@ -1275,7 +1278,26 @@ export class BookingRepository {
       if (result.status !== BookingStatus.Completed) {
         delete result.job;
       }
-      return { ...result, totalItems, canPickup, canDeliver };
+
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
+      return {
+        ...result,
+        totalItems,
+        canPickup,
+        canDeliver,
+        platformFee: platformFee.fee,
+      };
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
