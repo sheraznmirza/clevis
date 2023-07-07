@@ -584,10 +584,12 @@ export class BookingRepository {
   }
 
   async getCustomerBookings(customerId: number, dto: CustomerGetBookingsDto) {
-    const { page = 1, take = 10, search, dateRange } = dto;
+    const { page = 1, take = 10, search, dateRange, status, serviceType } = dto;
     try {
       let serviceIds: number[] = [];
       let bookedDates: Date[] = [];
+      let startDate: string;
+      let endDate: string;
 
       if (dto.services) {
         serviceIds = dto.services.map((service) => {
@@ -595,8 +597,11 @@ export class BookingRepository {
         });
       }
 
-      const startDate = dayjs(dateRange.start).utc().startOf('month').format();
-      const endDate = dayjs(dateRange.start).utc().endOf('month').format();
+      if (dateRange) {
+        startDate = dayjs(dateRange.start).utc().startOf('month').format();
+        endDate = dayjs(dateRange.start).utc().endOf('month').format();
+      }
+
       const bookings = await this.prisma.bookingMaster.findMany({
         where: {
           customerId: customerId,
@@ -608,16 +613,16 @@ export class BookingRepository {
                 mode: 'insensitive',
               },
             }),
-            ...(dto?.serviceType && {
+            ...(serviceType && {
               serviceType: dto.serviceType,
             }),
           },
 
-          ...(dto?.status && {
+          ...(status && {
             status: dto.status,
           }),
 
-          ...(dto?.dateRange && {
+          ...(dateRange && {
             bookingDate: {
               gte: startDate,
               lte: endDate,
@@ -639,10 +644,10 @@ export class BookingRepository {
               },
             }),
         },
-        ...(!dto?.dateRange && {
-          take: +take,
-          skip: +take * (+page - 1),
-        }),
+        // ...(!dateRange && {
+        take: +take,
+        skip: +take * (+page - 1),
+        // }),
 
         select: {
           bookingMasterId: true,
@@ -691,19 +696,19 @@ export class BookingRepository {
                 mode: 'insensitive',
               },
             }),
-            ...(dto?.serviceType && {
+            ...(serviceType && {
               serviceType: dto.serviceType,
             }),
           },
 
-          ...(dto?.dateRange && {
+          ...(dateRange && {
             bookingDate: {
               gte: startDate,
               lte: endDate,
             },
           }),
 
-          ...(dto?.status && {
+          ...(status && {
             status: dto.status,
           }),
 
