@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  UseGuards,
-  Query,
-  Body,
-  Param,
-  Patch,
-} from '@nestjs/common';
-import { GetUser } from '../auth/decorator';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { JwtGuard } from '../auth/guard';
 import { ApiTags } from '@nestjs/swagger';
 

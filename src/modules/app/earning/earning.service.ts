@@ -179,7 +179,6 @@ export class EarningService {
         id: true,
         createdAt: true,
         amount: true,
-        //////
         job: {
           select: {
             bookingMaster: {
@@ -187,7 +186,6 @@ export class EarningService {
             },
           },
         },
-        //////
         bookingMaster: {
           select: {
             totalPrice: true,

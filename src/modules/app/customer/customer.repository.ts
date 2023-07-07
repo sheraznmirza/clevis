@@ -1,18 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
-// import { CategoryCreateDto, CategoryUpdateDto } from './dto';
-import {
-  CustomerListingParams,
-  CustomerVendorListingParams,
-} from '../../../core/dto';
-import {
-  EntityType,
-  Media,
-  NotificationType,
-  Status,
-  UserType,
-  VendorServiceStatus,
-} from '@prisma/client';
+import { CustomerListingParams } from '../../../core/dto';
+import { Media, Status, UserType, VendorServiceStatus } from '@prisma/client';
 import {
   UpdateCustomerDto,
   VendorLocationDto,
@@ -20,13 +9,8 @@ import {
   VendorStatus,
 } from './dto';
 import { successResponse, unknowError } from 'src/helpers/response.helper';
-import { subcategories } from './entities/subcategoriesType';
 import { currentDateToVendorFilter } from 'src/helpers/date.helper';
 import { getVendorListingMapper } from './customer.mapper';
-import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
-import { NotificationData } from 'src/modules/notification-socket/types';
-import { NotificationBody, NotificationTitle } from 'src/constants';
-import { riders } from 'src/seeders/constants';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
 
 @Injectable()
@@ -144,6 +128,7 @@ export class CustomerRepository {
           phone: true,
           email: true,
           userType: true,
+          isActive: true,
           customer: {
             select: {
               customerId: true,
@@ -151,6 +136,7 @@ export class CustomerRepository {
               userAddress: {
                 where: {
                   isDeleted: false,
+                  isActive: true,
                 },
                 select: {
                   userAddressId: true,
@@ -215,6 +201,7 @@ export class CustomerRepository {
         data: {
           phone: dto.phone !== null ? dto.phone : undefined,
           profilePictureId: media ? media.id : undefined,
+          isActive: dto.isActive !== null ? dto.isActive : undefined,
           customer: {
             update: {
               fullName: dto.fullName !== null ? dto.fullName : undefined,
