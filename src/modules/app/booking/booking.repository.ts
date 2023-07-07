@@ -1108,6 +1108,14 @@ export class BookingRepository {
                 },
               },
               userAddress: {
+                where: {
+                  isActive: true,
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   fullAddress: true,
                 },
@@ -1185,7 +1193,17 @@ export class BookingRepository {
           dropoffTimeTo: true,
           totalPrice: true,
           instructions: true,
-
+          bookingAttachments: {
+            select: {
+              media: {
+                select: {
+                  name: true,
+                  location: true,
+                  key: true,
+                },
+              },
+            },
+          },
           isDeleted: true,
           bookingDate: true,
           status: true,
