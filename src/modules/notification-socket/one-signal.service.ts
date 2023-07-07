@@ -56,7 +56,7 @@ export class OneSignalService {
       en: title,
     };
     if (data) {
-      // Object.assign(notification, data);
+      // Object.assign(notification, { ...data });
       notification.data = data;
     }
     console.log('one_signal_notification: ', notification);

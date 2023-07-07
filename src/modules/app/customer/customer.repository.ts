@@ -1,7 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CustomerListingParams } from '../../../core/dto';
-import { Media, Status, UserType, VendorServiceStatus } from '@prisma/client';
+import {
+  EntityType,
+  Media,
+  NotificationType,
+  Status,
+  UserType,
+  VendorServiceStatus,
+} from '@prisma/client';
 import {
   UpdateCustomerDto,
   VendorLocationDto,
@@ -12,11 +19,18 @@ import { successResponse, unknowError } from 'src/helpers/response.helper';
 import { currentDateToVendorFilter } from 'src/helpers/date.helper';
 import { getVendorListingMapper } from './customer.mapper';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
+import { ConfigService } from '@nestjs/config';
+import { MailService } from 'src/modules/mail/mail.service';
+import { NotificationBody, NotificationTitle } from 'src/constants';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
 
 @Injectable()
 export class CustomerRepository {
   constructor(
     private prisma: PrismaService,
+    private mail: MailService,
+    private config: ConfigService,
     private notificationService: NotificationService,
   ) {}
 
@@ -242,6 +256,11 @@ export class CustomerRepository {
           },
           customer: {
             select: {
+              userMaster: {
+                select: {
+                  email: true,
+                },
+              },
               fullName: true,
               customerId: true,
               userAddress: {
@@ -281,22 +300,49 @@ export class CustomerRepository {
           createdAt: 'desc',
         },
       });
+      if (customer.userType === UserType.ADMIN) {
+        const payload: SQSSendNotificationArgs<NotificationData> = {
+          type: NotificationType.UpdateByAdmin,
+          userId: [customer.userMasterId],
+          data: {
+            title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
+            body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
+            type: NotificationType.UpdateByAdmin,
+            entityType: EntityType.CUSTOMER,
+            entityId: customer.customer.customerId,
+          },
+        };
+        await this.notificationService.HandleNotifications(
+          payload,
+          UserType.CUSTOMER,
+        );
+      }
+      if (
+        Boolean(customer?.isActive) === true ||
+        Boolean(customer?.isActive) === false
+      ) {
+        const status = customer.isActive
+          ? 'Account Activated'
+          : 'Account Deactivated';
 
-      // const payload: SQSSendNotificationArgs<NotificationData> = {
-      //   type: NotificationType.UpdateByAdmin,
-      //   userId: [customer.userMasterId],
-      //   data: {
-      //     title: NotificationTitle.VENDOR_UPDATE_BY_ADMIN,
-      //     body: NotificationBody.VENDOR_UPDATE_BY_ADMIN,
-      //     type: NotificationType.UpdateByAdmin,
-      //     entityType: EntityType.CUSTOMER,
-      //     entityId: customer.customer.customerId,
-      //   },
-      // };
-      // await this.notificationService.HandleNotifications(
-      //   payload,
-      //   UserType.CUSTOMER,
-      // );
+        const context = {
+          name: customer.customer.fullName,
+          message: customer.isActive
+            ? `<p>Your account has been activated , you can now login using your registered email and password</p> <p>If you have any question , please contact admin.</p>`
+            : `<p> Unfortunately your account has been deactivated</p> <p>If you have any question, please contact admin for further assistance regarding this issue.</p>`,
+          app_name: this.config.get('APP_NAME'),
+          copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        };
+
+        this.mail.sendEmail(
+          customer.customer.userMaster.email,
+          this.config.get('MAIL_NO_REPLY'),
+          status,
+          'inactive',
+          context,
+        );
+      }
+
       return {
         ...successResponse(200, 'Customer updated successfully.'),
         ...customer,

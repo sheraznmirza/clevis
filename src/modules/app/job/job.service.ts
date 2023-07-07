@@ -873,24 +873,36 @@ export class JobService {
                 ? NotificationBody.JOB_PICKUP_ACCEPT.replace(
                     '{rider}',
                     riderDetail?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : dto.jobStatus === RiderJobStatus.Accepted &&
                   booking.jobType === JobType.DELIVERY
                 ? NotificationBody.JOB_DELIVERY_ACCEPT.replace(
                     '{rider}',
                     riderDetail?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : dto.jobStatus === RiderJobStatus.Completed &&
                   booking.jobType === JobType.PICKUP
                 ? NotificationBody.JOB_PICKUP_COMPLETED.replace(
                     '{rider}',
                     booking?.rider?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : dto.jobStatus === RiderJobStatus.Completed &&
                   booking.jobType === JobType.DELIVERY
                 ? NotificationBody.JOB_DELIVERY_COMPLETED.replace(
                     '{rider}',
                     booking?.rider?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : null,
             type: NotificationType.RiderJob,
