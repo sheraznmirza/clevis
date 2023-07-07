@@ -248,6 +248,8 @@ export class BookingRepository {
           isWithDelivery: dto.isWithDelivery,
         },
         select: {
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           bookingMasterId: true,
           bookingDate: true,
           totalPrice: true,
@@ -266,6 +268,7 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              userMasterId: true,
               fullName: true,
             },
           },
@@ -313,10 +316,12 @@ export class BookingRepository {
               .utc()
               .local()
               .format('DD/MM/YYYY')}</li>
-              <li>Time: ${dayjs(bookingMaster.bookingDate)
-                .utc()
-                .format('HH:mm')}</li>
-              <li>Amount: ${bookingMaster.totalPrice}</li>
+             
+              <li>Amount: ${(
+                +bookingMaster.totalPrice +
+                +bookingMaster.dropoffDeliveryCharges +
+                +bookingMaster.pickupDeliveryCharges
+              ).toFixed(2)}</li>
           </ul>`,
         customer_name: bookingMaster.customer.fullName,
         booking_date: dayjs(bookingMaster.bookingDate)
@@ -338,30 +343,21 @@ export class BookingRepository {
         context,
       );
 
-      // const context = {
-      //   first_paragraph:
-      //     'You have received a new booking request. Please review the details below and take necessary action:',
-      //   vendor_name: bookingMaster.vendor.fullName,
-      //   customer_name: bookingMaster.customer.fullName,
-      //   booking_id: bookingMaster.bookingMasterId,
-      //   service_type: bookingMaster.vendor.serviceType,
-      //   booking_date: dayjs(bookingMaster.bookingDate)
-      //     .utc()
-      //     .format('DD/MM/YYYY'),
-      //   booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
-      //   total_amount: bookingMaster.totalPrice,
-      //   app_name: this.config.get('APP_NAME'),
-      //   // app_url: this.config.get(dynamicUrl(user.userType)),
-      //   copyright_year: this.config.get('COPYRIGHT_YEAR'),
-      //   // otp: randomOtp,
-      // };
-      // await this.mail.sendEmail(
-      //   bookingMaster.vendor.userMaster.email,
-      //   this.config.get('MAIL_ADMIN'),
-      //   `${this.config.get('APP_NAME')} - New Booking`,
-      //   'vendor-accept-booking', // `.hbs` extension is appended automatically
-      //   context,
-      // );
+      const payload2: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.customer.userMasterId],
+        data: {
+          title: NotificationTitle.BOOKING_SENT_CUSTOMER,
+          body: NotificationBody.BOOKING_SENT_CUSTOMER,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload2,
+        UserType.CUSTOMER,
+      );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -479,6 +475,8 @@ export class BookingRepository {
           },
         },
         select: {
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           bookingMasterId: true,
           bookingDate: true,
           totalPrice: true,
@@ -497,6 +495,7 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              userMasterId: true,
               fullName: true,
             },
           },
@@ -552,6 +551,57 @@ export class BookingRepository {
       //   'vendor-accept-booking', // `.hbs` extension is appended automatically
       //   context,
       // );
+
+      const context = {
+        message:
+          'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
+        list: `<ul>
+            <li>Date: ${dayjs(bookingMaster.bookingDate)
+              .utc()
+              .local()
+              .format('DD/MM/YYYY')}</li>
+              
+              <li>Amount: SR ${(
+                +bookingMaster.totalPrice +
+                +bookingMaster.dropoffDeliveryCharges +
+                +bookingMaster.pickupDeliveryCharges
+              ).toFixed(2)}</li>
+          </ul>`,
+        customer_name: bookingMaster.customer.fullName,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .local()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `New Booking`,
+        'booking.hbs', // `.hbs` extension is appended automatically
+        context,
+      );
+
+      const payload2: SQSSendNotificationArgs<NotificationData> = {
+        type: NotificationType.BookingCreated,
+        userId: [bookingMaster.customer.userMasterId],
+        data: {
+          title: NotificationTitle.BOOKING_SENT_CUSTOMER,
+          body: NotificationBody.BOOKING_SENT_CUSTOMER,
+          type: NotificationType.BookingCreated,
+          entityType: EntityType.BOOKINGMASTER,
+          entityId: bookingMaster.bookingMasterId,
+        },
+      };
+      await this.notificationService.HandleNotifications(
+        payload2,
+        UserType.CUSTOMER,
+      );
 
       const payload: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.BookingCreated,
@@ -1277,6 +1327,8 @@ export class BookingRepository {
           bookingMasterId,
         },
         select: {
+          pickupDeliveryCharges: true,
+          dropoffDeliveryCharges: true,
           bookingMasterId: true,
           bookingDate: true,
           totalPrice: true,
@@ -1437,11 +1489,15 @@ export class BookingRepository {
                     .utc()
                     .local()
                     .format('HH:mm')}</li>
-                  <li>Amount: ${findBooking.totalPrice}</li>
+                  <li>Amount: SR ${(
+                    +findBooking.totalPrice +
+                    +findBooking.dropoffDeliveryCharges +
+                    +findBooking.pickupDeliveryCharges
+                  ).toFixed(2)}</li>
               </ul>`
             : dto.bookingStatus === BookingStatus.Confirmed
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingDate)
+                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
                   .utc()
                   .local()
                   .format('DD/MM/YYYY')}</li>
@@ -1449,15 +1505,16 @@ export class BookingRepository {
                   .utc()
                   .local()
                   .format('DD/MM/YYYY')}</li>
-                  <li>Time: ${dayjs(findBooking.bookingDate)
-                    .utc()
-                    .local()
-                    .format('HH:mm')}</li>
-                  <li>Amount: ${findBooking.totalPrice}</li>
+               
+                  <li>Amount: SR ${(
+                    +findBooking.totalPrice +
+                    +findBooking.dropoffDeliveryCharges +
+                    +findBooking.pickupDeliveryCharges
+                  ).toFixed(2)}</li>
               </ul>`
             : dto.bookingStatus === BookingStatus.In_Progress
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingDate)
+                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
                   .utc()
                   .local()
                   .format('DD/MM/YYYY')}</li>
@@ -1465,15 +1522,16 @@ export class BookingRepository {
                   .utc()
                   .local()
                   .format('DD/MM/YYYY')}</li>
-                  <li>Time: ${dayjs(findBooking.bookingDate)
-                    .utc()
-                    .local()
-                    .format('HH:mm')}</li>
-                  <li>Amount: ${findBooking.totalPrice}</li>
+                 
+                  <li>Amount: SR ${(
+                    +findBooking.totalPrice +
+                    +findBooking.dropoffDeliveryCharges +
+                    +findBooking.pickupDeliveryCharges
+                  ).toFixed(2)}</li>
               </ul>`
             : dto.bookingStatus === BookingStatus.Completed
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingDate)
+                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
                   .utc()
                   .local()
                   .format('DD/MM/YYYY')}</li>
@@ -1481,11 +1539,12 @@ export class BookingRepository {
                   .utc()
                   .local()
                   .format('DD/MM/YYYY')}</li>
-                  <li>Time: ${dayjs(findBooking.bookingDate)
-                    .utc()
-                    .local()
-                    .format('HH:mm')}</li>
-                  <li>Amount: ${findBooking.totalPrice}</li>
+              
+                  <li>Amount:  ${(
+                    +findBooking.totalPrice +
+                    +findBooking.dropoffDeliveryCharges +
+                    +findBooking.pickupDeliveryCharges
+                  ).toFixed(2)}</li>
               </ul>`
             : '',
 
@@ -1551,15 +1610,18 @@ export class BookingRepository {
                   bookingMasterId.toString(),
                 )
               : dto.bookingStatus === BookingStatus.Confirmed
-              ? NotificationBody.BOOKING_APPROVED
+              ? NotificationBody.BOOKING_APPROVED.replace(
+                  '{name}',
+                  findBooking.customer.fullName,
+                )
               : dto.bookingStatus === BookingStatus.Completed
               ? NotificationBody.BOOKING_COMPLETED.replace(
                   '{id}',
                   bookingMasterId.toString(),
                 )
               : NotificationBody.BOOKING_REJECTED.replace(
-                  '{vendor}',
-                  findBooking.vendor.fullName,
+                  '{Booking}',
+                  bookingMasterId.toString(),
                 ),
           type: NotificationType.BookingStatus,
           entityType: EntityType.BOOKINGMASTER,

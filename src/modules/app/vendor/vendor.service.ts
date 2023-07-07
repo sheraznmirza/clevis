@@ -341,6 +341,7 @@ export class VendorService {
           userType: true,
           vendor: {
             select: {
+              userMaster: { select: { email: true } },
               userMasterId: true,
               status: true,
               userAddress: {
@@ -481,34 +482,34 @@ export class VendorService {
           ? 'Application Rejected'
           : '';
       await this.mail.sendEmail(
-        user.email,
+        user.vendor.userMaster.email,
         this.config.get('MAIL_NO_REPLY'),
         status,
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );
 
-      const payloads: SQSSendNotificationArgs<NotificationData> = {
-        type: NotificationType.VendorStatus,
-        userId: [user.vendor.userMasterId],
-        data: {
-          title:
-            dto.status === 'APPROVED'
-              ? NotificationTitle.ADMIN_APPROVED
-              : NotificationTitle.ADMIN_REJECTED,
-          body:
-            dto.status === 'APPROVED'
-              ? NotificationBody.ADMIN_APPROVED
-              : NotificationBody.ADMIN_REJECTED,
-          type: NotificationType.BookingStatus,
-          entityType: EntityType.VENDOR,
-          entityId: user.vendor.vendorId,
-        },
-      };
-      await this.notificationService.HandleNotifications(
-        payloads,
-        UserType.VENDOR,
-      );
+      // const payloads: SQSSendNotificationArgs<NotificationData> = {
+      //   type: NotificationType.VendorStatus,
+      //   userId: [user.vendor.userMasterId],
+      //   data: {
+      //     title:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationTitle.ADMIN_APPROVED
+      //         : NotificationTitle.ADMIN_REJECTED,
+      //     body:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationBody.ADMIN_APPROVED
+      //         : NotificationBody.ADMIN_REJECTED,
+      //     type: NotificationType.BookingStatus,
+      //     entityType: EntityType.VENDOR,
+      //     entityId: user.vendor.vendorId,
+      //   },
+      // };
+      // await this.notificationService.HandleNotifications(
+      //   payloads,
+      //   UserType.VENDOR,
+      // );
     } catch (error) {
       console.log(
         'error in queue: ',
@@ -522,6 +523,7 @@ export class VendorService {
           status: Status.REJECTED,
         },
       });
+
       if (error.response.data) {
         const context = {
           app_name: this.config.get('APP_NAME'),
@@ -537,7 +539,7 @@ export class VendorService {
           `${
             vendor.userMaster.userType[0] +
             vendor.userMaster.userType.slice(1).toLowerCase()
-          } ${Status.REJECTED.toLowerCase()}`,
+          } ${Status.REJECTED.toLowerCase()} vendorr`,
           'vendorApprovedRejected',
           context, // `.hbs` extension is appended automatically
         );

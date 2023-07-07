@@ -10,6 +10,7 @@ export enum NotificationSocketType {
 }
 
 export enum NotificationTitle {
+  BOOKING_SENT_CUSTOMER = 'Booking Request Sent',
   JOB_PICKUP_ACCEPT = 'PickUp Accepted',
   JOB_DELIVERY_ACCEPT = ' Delivery Accepted',
   JOB_PICKUP_COMPLETED = 'PickUp Completed',
@@ -32,19 +33,20 @@ export enum NotificationTitle {
 }
 
 export enum NotificationBody {
-  JOB_PICKUP_ACCEPT = '{rider} is on its ways to pick your order',
-  JOB_DELIVERY_ACCEPT = '{rider} is on its ways to deliver your order',
-  JOB_PICKUP_COMPLETED = '{rider} has pickup your order',
-  JOB_DELIVERY_COMPLETED = '{rider} has delivered your order and your booking is completed now',
-  BOOKING_APPROVED = 'The booking request has been accepted. ',
-  BOOKING_REJECTED = 'Booking Rejected by {vendor}',
+  BOOKING_SENT_CUSTOMER = 'Your booking request [Booking ID] has been sent successfully. Tap to view',
+  JOB_PICKUP_ACCEPT = '{rider} is on its ways to pick your order for booking {id}',
+  JOB_DELIVERY_ACCEPT = '{rider} is on its ways to deliver your order for booking {id}',
+  JOB_PICKUP_COMPLETED = '{rider} has dropped off your laundry for at the vendor for booking {id}.',
+  JOB_DELIVERY_COMPLETED = '{rider} has successfully delivered your laundry for booking {id}.',
+  BOOKING_APPROVED = 'Hi {name} , Your booking has been confirmed successfully. Please check the details of your booking in Bookings section . ',
+  BOOKING_REJECTED = 'Your booking request {Booking} has been rejected. Tap to view',
   BOOKING_CREATED = 'You have received a new booking request',
   RIDER_CREATED = 'Rider Verified Successfully & Waiting for Approvel',
   VENDOR_CREATED = 'Vendor Verified Successfully & Waiting for Approvel',
   ADMIN_APPROVED = 'Welcome to Clevis.We are happy to have you on board! To start , add in service information to get bookings',
   ADMIN_REJECTED = 'Admin Reject your request',
-  BOOKING_COMPLETED = 'The booking {id} has been successfully completed',
-  BOOKING_IN_PROGRESS = 'The vendor has marked the booking {id} as In Progress',
+  BOOKING_COMPLETED = 'Your booking {id} has been Completed successfully',
+  BOOKING_IN_PROGRESS = 'Your booking {id} is in progress . Tap to view',
   VENDOR_UPDATE_BY_ADMIN = 'Your Profile Information has been updated by the admin.',
   VENDOR_CREATED_JOB = 'Job Created by {vendor}',
   ADMIN_APPROVED_RIDER = 'Welcome to Clevis.{rider} can now start accepting jobs and earning with our platform. Get ready to hit the road',

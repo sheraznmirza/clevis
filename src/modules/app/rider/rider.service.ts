@@ -165,6 +165,9 @@ export class RiderService {
           userType: true,
           rider: {
             select: {
+              userMaster: {
+                select: { email: true },
+              },
               userMasterId: true,
               status: true,
               userAddress: {
@@ -289,7 +292,6 @@ export class RiderService {
       });
       const context = {
         app_name: this.config.get('APP_NAME'),
-        app_url: `${this.config.get(dynamicUrl(user.userType))}`,
         first_name: user.rider.fullName,
         message:
           rider.status === Status.APPROVED
@@ -297,38 +299,44 @@ export class RiderService {
             : 'Your account has been rejected. Please contact our support for further information.',
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
+      const status =
+        dto.status === Status.APPROVED
+          ? 'Account Approved'
+          : dto.status === Status.REJECTED
+          ? 'Application Rejected'
+          : '';
       await this.mail.sendEmail(
-        user.email,
+        user.rider.userMaster.email,
         this.config.get('MAIL_ADMIN'),
-        '',
+        status,
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );
 
-      const payloads: SQSSendNotificationArgs<NotificationData> = {
-        type: NotificationType.VendorStatus,
-        userId: [user.rider.userMasterId],
-        data: {
-          title:
-            dto.status === 'APPROVED'
-              ? NotificationTitle.ADMIN_APPROVED
-              : NotificationTitle.ADMIN_REJECTED,
-          body:
-            dto.status === 'APPROVED'
-              ? NotificationBody.ADMIN_APPROVED_RIDER.replace(
-                  '{rider}',
-                  user.rider.fullName,
-                )
-              : NotificationBody.ADMIN_REJECTED,
-          type: NotificationType.BookingStatus,
-          entityType: EntityType.RIDER,
-          entityId: user.rider.riderId,
-        },
-      };
-      await this.notificationService.HandleNotifications(
-        payloads,
-        UserType.RIDER,
-      );
+      // const payloads: SQSSendNotificationArgs<NotificationData> = {
+      //   type: NotificationType.VendorStatus,
+      //   userId: [user.rider.userMasterId],
+      //   data: {
+      //     title:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationTitle.ADMIN_APPROVED
+      //         : NotificationTitle.ADMIN_REJECTED,
+      //     body:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationBody.ADMIN_APPROVED_RIDER.replace(
+      //             '{rider}',
+      //             user.rider.fullName,
+      //           )
+      //         : NotificationBody.ADMIN_REJECTED,
+      //     type: NotificationType.BookingStatus,
+      //     entityType: EntityType.RIDER,
+      //     entityId: user.rider.riderId,
+      //   },
+      // };
+      // await this.notificationService.HandleNotifications(
+      //   payloads,
+      //   UserType.RIDER,
+      // );
     } catch (error) {
       await this.prisma.rider.update({
         where: {

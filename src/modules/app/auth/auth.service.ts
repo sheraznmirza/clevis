@@ -135,6 +135,7 @@ export class AuthService {
           },
           customer: {
             select: {
+              email: true,
               userAddress: {
                 where: {
                   isDeleted: false,
@@ -1525,14 +1526,14 @@ Approval Date: ${dayjs(user.updatedAt).format()}
     try {
       const payloads: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.CustomerCreate,
-        userId: [user.customer.userMasterId],
+        userId: [user.userMasterId],
         data: {
           title: NotificationTitle.CUSTOMER_CREATE_ACCOUNT,
           body: NotificationBody.CUSTOMER_CREATE_ACCOUNT,
 
           type: NotificationType.CustomerCreate,
-          entityType: EntityType.VENDOR,
-          entityId: user.userMasterId,
+          entityType: EntityType.CUSTOMER,
+          entityId: user.customer.customerId,
         },
       };
       await this.notificationService.HandleNotifications(
@@ -1558,6 +1559,22 @@ Approval Date: ${dayjs(user.updatedAt).format()}
           tapCustomerId: tapCustomer.id,
         },
       });
+
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+        message:
+          'We are happy to have you on board! Now you can book Laundry & Car Wash service from the comfort of your home.',
+        name: user.customer.fullName,
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+
+      this.mail.sendEmail(
+        user.customer.email,
+        this.config.get('MAIL_NO_REPLY'),
+        'Welcome to Clevis',
+        'inactive',
+        context,
+      );
     } catch (error) {
       throw error;
     }
