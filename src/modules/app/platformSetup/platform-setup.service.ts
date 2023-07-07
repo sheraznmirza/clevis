@@ -67,9 +67,22 @@ export class PlatformSetupService {
 
   async createPlatform(dto: PlatFormSetupDto) {
     try {
-      await this.prisma.platformSetup.create({
+      const platformFee = await this.prisma.platformSetup.create({
         data: {
           fee: dto.fee,
+        },
+        select: {
+          id: true,
+        },
+      });
+      await this.prisma.platformSetup.updateMany({
+        where: {
+          id: {
+            not: platformFee.id,
+          },
+        },
+        data: {
+          isDeleted: true,
         },
       });
       return successResponse(201, 'platform Successfully Created');
