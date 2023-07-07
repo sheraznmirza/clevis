@@ -1049,6 +1049,11 @@ export class AuthService {
         },
       });
       console.log('otp: ', otp);
+
+      if (!otp) {
+        throw new BadRequestException('Invalid OTP');
+      }
+
       if (dayjs().diff(otp?.createdAt, 'minute') > 9) {
         await this.prisma.otp.update({
           where: {
