@@ -1,7 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { CustomerListingParams } from '../../../core/dto';
-import { Media, Status, UserType, VendorServiceStatus } from '@prisma/client';
+import {
+  EntityType,
+  Media,
+  NotificationType,
+  Status,
+  UserType,
+  VendorServiceStatus,
+} from '@prisma/client';
 import {
   UpdateCustomerDto,
   VendorLocationDto,
@@ -14,6 +21,9 @@ import { getVendorListingMapper } from './customer.mapper';
 import { NotificationService } from 'src/modules/notification-socket/notification.service';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from 'src/modules/mail/mail.service';
+import { NotificationBody, NotificationTitle } from 'src/constants';
+import { SQSSendNotificationArgs } from 'src/modules/queue-aws/types';
+import { NotificationData } from 'src/modules/notification-socket/types';
 
 @Injectable()
 export class CustomerRepository {
