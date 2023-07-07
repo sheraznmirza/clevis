@@ -134,6 +134,7 @@ export class CustomerRepository {
             customer: {
               fullName: {
                 contains: search,
+                mode: 'insensitive',
               },
             },
           }),
@@ -558,6 +559,7 @@ export class CustomerRepository {
                   select: {
                     cityId: true,
                   },
+                  take: 1,
                 },
               },
             },
