@@ -375,6 +375,7 @@ export class JobService {
               userAddress: {
                 some: {
                   cityId: rider.cityId,
+                  isDeleted: false,
                 },
               },
             },

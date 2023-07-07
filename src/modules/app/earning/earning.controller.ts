@@ -27,7 +27,7 @@ export class EarningController {
   @Authorized(UserType.VENDOR)
   @Get('vendor')
   getVendorEarning(@GetUser() user: GetUserType, @Query() dto: VendorEarning) {
-    return this.earningservice.getVendorEarning(user.userTypeId, dto);
+    return this.earningservice.getVendorEarning(user.userMasterId, dto);
   }
 
   @Authorized(UserType.ADMIN)
