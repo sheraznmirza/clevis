@@ -905,6 +905,7 @@ export class CustomerRepository {
               fullName: true,
               companyName: true,
               serviceType: true,
+              alwaysOpen: true,
               userAddress: {
                 where: {
                   isDeleted: false,
