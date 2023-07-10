@@ -1537,10 +1537,7 @@ export class BookingRepository {
               </ul>`
             : dto.bookingStatus === BookingStatus.Confirmed
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
-                  .utc()
-                  .local()
-                  .format('DD/MM/YYYY')}</li>
+                <li>Booking ID: ${findBooking.bookingMasterId}</li>
                 <li>Date: ${dayjs(findBooking.bookingDate)
                   .utc()
                   .local()
