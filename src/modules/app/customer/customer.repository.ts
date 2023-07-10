@@ -137,12 +137,24 @@ export class CustomerRepository {
           isDeleted: false,
           userType: UserType.CUSTOMER,
           ...(search && {
-            customer: {
-              fullName: {
-                contains: search,
-                mode: 'insensitive',
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
               },
-            },
+              {
+                customer: {
+                  email: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
           }),
         },
         select: {
