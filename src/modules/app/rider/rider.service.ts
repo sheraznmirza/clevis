@@ -213,7 +213,7 @@ export class RiderService {
           },
         },
       });
-      if (user.rider.status !== Status.PENDING) {
+      if (user.rider.status === Status.APPROVED) {
         const payload: createBusinessRequestInterface = {
           name: {
             en: user.rider.companyName,
