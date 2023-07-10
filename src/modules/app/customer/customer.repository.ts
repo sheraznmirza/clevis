@@ -951,7 +951,15 @@ export class CustomerRepository {
               fullName: true,
               companyName: true,
               serviceType: true,
+              alwaysOpen: true,
               userAddress: {
+                where: {
+                  isDeleted: false,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 1,
                 select: {
                   city: {
                     select: {

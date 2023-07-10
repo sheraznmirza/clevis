@@ -356,17 +356,6 @@ export class VendorRepository {
         });
       }
 
-      if (dto.userAddressId) {
-        await this.prisma.userAddress.update({
-          where: {
-            userAddressId: dto.userAddressId,
-          },
-          data: {
-            isDeleted: true,
-          },
-        });
-      }
-
       if (dto.accountNumber && dto.accountTitle && dto.bankName) {
         await this.prisma.banking.updateMany({
           where: {
@@ -379,26 +368,19 @@ export class VendorRepository {
       }
 
       if (
-        (dto.fullAddress ||
-          dto.cityId ||
-          typeof dto.longitude === 'number' ||
-          typeof dto.latitude === 'number') &&
-        !(
-          dto.fullAddress &&
-          dto.cityId &&
-          typeof dto.longitude === 'number' &&
-          typeof dto.latitude === 'number'
-        )
+        typeof dto.longitude === 'number' &&
+        typeof dto.latitude === 'number' &&
+        !(dto.fullAddress && dto.cityId)
       ) {
         throw new BadRequestException(
           "Please provide every parameter in the address (fullAddress, cityId, lat, long) to update the user's address",
         );
       }
 
-      if (dto.userAddressId) {
-        await this.prisma.userAddress.update({
+      if (dto?.latitude && dto?.longitude) {
+        await this.prisma.userAddress.updateMany({
           where: {
-            userAddressId: dto.userAddressId,
+            vendorId: user.vendor.vendorId,
           },
           data: {
             isDeleted: true,
