@@ -348,7 +348,10 @@ export class BookingRepository {
         userId: [bookingMaster.customer.userMasterId],
         data: {
           title: NotificationTitle.BOOKING_SENT_CUSTOMER,
-          body: NotificationBody.BOOKING_SENT_CUSTOMER,
+          body: NotificationBody.BOOKING_SENT_CUSTOMER.replace(
+            '{id}',
+            bookingMaster.bookingMasterId.toString(),
+          ),
           type: NotificationType.BookingCreated,
           entityType: EntityType.BOOKINGMASTER,
           entityId: bookingMaster.bookingMasterId,
@@ -592,7 +595,10 @@ export class BookingRepository {
         userId: [bookingMaster.customer.userMasterId],
         data: {
           title: NotificationTitle.BOOKING_SENT_CUSTOMER,
-          body: NotificationBody.BOOKING_SENT_CUSTOMER,
+          body: NotificationBody.BOOKING_SENT_CUSTOMER.replace(
+            '{id}',
+            bookingMaster.bookingMasterId.toString(),
+          ),
           type: NotificationType.BookingCreated,
           entityType: EntityType.BOOKINGMASTER,
           entityId: bookingMaster.bookingMasterId,
@@ -1524,7 +1530,10 @@ export class BookingRepository {
         list:
           dto.bookingStatus === BookingStatus.Rejected
             ? `<ul>
-                <li>Date: ${findBooking.bookingMasterId}</li>
+                <li>Date: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD-MM-YYYY')}</li>
                   <li>Time: ${dayjs(findBooking.bookingDate)
                     .utc()
                     .local()
@@ -1537,10 +1546,7 @@ export class BookingRepository {
               </ul>`
             : dto.bookingStatus === BookingStatus.Confirmed
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
-                  .utc()
-                  .local()
-                  .format('DD/MM/YYYY')}</li>
+                <li>Booking ID: ${findBooking.bookingMasterId}</li>
                 <li>Date: ${dayjs(findBooking.bookingDate)
                   .utc()
                   .local()
@@ -1554,10 +1560,7 @@ export class BookingRepository {
               </ul>`
             : dto.bookingStatus === BookingStatus.In_Progress
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
-                  .utc()
-                  .local()
-                  .format('DD/MM/YYYY')}</li>
+                <li>Booking ID: ${findBooking.bookingMasterId}</li>
                 <li>Date: ${dayjs(findBooking.bookingDate)
                   .utc()
                   .local()
@@ -1571,10 +1574,7 @@ export class BookingRepository {
               </ul>`
             : dto.bookingStatus === BookingStatus.Completed
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
-                  .utc()
-                  .local()
-                  .format('DD/MM/YYYY')}</li>
+                <li>Booking ID: ${findBooking.bookingMasterId}</li>
                 <li>Date: ${dayjs(findBooking.bookingDate)
                   .utc()
                   .local()
