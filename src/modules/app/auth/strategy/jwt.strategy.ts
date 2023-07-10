@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ServiceType, UserType } from '@prisma/client';
@@ -7,7 +7,7 @@ import { PrismaService } from '../../../../modules/prisma/prisma.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(config: ConfigService) {
+  constructor(config: ConfigService, private readonly prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.get('JWT_SECRET'),
@@ -22,13 +22,29 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     userTypeId: number;
     serviceType?: ServiceType;
   }) {
-    return {
-      userMasterId: payload.sub,
-      email: payload.email,
-      fullName: payload.fullName,
-      userType: payload.userType,
-      userTypeId: payload.userTypeId,
-      ...(payload.serviceType && { serviceType: payload.serviceType }),
-    };
+    const user = await this.prisma.userMaster.findFirst({
+      where: {
+        userMasterId: payload.sub,
+      },
+      select: {
+        isActive: true,
+        isDeleted: true,
+      },
+    });
+
+    if (!user || user.isDeleted)
+      throw new ForbiddenException('User does not exist');
+    else if (!user.isActive)
+      throw new ForbiddenException('Your account has been deactivated');
+    else {
+      return {
+        userMasterId: payload.sub,
+        email: payload.email,
+        fullName: payload.fullName,
+        userType: payload.userType,
+        userTypeId: payload.userTypeId,
+        ...(payload.serviceType && { serviceType: payload.serviceType }),
+      };
+    }
   }
 }
