@@ -34,7 +34,7 @@ export class CustomerRepository {
     private notificationService: NotificationService,
   ) {}
 
-  async getCustomerById(id: number, isCustomer?: boolean) {
+  async getCustomerById(id: number, isCustomer = false) {
     try {
       const customer = await this.prisma.userMaster.findFirst({
         where: {
