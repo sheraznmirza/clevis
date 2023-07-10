@@ -219,7 +219,11 @@ export class EarningService {
         bookingMaster: {
           vendor: {
             ...(serviceType && { serviceType: serviceType }),
-            ...(search && { fullName: { contains: search } }),
+          },
+          customer: {
+            ...(search && {
+              fullName: { contains: search, mode: 'insensitive' },
+            }),
           },
         },
 
@@ -248,7 +252,14 @@ export class EarningService {
         isRefunded: false,
         userMasterId: { not: 1 },
         job: {
-          rider: { riderId, ...(search && { fullName: { contains: search } }) },
+          rider: { riderId },
+          ...(search && {
+            bookingMaster: {
+              vendor: {
+                fullName: { contains: search, mode: 'insensitive' },
+              },
+            },
+          }),
           ...(jobType && { jobType: jobType }),
         },
         ...(timeFrom &&
