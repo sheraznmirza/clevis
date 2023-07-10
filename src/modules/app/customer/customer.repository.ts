@@ -34,7 +34,7 @@ export class CustomerRepository {
     private notificationService: NotificationService,
   ) {}
 
-  async getCustomerById(id: number) {
+  async getCustomerById(id: number, isCustomer?: boolean) {
     try {
       const customer = await this.prisma.userMaster.findFirst({
         where: {
@@ -65,6 +65,14 @@ export class CustomerRepository {
               userAddress: {
                 where: {
                   isDeleted: false,
+                  ...(isCustomer && {
+                    cityId: {
+                      not: null,
+                    },
+                  }),
+                },
+                orderBy: {
+                  createdAt: 'desc',
                 },
                 select: {
                   userAddressId: true,
@@ -169,9 +177,16 @@ export class CustomerRepository {
 
       const totalCount = await this.prisma.userMaster.count({
         where: {
-          isEmailVerified: true,
           isDeleted: false,
           userType: UserType.CUSTOMER,
+          ...(search && {
+            customer: {
+              fullName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          }),
         },
       });
 
