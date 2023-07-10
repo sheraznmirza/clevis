@@ -33,7 +33,7 @@ export enum NotificationTitle {
 }
 
 export enum NotificationBody {
-  BOOKING_SENT_CUSTOMER = 'Your booking request [Booking ID] has been sent successfully. Tap to view',
+  BOOKING_SENT_CUSTOMER = 'Your booking request {id} has been sent successfully. Tap to view',
   JOB_PICKUP_ACCEPT = '{rider} is on its ways to pick your order for booking {id}',
   JOB_DELIVERY_ACCEPT = '{rider} is on its ways to deliver your order for booking {id}',
   JOB_PICKUP_COMPLETED = '{rider} has dropped off your laundry for at the vendor for booking {id}.',

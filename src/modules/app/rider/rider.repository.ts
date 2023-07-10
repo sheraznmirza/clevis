@@ -15,6 +15,7 @@ import {
   Media,
   NotificationType,
   ServiceType,
+  Status,
   UserType,
   Vendor,
 } from '@prisma/client';
@@ -41,6 +42,20 @@ export class RiderRepository {
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
+      const currentStatus = await this.prisma.rider.findUnique({
+        where: {
+          riderId: id,
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (currentStatus.status !== Status.PENDING) {
+        throw new BadRequestException(
+          'You cannot change the status again once you have already changed it once',
+        );
+      }
       const rider = await this.prisma.rider.update({
         where: {
           riderId: id,
