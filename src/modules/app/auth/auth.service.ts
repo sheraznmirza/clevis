@@ -632,6 +632,9 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    if (!user.isActive)
+      throw new ForbiddenException('Your account has been deactivated');
+
     const pwMatches = await argon.verify(user.password, dto.password);
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
@@ -693,6 +696,7 @@ export class AuthService {
         },
         email: true,
         isEmailVerified: true,
+        isActive: true,
         phone: true,
         userType: true,
         password: true,
@@ -748,6 +752,9 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    if (!user.isActive)
+      throw new ForbiddenException('Your account has been deactivated');
+
     if (user.vendor.status !== Status.APPROVED)
       throw new ForbiddenException(
         `Vendor has ${
@@ -802,6 +809,7 @@ export class AuthService {
         },
         email: true,
         isEmailVerified: true,
+        isActive: true,
         phone: true,
         userType: true,
         password: true,
@@ -855,6 +863,9 @@ export class AuthService {
     });
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
+
+    if (!user.isActive)
+      throw new ForbiddenException('Your account has been deactivated');
 
     if (user.rider.status !== Status.APPROVED)
       throw new ForbiddenException(
