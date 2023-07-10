@@ -168,7 +168,11 @@ export class EarningService {
         bookingMaster: {
           vendor: {
             ...(serviceType && { serviceType: serviceType }),
-            ...(search && { fullName: { contains: search } }),
+          },
+          customer: {
+            ...(search && {
+              fullName: { contains: search, mode: 'insensitive' },
+            }),
           },
         },
 
