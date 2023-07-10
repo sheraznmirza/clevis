@@ -74,7 +74,19 @@ export class TapService {
               },
             },
             job: {
-              select: { id: true, vendor: { select: { fullName: true } } },
+              select: {
+                id: true,
+                vendor: { select: { fullName: true } },
+                bookingMaster: {
+                  select: {
+                    bookingMasterId: true,
+                    pickupDeliveryCharges: true,
+                    dropoffDeliveryCharges: true,
+                    totalPrice: true,
+                    customer: { select: { fullName: true } },
+                  },
+                },
+              },
             },
             userMaster: {
               select: {
@@ -140,35 +152,49 @@ export class TapService {
         }
 
         if (+params.userMasterId === 1) {
-          const booking = await this.prisma.bookingMaster.findUnique({
-            where: {
-              bookingMasterId: +params.entityId,
-            },
-            select: {
-              bookingMasterId: true,
-              pickupDeliveryCharges: true,
-              dropoffDeliveryCharges: true,
-              totalPrice: true,
-              customer: {
-                select: {
-                  fullName: true,
-                },
-              },
-            },
-          });
+          // const booking = await this.prisma.bookingMaster.findUnique({
+          //   where: {
+          //     bookingMasterId: +params.entityId,
+          //   },
+          //   select: {
+          //     bookingMasterId: true,
+          //     pickupDeliveryCharges: true,
+          //     dropoffDeliveryCharges: true,
+          //     totalPrice: true,
+          //     customer: {
+          //       select: {
+          //         fullName: true,
+          //       },
+          //     },
+          //   },
+          // });
 
           const context = {
             customer_name: 'Admin',
-            message: `We would like to inform you that a payment has been made by the customer for booking ${booking.bookingMasterId}. Please find below the details of the transaction`,
+            message: `We would like to inform you that a payment has been made by the customer for booking ${
+              earning.bookingMaster.bookingMasterId ||
+              earning.job.bookingMaster.bookingMasterId
+            }. Please find below the details of the transaction`,
             list: `<ul>
-                    <li> Booking ID: ${booking.bookingMasterId}</li>
-                    <li>Customer Name:${booking.customer.fullName} </li>
-                    <li>Service Amount: ${booking.totalPrice}</li>
+                    <li> Booking ID: ${
+                      earning.bookingMaster.bookingMasterId ||
+                      earning.job.bookingMaster.bookingMasterId
+                    }</li>
+                    <li>Customer Name:${
+                      earning.bookingMaster.customer.fullName ||
+                      earning.job.bookingMaster.customer.fullName
+                    } </li>
+                    <li>Service Amount: ${
+                      earning.bookingMaster.totalPrice ||
+                      earning.job.bookingMaster.totalPrice
+                    }</li>
                     <li>Pickup Delivery Charges Amount: ${
-                      booking.pickupDeliveryCharges
+                      earning.bookingMaster.pickupDeliveryCharges ||
+                      earning.job.bookingMaster.pickupDeliveryCharges
                     }</li>
                     <li>Dropoff Delivery Charges Amount: ${
-                      booking.dropoffDeliveryCharges
+                      earning.bookingMaster.dropoffDeliveryCharges ||
+                      earning.job.bookingMaster.dropoffDeliveryCharges
                     }</li>
                     <li>PlatformFee Amount: ${dto.amount}</li>
                     <li>Date: ${dayjs(earning.createdAt).format(
