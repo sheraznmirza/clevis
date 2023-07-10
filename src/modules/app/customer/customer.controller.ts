@@ -34,7 +34,7 @@ export class CustomerController {
   @Authorized(UserType.CUSTOMER)
   @Get('me')
   getMe(@GetUser() user: GetUserType) {
-    return this.customerService.getCustomerById(user.userMasterId);
+    return this.customerService.getCustomerById(user.userMasterId, true);
   }
 
   @Authorized(UserType.ADMIN)

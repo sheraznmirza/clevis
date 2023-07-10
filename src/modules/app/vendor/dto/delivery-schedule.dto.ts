@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, Max } from 'class-validator';
 
 export class CreateAndUpdateDeliverySchedule {
   @ApiProperty()
@@ -35,5 +35,6 @@ export class CreateAndUpdateDeliverySchedule {
   @ApiProperty()
   @IsOptional()
   @IsNumber()
+  @Max(100)
   kilometerFare: number;
 }
