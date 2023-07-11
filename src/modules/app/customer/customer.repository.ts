@@ -422,6 +422,8 @@ export class CustomerRepository {
                     serviceIds.length > 0 && {
                       vendorService: {
                         some: {
+                          isDeleted: false,
+                          status: VendorServiceStatus.Available,
                           serviceId: {
                             in: serviceIds,
                           },
@@ -640,6 +642,8 @@ export class CustomerRepository {
                 serviceIds.length > 0 && {
                   vendorService: {
                     some: {
+                      isDeleted: false,
+                      status: VendorServiceStatus.Available,
                       serviceId: {
                         in: serviceIds,
                       },
@@ -905,6 +909,7 @@ export class CustomerRepository {
               vendorService: {
                 where: {
                   isDeleted: false,
+                  status: VendorServiceStatus.Available,
                 },
                 select: {
                   vendorServiceId: true,

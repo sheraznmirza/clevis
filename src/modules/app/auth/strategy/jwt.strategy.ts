@@ -1,9 +1,10 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ServiceType, UserType } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../../../modules/prisma/prisma.service';
+import { HttpStatusCode } from 'axios';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -33,9 +34,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
 
     if (!user || user.isDeleted)
-      throw new ForbiddenException('User does not exist');
+      throw new HttpException(
+        'User does not exist',
+        HttpStatusCode.FailedDependency,
+      );
     else if (!user.isActive)
-      throw new ForbiddenException('Your account has been deactivated');
+      throw new HttpException(
+        'Your account has been deactivated',
+        HttpStatusCode.FailedDependency,
+      );
     else {
       return {
         userMasterId: payload.sub,
