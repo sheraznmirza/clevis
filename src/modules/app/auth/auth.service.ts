@@ -33,6 +33,7 @@ import {
   RefreshDto,
   ResetPasswordDataDto,
   RiderSignUpDto,
+  ValidateEmailDto,
   VendorSignUpDto,
   VerifyOtpDto,
 } from './dto';
@@ -73,6 +74,7 @@ export class AuthService {
             mode: 'insensitive',
           },
           userType: UserType.CUSTOMER,
+          isDeleted: false,
         },
       });
       const cityCount = await this.prisma.city.count({
@@ -209,6 +211,7 @@ export class AuthService {
             mode: 'insensitive',
           },
           userType: UserType.VENDOR,
+          isDeleted: false,
         },
       });
 
@@ -374,6 +377,7 @@ export class AuthService {
             mode: 'insensitive',
           },
           userType: UserType.RIDER,
+          isDeleted: false,
         },
       });
 
@@ -965,7 +969,10 @@ export class AuthService {
     try {
       const user = await this.prisma.userMaster.findFirst({
         where: {
-          email: data.email,
+          email: {
+            equals: data.email,
+            mode: 'insensitive',
+          },
           userType: data.userType,
           isDeleted: false,
         },
@@ -1334,8 +1341,30 @@ Approval Date: ${dayjs(user.updatedAt).format()}
     }
   }
 
+  async validateEmail(dto: ValidateEmailDto) {
+    try {
+      const user = await this.prisma.userMaster.findFirst({
+        where: {
+          email: {
+            equals: dto.email,
+            mode: 'insensitive',
+          },
+          userType: UserType.CUSTOMER,
+          isDeleted: false,
+        },
+      });
+
+      if (user) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async verify(token: string) {
-    console.log('token: ', token);
     return await this.jwt.verify(token, {
       secret: this.config.get('JWT_SECRET'),
     });

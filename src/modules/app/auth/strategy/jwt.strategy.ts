@@ -1,10 +1,9 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ServiceType, UserType } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../../../modules/prisma/prisma.service';
-import { HttpStatusCode } from 'axios';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -33,17 +32,55 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       },
     });
 
-    if (!user || user.isDeleted)
-      throw new HttpException(
-        'User does not exist',
-        HttpStatusCode.FailedDependency,
-      );
-    else if (!user.isActive)
-      throw new HttpException(
-        'Your account has been deactivated',
-        HttpStatusCode.FailedDependency,
-      );
-    else {
+    if (!user || user.isDeleted) {
+      if (user) {
+        if (payload.userType === UserType.CUSTOMER) {
+          await this.prisma.device.updateMany({
+            where: {
+              userMasterId: payload.sub,
+              isDeleted: false,
+            },
+            data: {
+              isDeleted: true,
+            },
+          });
+        }
+
+        await this.prisma.refreshToken.updateMany({
+          where: {
+            userMasterId: payload.sub,
+            deleted: false,
+          },
+          data: {
+            deleted: true,
+          },
+        });
+      }
+      throw new ForbiddenException('User does not exist');
+    } else if (!user.isActive) {
+      if (payload.userType === UserType.CUSTOMER) {
+        await this.prisma.device.updateMany({
+          where: {
+            userMasterId: payload.sub,
+            isDeleted: false,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
+      await this.prisma.refreshToken.updateMany({
+        where: {
+          userMasterId: payload.sub,
+          deleted: false,
+        },
+        data: {
+          deleted: true,
+        },
+      });
+      throw new ForbiddenException('Your account has been deactivated');
+    } else {
       return {
         userMasterId: payload.sub,
         email: payload.email,
