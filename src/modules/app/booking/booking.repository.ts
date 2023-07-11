@@ -310,15 +310,14 @@ export class BookingRepository {
       }
 
       const context2 = {
-        message: `<p>You have received a new booking request. Please review the details </p>
-        <p>below and take necessary action:</p>`,
+        message: `<p>You have received a new booking request. Please review the details below and take necessary action: </p>  `,
         list: `
         
         <ul>
         <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
-        <li>Booking ID: ${bookingMaster?.customer.fullName}</li>
-        <li>Booking ID: ${bookingMaster?.vendor.serviceType}</li>
-        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+        <li> Customer Name: ${bookingMaster?.customer.fullName}</li>
+        <li>Service Type: ${bookingMaster?.vendor.serviceType}</li>
+      
             <li>Date: ${dayjs(bookingMaster.bookingDate)
               .utc()
               .local()
@@ -601,15 +600,14 @@ export class BookingRepository {
       // );
 
       const context2 = {
-        message: `<p>You have received a new booking request. Please review the details </p>
-        <p>below and take necessary action:</p>`,
+        message: `<p>You have received a new booking request. Please review the details below and take necessary action: </p>  `,
         list: `
         
         <ul>
         <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
-        <li>Booking ID: ${bookingMaster?.customer.fullName}</li>
-        <li>Booking ID: ${bookingMaster?.vendor.serviceType}</li>
-        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+        <li> Customer Name: ${bookingMaster?.customer.fullName}</li>
+        <li>Service Type: ${bookingMaster?.vendor.serviceType}</li>
+      
             <li>Date: ${dayjs(bookingMaster.bookingDate)
               .utc()
               .local()
