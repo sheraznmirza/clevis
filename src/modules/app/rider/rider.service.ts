@@ -297,15 +297,19 @@ export class RiderService {
         first_name: user.rider.fullName,
         message:
           rider.status === Status.APPROVED
-            ? 'Your account has been approved. You can now log in and start your journey with us!'
-            : 'Your account has been rejected. Please contact our support for further information.',
+            ? `<p>Great news! Your rider account has been approved</p><p>You can now start accepting jobs and earning with our platform. Get ready to hit the road!</p
+            <P>If you have any question , please contact admin.</p>`
+            : `<p>We regret to inform you that your rider account application has been rejected. 
+            We appreciate your interest and encourage you to reapply if you meet the requirements.
+             Feel free to contact our support team for more information.</p>
+             <P>Please contact admin if you have any questions regarding this issue.</p>`,
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
       const status =
         dto.status === Status.APPROVED
-          ? 'Account Approved'
+          ? 'Congratulation! Your Account is Approved'
           : dto.status === Status.REJECTED
-          ? 'Application Rejected'
+          ? 'Account Rejected'
           : '';
       await this.mail.sendEmail(
         user.rider.userMaster.email,

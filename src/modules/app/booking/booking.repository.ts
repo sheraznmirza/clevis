@@ -268,6 +268,7 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              email: true,
               userMasterId: true,
               fullName: true,
             },
@@ -308,6 +309,48 @@ export class BookingRepository {
         });
       }
 
+      const context2 = {
+        message: `<p>You have received a new booking request. Please review the details </p>
+        <p>below and take necessary action:</p>`,
+        list: `
+        
+        <ul>
+        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+        <li>Booking ID: ${bookingMaster?.customer.fullName}</li>
+        <li>Booking ID: ${bookingMaster?.vendor.serviceType}</li>
+        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+            <li>Date: ${dayjs(bookingMaster.bookingDate)
+              .utc()
+              .local()
+              .format('DD/MM/YYYY')}</li>
+             
+              <li>Amount: ${(
+                +bookingMaster.totalPrice +
+                +bookingMaster.dropoffDeliveryCharges +
+                +bookingMaster.pickupDeliveryCharges
+              ).toFixed(2)}</li>
+
+          </ul> <p>Please log in to your account to <em>accept or reject</em> the booking request.</p>`,
+        customer_name: bookingMaster.customer.fullName,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .local()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `New Booking`,
+        'booking.hbs', // `.hbs` extension is appended automatically
+        context2,
+      );
+
       const context = {
         message:
           'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
@@ -323,6 +366,7 @@ export class BookingRepository {
                 +bookingMaster.pickupDeliveryCharges
               ).toFixed(2)}</li>
           </ul>`,
+
         customer_name: bookingMaster.customer.fullName,
         booking_date: dayjs(bookingMaster.bookingDate)
           .utc()
@@ -336,7 +380,7 @@ export class BookingRepository {
         // otp: randomOtp,
       };
       await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
+        bookingMaster.customer.email,
         this.config.get('MAIL_ADMIN'),
         `New Booking`,
         'booking.hbs', // `.hbs` extension is appended automatically
@@ -498,6 +542,7 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              email: true,
               userMasterId: true,
               fullName: true,
             },
@@ -555,6 +600,48 @@ export class BookingRepository {
       //   context,
       // );
 
+      const context2 = {
+        message: `<p>You have received a new booking request. Please review the details </p>
+        <p>below and take necessary action:</p>`,
+        list: `
+        
+        <ul>
+        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+        <li>Booking ID: ${bookingMaster?.customer.fullName}</li>
+        <li>Booking ID: ${bookingMaster?.vendor.serviceType}</li>
+        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+            <li>Date: ${dayjs(bookingMaster.bookingDate)
+              .utc()
+              .local()
+              .format('DD/MM/YYYY')}</li>
+             
+              <li>Amount: ${(
+                +bookingMaster.totalPrice +
+                +bookingMaster.dropoffDeliveryCharges +
+                +bookingMaster.pickupDeliveryCharges
+              ).toFixed(2)}</li>
+
+          </ul> <p>Please log in to your account to <em>accept or reject</em> the booking request.</p>`,
+        customer_name: bookingMaster.customer.fullName,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .local()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.vendor.userMaster.email,
+        this.config.get('MAIL_ADMIN'),
+        `New Booking`,
+        'booking.hbs', // `.hbs` extension is appended automatically
+        context2,
+      );
+
       const context = {
         message:
           'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
@@ -570,6 +657,7 @@ export class BookingRepository {
                 +bookingMaster.pickupDeliveryCharges
               ).toFixed(2)}</li>
           </ul>`,
+
         customer_name: bookingMaster.customer.fullName,
         booking_date: dayjs(bookingMaster.bookingDate)
           .utc()
@@ -583,7 +671,7 @@ export class BookingRepository {
         // otp: randomOtp,
       };
       await this.mail.sendEmail(
-        bookingMaster.vendor.userMaster.email,
+        bookingMaster.customer.email,
         this.config.get('MAIL_ADMIN'),
         `New Booking`,
         'booking.hbs', // `.hbs` extension is appended automatically
