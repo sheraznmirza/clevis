@@ -34,7 +34,7 @@ export class CustomerRepository {
     private notificationService: NotificationService,
   ) {}
 
-  async getCustomerById(id: number) {
+  async getCustomerById(id: number, isCustomer = false) {
     try {
       const customer = await this.prisma.userMaster.findFirst({
         where: {
@@ -65,6 +65,14 @@ export class CustomerRepository {
               userAddress: {
                 where: {
                   isDeleted: false,
+                  ...(isCustomer && {
+                    cityId: {
+                      not: null,
+                    },
+                  }),
+                },
+                orderBy: {
+                  createdAt: 'desc',
                 },
                 select: {
                   userAddressId: true,
@@ -181,9 +189,16 @@ export class CustomerRepository {
 
       const totalCount = await this.prisma.userMaster.count({
         where: {
-          isEmailVerified: true,
           isDeleted: false,
           userType: UserType.CUSTOMER,
+          ...(search && {
+            customer: {
+              fullName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          }),
         },
       });
 
@@ -419,6 +434,8 @@ export class CustomerRepository {
                     serviceIds.length > 0 && {
                       vendorService: {
                         some: {
+                          isDeleted: false,
+                          status: VendorServiceStatus.Available,
                           serviceId: {
                             in: serviceIds,
                           },
@@ -637,6 +654,8 @@ export class CustomerRepository {
                 serviceIds.length > 0 && {
                   vendorService: {
                     some: {
+                      isDeleted: false,
+                      status: VendorServiceStatus.Available,
                       serviceId: {
                         in: serviceIds,
                       },
@@ -902,6 +921,7 @@ export class CustomerRepository {
               vendorService: {
                 where: {
                   isDeleted: false,
+                  status: VendorServiceStatus.Available,
                 },
                 select: {
                   vendorServiceId: true,

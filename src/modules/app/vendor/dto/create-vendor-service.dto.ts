@@ -6,6 +6,7 @@ import {
   IsOptional,
   ValidateNested,
   IsEnum,
+  Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -23,6 +24,7 @@ class AllocatePrice {
   @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
+  @Max(100000)
   price: number;
 
   @ApiProperty()
