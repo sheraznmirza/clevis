@@ -32,32 +32,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       },
     });
 
-    if (!user || user.isDeleted) {
-      if (user) {
-        if (payload.userType === UserType.CUSTOMER) {
-          await this.prisma.device.updateMany({
-            where: {
-              userMasterId: payload.sub,
-              isDeleted: false,
-            },
-            data: {
-              isDeleted: true,
-            },
-          });
-        }
-
-        await this.prisma.refreshToken.updateMany({
-          where: {
-            userMasterId: payload.sub,
-            deleted: false,
-          },
-          data: {
-            deleted: true,
-          },
-        });
-      }
+    if (!user) {
       throw new ForbiddenException('User does not exist');
-    } else if (!user.isActive) {
+    } else if (!user.isActive || user.isDeleted) {
       if (payload.userType === UserType.CUSTOMER) {
         await this.prisma.device.updateMany({
           where: {
@@ -79,7 +56,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
           deleted: true,
         },
       });
-      throw new ForbiddenException('Your account has been deactivated');
+
+      if (user.isDeleted) {
+        throw new ForbiddenException('User does not exist');
+      }
+
+      if (!user.isActive) {
+        throw new ForbiddenException('Your account has been deactivated');
+      }
     } else {
       return {
         userMasterId: payload.sub,
