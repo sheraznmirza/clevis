@@ -20,6 +20,7 @@ import {
   ChangePasswordDto,
   VerifyOtpDto,
   LogoutDto,
+  ValidateEmailDto,
 } from './dto';
 import { JwtGuard, JwtRefreshGuard } from './guard';
 import { ApiTags } from '@nestjs/swagger';
@@ -76,31 +77,37 @@ export class AuthController {
 
   @Throttle(15, 60)
   @UseGuards(JwtRefreshGuard)
-  @Post('/refresh')
+  @Post('refresh')
   refreshTokens(@Body() refreshToken: RefreshDto) {
     return this.authService.refreshTokens(refreshToken);
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('/forgot-password')
+  @Post('forgot-password')
   forgotPassword(@Body() data: ForgotPasswordDto) {
     return this.authService.forgotPassword(data);
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('/verify-otp')
+  @Post('is-email-exist')
+  validateEmail(@Body() data: ValidateEmailDto) {
+    return this.authService.validateEmail(data);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-otp')
   verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.authService.verifyOtp(dto);
   }
 
   @HttpCode(HttpStatus.ACCEPTED)
-  @Post('/reset-password')
+  @Post('reset-password')
   resetPassword(@Body() data: ResetPasswordDataDto) {
     return this.authService.resetPassword(data);
   }
 
   @HttpCode(HttpStatus.ACCEPTED)
-  @Get('/verify-email/:id')
+  @Get('verify-email/:id')
   verifyEmail(@Param('id') id: string) {
     return this.authService.verifyEmail(id);
   }
@@ -113,7 +120,7 @@ export class AuthController {
     UserType.VENDOR,
   ])
   @HttpCode(HttpStatus.OK)
-  @Post('/change-password')
+  @Post('change-password')
   changePassword(@Body() dto: ChangePasswordDto, @GetUser() user: GetUserType) {
     return this.authService.changePassword(dto, user.userMasterId);
   }
@@ -126,7 +133,7 @@ export class AuthController {
     UserType.RIDER,
     UserType.VENDOR,
   ])
-  @Post('/logout')
+  @Post('logout')
   logout(@GetUser() user: GetUserType, @Body() dto: LogoutDto) {
     return this.authService.logout(user, dto);
   }
