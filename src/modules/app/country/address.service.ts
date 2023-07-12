@@ -304,7 +304,7 @@ export class AddressService {
         throw new NotFoundException('Address not found');
       }
       if (userMasterId !== userAdd?.customer?.userMasterId) {
-        throw new ForbiddenException(
+        throw new BadRequestException(
           'You are not authorized to update this address',
         );
       }
@@ -397,6 +397,8 @@ export class AddressService {
         isDeleted: true,
       },
     });
+    if (result?.isDeleted === undefined)
+      throw new BadRequestException("Address doesn't exist.");
     if (!result?.isDeleted) {
       await this.prisma.userAddress.update({
         where: { userAddressId: id },

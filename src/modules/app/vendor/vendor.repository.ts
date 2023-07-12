@@ -126,6 +126,20 @@ export class VendorRepository {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
+      const currentStatus = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId: id,
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (currentStatus.status !== Status.PENDING) {
+        throw new BadRequestException(
+          'You cannot change the status again once you have already changed it once',
+        );
+      }
       const vendor = await this.prisma.vendor.update({
         where: {
           vendorId: id,

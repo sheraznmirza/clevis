@@ -71,7 +71,7 @@ export class MailProcessor {
 
   @Process(AppConfig.QUEUE.BOOKING.SEND_ALERT_EMAIL)
   async bookingEmailAlertForVendor(job: Job) {
-    const { bookings, platformFee } = job.data;
+    const { bookings } = job.data;
     try {
       // this.riderService._createBusinessMerchantForRider(user, dto);
       for (let i = 0; i < bookings.length; i++) {
@@ -91,7 +91,7 @@ export class MailProcessor {
           <li>Dropoff Delivery Charges Amount: ${
             bookings[i].dropoffDeliveryCharges
           }</li>
-          <li>PlatformFee Amount: ${platformFee}</li>
+          <li>PlatformFee Amount: ${bookings.bookingPlatformFee}</li>
           </ul>`,
           app_name: this.config.get('APP_NAME'),
 

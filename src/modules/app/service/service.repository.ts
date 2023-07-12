@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../../../modules/prisma/prisma.service';
 import { ServiceCreateDto, ServiceUpdateDto } from './dto';
 import {
@@ -156,27 +160,37 @@ export class ServiceRepository {
 
   async deleteService(id: number) {
     try {
-      const count = await this.prisma.vendorService.count({
+      const vendorService = await this.prisma.services.findUnique({
         where: {
           serviceId: id,
-          isDeleted: false,
+        },
+        select: {
+          isDeleted: true,
         },
       });
-      if (count < 1) {
-        await this.prisma.services.update({
-          where: {
-            serviceId: id,
-          },
-          data: {
-            isDeleted: true,
-          },
-        });
-        return successResponse(202, 'successfully deleted');
-      } else {
-        return unknowError(417, {}, 'Service exist on this service type');
-      }
+      if (vendorService?.isDeleted)
+        throw new BadRequestException('Service is already deleted.');
+      if (vendorService?.isDeleted === undefined)
+        throw new BadRequestException("Service doesn't exist.");
+      await this.prisma.services.update({
+        where: {
+          serviceId: id,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+
+      // const count = await this.prisma.vendorService.count({
+      //   where: {
+      //     serviceId: id,
+      //     isDeleted: true,
+      //   },
+      // });
+
+      return successResponse(202, 'successfully deleted');
     } catch (error) {
-      return unknowError(417, error, ERROR_MESSAGE.MSG_417);
+      return unknowError(error?.status, error, ERROR_MESSAGE.MSG_417);
     }
   }
 }

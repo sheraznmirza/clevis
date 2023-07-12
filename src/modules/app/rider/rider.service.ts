@@ -56,7 +56,6 @@ export class RiderService {
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
       const user = await this.repository.approveRider(id, dto);
-
       this.queue.createBusinessAndMerchantForRider(user, dto, UserType.RIDER);
 
       return successResponse(
@@ -218,96 +217,103 @@ export class RiderService {
           },
         },
       });
-
-      const payload: createBusinessRequestInterface = {
-        name: {
-          en: user.rider.companyName,
-        },
-        type: 'corp',
-        entity: {
-          legal_name: {
+      if (user.rider.status === Status.APPROVED) {
+        const payload: createBusinessRequestInterface = {
+          name: {
             en: user.rider.companyName,
           },
-          is_licensed: false,
-          country: user.rider.userAddress[0].city.State.country.shortName,
-          billing_address: {
-            recipient_name: user.rider.fullName,
-            address_1: user.rider.userAddress[0].fullAddress,
-            city: user.rider.userAddress[0].city.cityName,
-            state: user.rider.userAddress[0].city.State.stateName,
+          type: 'corp',
+          entity: {
+            legal_name: {
+              en: user.rider.companyName,
+            },
+            is_licensed: false,
             country: user.rider.userAddress[0].city.State.country.shortName,
-          },
-        },
-        contact_person: {
-          name: {
-            first: user.rider.fullName,
-            last: 'Clevis',
-          },
-
-          contact_info: {
-            primary: {
-              email: user.email,
-              phone: {
-                country_code:
-                  user.rider.userAddress[0].city.State.country.countryCode,
-                number: user.phone.replace('+', ''),
-              },
+            billing_address: {
+              recipient_name: user.rider.fullName,
+              address_1: user.rider.userAddress[0].fullAddress,
+              city: user.rider.userAddress[0].city.cityName,
+              state: user.rider.userAddress[0].city.State.stateName,
+              country: user.rider.userAddress[0].city.State.country.shortName,
             },
           },
-          authorization: {
+          contact_person: {
             name: {
               first: user.rider.fullName,
               last: 'Clevis',
             },
-          },
-        },
-        brands: [
-          {
-            name: {
-              en: user.rider.companyName,
+
+            contact_info: {
+              primary: {
+                email: user.email,
+                phone: {
+                  country_code:
+                    user.rider.userAddress[0].city.State.country.countryCode,
+                  number: user.phone.replace('+', ''),
+                },
+              },
+            },
+            authorization: {
+              name: {
+                first: user.rider.fullName,
+                last: 'Clevis',
+              },
             },
           },
-        ],
-      };
-      const tapbusiness = await this.tapService.createBusniess(payload);
+          brands: [
+            {
+              name: {
+                en: user.rider.companyName,
+              },
+            },
+          ],
+        };
+        const tapbusiness = await this.tapService.createBusniess(payload);
 
-      const merchantPayload: createMerchantRequestInterface = {
-        display_name: user.rider.fullName,
-        branch_id: tapbusiness.entity.branches[0].id,
-        brand_id: tapbusiness.brands[0].id,
-        business_entity_id: tapbusiness.entity.id,
-        business_id: tapbusiness.id,
-      };
+        const merchantPayload: createMerchantRequestInterface = {
+          display_name: user.rider.fullName,
+          branch_id: tapbusiness.entity.branches[0].id,
+          brand_id: tapbusiness.brands[0].id,
+          business_entity_id: tapbusiness.entity.id,
+          business_id: tapbusiness.id,
+        };
 
-      const merchantTap = await this.tapService.createMerchant(merchantPayload);
-      await this.prisma.rider.update({
-        where: {
-          riderId: user.rider.riderId,
-        },
-        data: {
-          tapBusinessId: tapbusiness.id,
-          tapBranchId: tapbusiness.entity.branches[0].id,
-          tapBrandId: tapbusiness.brands[0].id,
-          tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
-          tapBusinessEntityId: tapbusiness.entity.id,
-          tapMerchantId: merchantTap.id,
-          tapWalletId: merchantTap.wallets.id,
-        },
-      });
+        const merchantTap = await this.tapService.createMerchant(
+          merchantPayload,
+        );
+        await this.prisma.rider.update({
+          where: {
+            riderId: user.rider.riderId,
+          },
+          data: {
+            tapBusinessId: tapbusiness.id,
+            tapBranchId: tapbusiness.entity.branches[0].id,
+            tapBrandId: tapbusiness.brands[0].id,
+            tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
+            tapBusinessEntityId: tapbusiness.entity.id,
+            tapMerchantId: merchantTap.id,
+            tapWalletId: merchantTap.wallets.id,
+          },
+        });
+      }
       const context = {
         app_name: this.config.get('APP_NAME'),
         first_name: user.rider.fullName,
         message:
           rider.status === Status.APPROVED
-            ? 'Your account has been approved. You can now log in and start your journey with us!'
-            : 'Your account has been rejected. Please contact our support for further information.',
+            ? `<p>Great news! Your rider account has been approved</p><p>You can now start accepting jobs and earning with our platform. Get ready to hit the road!</p
+            <P>If you have any question , please contact admin.</p>`
+            : `<p>We regret to inform you that your rider account application has been rejected. 
+            We appreciate your interest and encourage you to reapply if you meet the requirements.
+             Feel free to contact our support team for more information.</p>
+             <P>Please contact admin if you have any questions regarding this issue.</p>`,
         copyright_year: this.config.get('COPYRIGHT_YEAR'),
       };
       const status =
         dto.status === Status.APPROVED
-          ? 'Account Approved'
+          ? 'Congratulation! Your Account is Approved'
           : dto.status === Status.REJECTED
-          ? 'Application Rejected'
+          ? 'Account Rejected'
           : '';
       await this.mail.sendEmail(
         user.rider.userMaster.email,

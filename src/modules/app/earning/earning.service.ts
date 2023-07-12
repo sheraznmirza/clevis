@@ -145,17 +145,17 @@ export class EarningService {
       dateTill,
     } = dto;
 
-    const platform = await this.prisma.platformSetup.findFirst({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      where: {
-        isDeleted: false,
-      },
-      select: {
-        fee: true,
-      },
-    });
+    // const platform = await this.prisma.platformSetup.findFirst({
+    //   orderBy: {
+    //     createdAt: 'desc',
+    //   },
+    //   where: {
+    //     isDeleted: false,
+    //   },
+    //   select: {
+    //     fee: true,
+    //   },
+    // });
     const earnings = await this.prisma.earnings.findMany({
       take: +take,
       skip: +take * (+page - 1),
@@ -168,8 +168,32 @@ export class EarningService {
         bookingMaster: {
           vendor: {
             ...(serviceType && { serviceType: serviceType }),
-            ...(search && { fullName: { contains: search } }),
           },
+          ...(search && {
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                customer: {
+                  email: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }),
+          // customer: {
+          //   ...(search && {
+          //     fullName: { contains: search, mode: 'insensitive' },
+          //   }),
+          // },
         },
 
         ...(dateFrom &&
@@ -191,6 +215,7 @@ export class EarningService {
             totalPrice: true,
             tapPaymentStatus: true,
             bookingMasterId: true,
+            bookingPlatformFee:true,
             vendor: {
               select: {
                 fullName: true,
@@ -215,7 +240,11 @@ export class EarningService {
         bookingMaster: {
           vendor: {
             ...(serviceType && { serviceType: serviceType }),
-            ...(search && { fullName: { contains: search } }),
+          },
+          customer: {
+            ...(search && {
+              fullName: { contains: search, mode: 'insensitive' },
+            }),
           },
         },
 
@@ -225,7 +254,7 @@ export class EarningService {
     });
 
     return {
-      data: earnings.map((obj) => ({ ...obj, adminCut: platform.fee })),
+      data: earnings.map((obj) => ({ ...obj, adminCut: obj.bookingMaster.bookingPlatformFee })),
       page: +page,
       take: +take,
       totalCount,
@@ -244,7 +273,14 @@ export class EarningService {
         isRefunded: false,
         userMasterId: { not: 1 },
         job: {
-          rider: { riderId, ...(search && { fullName: { contains: search } }) },
+          rider: { riderId },
+          ...(search && {
+            bookingMaster: {
+              vendor: {
+                fullName: { contains: search, mode: 'insensitive' },
+              },
+            },
+          }),
           ...(jobType && { jobType: jobType }),
         },
         ...(timeFrom &&
@@ -381,17 +417,17 @@ export class EarningService {
   }
 
   async getDetailAdmin(id: number, dto: EarningDtos) {
-    const platform = await this.prisma.platformSetup.findFirst({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      where: {
-        isDeleted: false,
-      },
-      select: {
-        fee: true,
-      },
-    });
+    // const platform = await this.prisma.platformSetup.findFirst({
+    //   orderBy: {
+    //     createdAt: 'desc',
+    //   },
+    //   where: {
+    //     isDeleted: false,
+    //   },
+    //   select: {
+    //     fee: true,
+    //   },
+    // });
     if (dto.status === AllEarning.Receive) {
       const result = await this.prisma.earnings.findUnique({
         where: {
@@ -407,6 +443,7 @@ export class EarningService {
               bookingMaster: {
                 select: {
                   bookingMasterId: true,
+                  bookingPlatformFee:true,
                   customer: {
                     select: {
                       fullName: true,
@@ -419,6 +456,7 @@ export class EarningService {
           },
           bookingMaster: {
             select: {
+              bookingPlatformFee:true,
               customer: {
                 select: {
                   fullName: true,
@@ -430,7 +468,7 @@ export class EarningService {
         },
       });
       return {
-        amount: platform.fee,
+        amount: result.bookingMaster.bookingPlatformFee || result.job.bookingMaster.bookingPlatformFee,
         ...result,
       };
     } else if (dto.status === AllEarning.Disperse) {
@@ -448,6 +486,11 @@ export class EarningService {
           job: {
             select: {
               bookingMasterId: true,
+              bookingMaster: {
+                select: {
+                  bookingPlatformFee:true
+                }
+              },
               vendor: {
                 select: {
                   banking: {
@@ -473,6 +516,7 @@ export class EarningService {
           },
           bookingMaster: {
             select: {
+              bookingPlatformFee:true,
               vendor: {
                 select: {
                   banking: {
@@ -496,7 +540,7 @@ export class EarningService {
         },
       });
       return {
-        amount: platform.fee,
+        amount: results.bookingMaster.bookingPlatformFee || results.job.bookingMaster.bookingPlatformFee,
         ...results,
       };
     }

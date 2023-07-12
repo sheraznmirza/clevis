@@ -220,6 +220,18 @@ export class BookingRepository {
         totalPrice += bookingDetailPrice[i];
       }
 
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
@@ -246,6 +258,7 @@ export class BookingRepository {
               dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
           isWithDelivery: dto.isWithDelivery,
+          bookingPlatformFee:platformFee.fee
         },
         select: {
           pickupDeliveryCharges: true,
@@ -268,6 +281,7 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              email: true,
               userMasterId: true,
               fullName: true,
             },
@@ -308,10 +322,15 @@ export class BookingRepository {
         });
       }
 
-      const context = {
-        message:
-          'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
-        list: `<ul>
+      const context2 = {
+        message: `<p>You have received a new booking request. Please review the details below and take necessary action: </p>  `,
+        list: `
+        
+        <ul>
+        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+        <li> Customer Name: ${bookingMaster?.customer.fullName}</li>
+        <li>Service Type: ${bookingMaster?.vendor.serviceType}</li>
+      
             <li>Date: ${dayjs(bookingMaster.bookingDate)
               .utc()
               .local()
@@ -322,7 +341,8 @@ export class BookingRepository {
                 +bookingMaster.dropoffDeliveryCharges +
                 +bookingMaster.pickupDeliveryCharges
               ).toFixed(2)}</li>
-          </ul>`,
+
+          </ul> <p>Please log in to your account to <em>accept or reject</em> the booking request.</p>`,
         customer_name: bookingMaster.customer.fullName,
         booking_date: dayjs(bookingMaster.bookingDate)
           .utc()
@@ -340,6 +360,42 @@ export class BookingRepository {
         this.config.get('MAIL_ADMIN'),
         `New Booking`,
         'booking.hbs', // `.hbs` extension is appended automatically
+        context2,
+      );
+
+      const context = {
+        message:
+          'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
+        list: `<ul>
+            <li>Date: ${dayjs(bookingMaster.bookingDate)
+              .utc()
+              .local()
+              .format('DD/MM/YYYY')}</li>
+             
+              <li>Amount: ${(
+                +bookingMaster.totalPrice +
+                +bookingMaster.dropoffDeliveryCharges +
+                +bookingMaster.pickupDeliveryCharges
+              ).toFixed(2)}</li>
+          </ul>`,
+
+        customer_name: bookingMaster.customer.fullName,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .local()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.customer.email,
+        this.config.get('MAIL_ADMIN'),
+        `New Booking`,
+        'booking.hbs', // `.hbs` extension is appended automatically
         context,
       );
 
@@ -348,7 +404,10 @@ export class BookingRepository {
         userId: [bookingMaster.customer.userMasterId],
         data: {
           title: NotificationTitle.BOOKING_SENT_CUSTOMER,
-          body: NotificationBody.BOOKING_SENT_CUSTOMER,
+          body: NotificationBody.BOOKING_SENT_CUSTOMER.replace(
+            '{id}',
+            bookingMaster.bookingMasterId.toString(),
+          ),
           type: NotificationType.BookingCreated,
           entityType: EntityType.BOOKINGMASTER,
           entityId: bookingMaster.bookingMasterId,
@@ -453,6 +512,18 @@ export class BookingRepository {
         totalPrice += bookingDetailPrice[i];
       }
 
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
@@ -473,6 +544,7 @@ export class BookingRepository {
             // dropoffTimeFrom: dayjs(dto.dropoffLocation.timeFrom).utc().format(),
             // dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
           },
+          bookingPlatformFee: platformFee.fee
         },
         select: {
           pickupDeliveryCharges: true,
@@ -495,6 +567,7 @@ export class BookingRepository {
           },
           customer: {
             select: {
+              email: true,
               userMasterId: true,
               fullName: true,
             },
@@ -552,21 +625,27 @@ export class BookingRepository {
       //   context,
       // );
 
-      const context = {
-        message:
-          'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
-        list: `<ul>
+      const context2 = {
+        message: `<p>You have received a new booking request. Please review the details below and take necessary action: </p>  `,
+        list: `
+        
+        <ul>
+        <li>Booking ID: ${bookingMaster?.bookingMasterId}</li>
+        <li> Customer Name: ${bookingMaster?.customer.fullName}</li>
+        <li>Service Type: ${bookingMaster?.vendor.serviceType}</li>
+      
             <li>Date: ${dayjs(bookingMaster.bookingDate)
               .utc()
               .local()
               .format('DD/MM/YYYY')}</li>
-              
-              <li>Amount: SR ${(
+             
+              <li>Amount: ${(
                 +bookingMaster.totalPrice +
                 +bookingMaster.dropoffDeliveryCharges +
                 +bookingMaster.pickupDeliveryCharges
               ).toFixed(2)}</li>
-          </ul>`,
+
+          </ul> <p>Please log in to your account to <em>accept or reject</em> the booking request.</p>`,
         customer_name: bookingMaster.customer.fullName,
         booking_date: dayjs(bookingMaster.bookingDate)
           .utc()
@@ -584,6 +663,42 @@ export class BookingRepository {
         this.config.get('MAIL_ADMIN'),
         `New Booking`,
         'booking.hbs', // `.hbs` extension is appended automatically
+        context2,
+      );
+
+      const context = {
+        message:
+          'Your booking request has been sent successfully. Please check the status of your request in Bookings section.',
+        list: `<ul>
+            <li>Date: ${dayjs(bookingMaster.bookingDate)
+              .utc()
+              .local()
+              .format('DD/MM/YYYY')}</li>
+              
+              <li>Amount: SR ${(
+                +bookingMaster.totalPrice +
+                +bookingMaster.dropoffDeliveryCharges +
+                +bookingMaster.pickupDeliveryCharges
+              ).toFixed(2)}</li>
+          </ul>`,
+
+        customer_name: bookingMaster.customer.fullName,
+        booking_date: dayjs(bookingMaster.bookingDate)
+          .utc()
+          .local()
+          .format('DD/MM/YYYY'),
+        booking_time: dayjs(bookingMaster.bookingDate).utc().format('HH:mm'),
+        total_amount: bookingMaster.totalPrice,
+        app_name: this.config.get('APP_NAME'),
+        // app_url: this.config.get(dynamicUrl(user.userType)),
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+        // otp: randomOtp,
+      };
+      await this.mail.sendEmail(
+        bookingMaster.customer.email,
+        this.config.get('MAIL_ADMIN'),
+        `New Booking`,
+        'booking.hbs', // `.hbs` extension is appended automatically
         context,
       );
 
@@ -592,7 +707,10 @@ export class BookingRepository {
         userId: [bookingMaster.customer.userMasterId],
         data: {
           title: NotificationTitle.BOOKING_SENT_CUSTOMER,
-          body: NotificationBody.BOOKING_SENT_CUSTOMER,
+          body: NotificationBody.BOOKING_SENT_CUSTOMER.replace(
+            '{id}',
+            bookingMaster.bookingMasterId.toString(),
+          ),
           type: NotificationType.BookingCreated,
           entityType: EntityType.BOOKINGMASTER,
           entityId: bookingMaster.bookingMasterId,
@@ -705,6 +823,7 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           status: true,
+          bookingPlatformFee: true,
           bookingDate: true,
           totalPrice: true,
           pickupDeliveryCharges: true,
@@ -786,27 +905,8 @@ export class BookingRepository {
         bookedDates = bookings.map((booking) => booking.bookingDate);
       }
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
-
-      const mappedBookings = bookings.map((booking) => {
-        return {
-          ...booking,
-          platformFee: platformFee.fee,
-        };
-      });
-
       return {
-        data: mappedBookings,
+        data: bookings,
         page: +page,
         take: +take,
         totalCount,
@@ -832,6 +932,7 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           carNumberPlate: true,
+          bookingPlatformFee: true,
           pickupDeliveryCharges: true,
           dropoffDeliveryCharges: true,
           tapPaymentStatus: true,
@@ -940,21 +1041,10 @@ export class BookingRepository {
         },
       });
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return { ...result, platformFee: platformFee.fee };
+      return result ;
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -1151,6 +1241,7 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          bookingPlatformFee: true,
           isWithDelivery: true,
           customer: {
             select: {
@@ -1329,24 +1420,11 @@ export class BookingRepository {
         delete result.job;
       }
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
-
       return {
         ...result,
         totalItems,
         canPickup,
         canDeliver,
-        platformFee: platformFee.fee,
       };
     } catch (error) {
       if (error?.code === 'P2025') {
@@ -1377,6 +1455,7 @@ export class BookingRepository {
           status: true,
           tapAuthId: true,
           isWithDelivery: true,
+          bookingPlatformFee:true,
           vendor: {
             select: {
               fullName: true,
@@ -1463,14 +1542,6 @@ export class BookingRepository {
         console.log('createCharge: ', createCharge);
 
         if (!findBooking.isWithDelivery) {
-          const platform = await this.prisma.platformSetup.findFirst({
-            orderBy: {
-              createdAt: 'desc',
-            },
-            where: {
-              isDeleted: false,
-            },
-          });
 
           const admin = await this.prisma.admin.findUnique({
             where: {
@@ -1489,7 +1560,7 @@ export class BookingRepository {
           });
 
           const adminChargePayload: createChargeRequestInterface = {
-            amount: platform.fee,
+            amount: findBooking.bookingPlatformFee,
             currency: 'SAR',
             customer: {
               id: findBooking.customer.tapCustomerId,
@@ -1524,7 +1595,10 @@ export class BookingRepository {
         list:
           dto.bookingStatus === BookingStatus.Rejected
             ? `<ul>
-                <li>Date: ${findBooking.bookingMasterId}</li>
+                <li>Date: ${dayjs(findBooking.bookingDate)
+                  .utc()
+                  .local()
+                  .format('DD-MM-YYYY')}</li>
                   <li>Time: ${dayjs(findBooking.bookingDate)
                     .utc()
                     .local()
@@ -1551,10 +1625,7 @@ export class BookingRepository {
               </ul>`
             : dto.bookingStatus === BookingStatus.In_Progress
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
-                  .utc()
-                  .local()
-                  .format('DD/MM/YYYY')}</li>
+                <li>Booking ID: ${findBooking.bookingMasterId}</li>
                 <li>Date: ${dayjs(findBooking.bookingDate)
                   .utc()
                   .local()
@@ -1568,10 +1639,7 @@ export class BookingRepository {
               </ul>`
             : dto.bookingStatus === BookingStatus.Completed
             ? `<ul>
-                <li>Booking ID: ${dayjs(findBooking.bookingMasterId)
-                  .utc()
-                  .local()
-                  .format('DD/MM/YYYY')}</li>
+                <li>Booking ID: ${findBooking.bookingMasterId}</li>
                 <li>Date: ${dayjs(findBooking.bookingDate)
                   .utc()
                   .local()
@@ -2247,6 +2315,7 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           bookingDate: true,
+          bookingPlatformFee: true,
           // bookingDetail: {
           //   select: {
           //     allocatePrice: {
@@ -2278,21 +2347,7 @@ export class BookingRepository {
         },
       });
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
-
-      console.log('bookings: ', bookings);
-
-      this.queue.bookingEmailAlertForVendor(bookings, platformFee.fee);
+      this.queue.bookingEmailAlertForVendor(bookings);
     } catch (error) {
       throw error;
     }

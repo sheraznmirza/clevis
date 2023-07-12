@@ -622,6 +622,7 @@ export class JobService {
               },
               bookingMasterId: true,
               tapAuthId: true,
+              bookingPlatformFee:true,
               pickupDeliveryCharges: true,
               dropoffDeliveryCharges: true,
               customer: {
@@ -695,17 +696,17 @@ export class JobService {
         await this.tapService.createCharge(riderChargePayload);
 
         if (booking.jobType === JobType.DELIVERY) {
-          const platform = await this.prisma.platformSetup.findFirst({
-            orderBy: {
-              createdAt: 'desc',
-            },
-            where: {
-              isDeleted: false,
-            },
-            select: {
-              fee: true,
-            },
-          });
+          // const platform = await this.prisma.platformSetup.findFirst({
+          //   orderBy: {
+          //     createdAt: 'desc',
+          //   },
+          //   where: {
+          //     isDeleted: false,
+          //   },
+          //   select: {
+          //     fee: true,
+          //   },
+          // });
 
           const admin = await this.prisma.admin.findUnique({
             where: {
@@ -724,7 +725,7 @@ export class JobService {
           });
 
           const adminChargePayload: createChargeRequestInterface = {
-            amount: platform.fee,
+            amount: booking.bookingMaster.bookingPlatformFee,
             currency: 'SAR',
             customer: {
               id: booking.bookingMaster.customer.tapCustomerId,

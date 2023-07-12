@@ -66,20 +66,31 @@ export class TapService {
             createdAt: true,
             bookingMaster: {
               select: {
+                pickupLocation: {
+                  select: { fullAddress: true },
+                },
+                dropoffLocation: {
+                  select: {
+                    fullAddress: true,
+                  },
+                },
                 bookingMasterId: true,
                 pickupDeliveryCharges: true,
                 dropoffDeliveryCharges: true,
                 totalPrice: true,
+                bookingPlatformFee: true,
                 customer: { select: { fullName: true } },
               },
             },
             job: {
               select: {
+                jobType: true,
                 id: true,
                 vendor: { select: { fullName: true } },
                 bookingMaster: {
                   select: {
                     bookingMasterId: true,
+                    bookingPlatformFee: true,
                     pickupDeliveryCharges: true,
                     dropoffDeliveryCharges: true,
                     totalPrice: true,
@@ -130,12 +141,22 @@ export class TapService {
         if (earning.userMaster.userType === UserType.RIDER) {
           const context2 = {
             customer_name: earning.userMaster.rider.fullName,
-            message: `We would like to inform you that a payment has been credited to your Account. Please find below the details of the transaction`,
-            list: `<ul>
+            message: `Payment of${dto.amount} has been received for ${earning?.job?.id}`,
+            list: `<ul><em>Job Detail<em/>
               <li>Job ID: ${earning?.job?.id}</li>
-              <li>Job Vendor Name:${earning.job.vendor.fullName} </li>
+              <li>Booking ID: ${earning?.bookingMaster?.bookingMasterId}</li>
+              <li>Job Vendor Name:${earning?.job.vendor.fullName} </li>
+              <li>Job Type: ${earning?.job?.jobType}</li>
               <li>Credited Amount: ${dto.amount}</li>
               <li>Date: ${dayjs(earning.createdAt).format('DD-MM-YYYY')}</li>
+              <li>Time: ${dayjs(earning?.createdAt).format('HH:mm')}</li>
+              <li>Pickup Location: ${
+                earning?.bookingMaster?.pickupLocation?.fullAddress
+              }</li>
+              <li>Dropoff Location: ${
+                earning?.bookingMaster?.dropoffLocation?.fullAddress
+              }</li>
+              <li>Credited Amount: ${dto.amount}</li>
             </ul>`,
             app_name: this.config.get('APP_NAME'),
 
@@ -196,7 +217,7 @@ export class TapService {
                       earning.bookingMaster.dropoffDeliveryCharges ||
                       earning.job.bookingMaster.dropoffDeliveryCharges
                     }</li>
-                    <li>PlatformFee Amount: ${dto.amount}</li>
+                    <li>Platform Fee Amount: ${earning.bookingMaster.bookingPlatformFee || earning.job.bookingMaster.bookingPlatformFee}</li>
                     <li>Date: ${dayjs(earning.createdAt).format(
                       'DD-MM-YYYY',
                     )}</li>  
