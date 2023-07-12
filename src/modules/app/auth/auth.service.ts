@@ -33,6 +33,7 @@ import {
   RefreshDto,
   ResetPasswordDataDto,
   RiderSignUpDto,
+  ValidateEmailDto,
   VendorSignUpDto,
   VerifyOtpDto,
 } from './dto';
@@ -73,6 +74,7 @@ export class AuthService {
             mode: 'insensitive',
           },
           userType: UserType.CUSTOMER,
+          isDeleted: false,
         },
       });
       const cityCount = await this.prisma.city.count({
@@ -135,6 +137,7 @@ export class AuthService {
           },
           customer: {
             select: {
+              email: true,
               userAddress: {
                 where: {
                   isDeleted: false,
@@ -208,6 +211,7 @@ export class AuthService {
             mode: 'insensitive',
           },
           userType: UserType.VENDOR,
+          isDeleted: false,
         },
       });
 
@@ -373,6 +377,7 @@ export class AuthService {
             mode: 'insensitive',
           },
           userType: UserType.RIDER,
+          isDeleted: false,
         },
       });
 
@@ -631,6 +636,9 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    if (!user.isActive)
+      throw new ForbiddenException('Your account has been deactivated');
+
     const pwMatches = await argon.verify(user.password, dto.password);
 
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
@@ -692,6 +700,7 @@ export class AuthService {
         },
         email: true,
         isEmailVerified: true,
+        isActive: true,
         phone: true,
         userType: true,
         password: true,
@@ -747,6 +756,9 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
 
+    if (!user.isActive)
+      throw new ForbiddenException('Your account has been deactivated');
+
     if (user.vendor.status !== Status.APPROVED)
       throw new ForbiddenException(
         `Vendor has ${
@@ -801,6 +813,7 @@ export class AuthService {
         },
         email: true,
         isEmailVerified: true,
+        isActive: true,
         phone: true,
         userType: true,
         password: true,
@@ -854,6 +867,9 @@ export class AuthService {
     });
 
     if (!user) throw new ForbiddenException('Credentials incorrect');
+
+    if (!user.isActive)
+      throw new ForbiddenException('Your account has been deactivated');
 
     if (user.rider.status !== Status.APPROVED)
       throw new ForbiddenException(
@@ -953,7 +969,10 @@ export class AuthService {
     try {
       const user = await this.prisma.userMaster.findFirst({
         where: {
-          email: data.email,
+          email: {
+            equals: data.email,
+            mode: 'insensitive',
+          },
           userType: data.userType,
           isDeleted: false,
         },
@@ -1048,6 +1067,11 @@ export class AuthService {
         },
       });
       console.log('otp: ', otp);
+
+      if (!otp) {
+        throw new BadRequestException('Invalid OTP');
+      }
+
       if (dayjs().diff(otp?.createdAt, 'minute') > 9) {
         await this.prisma.otp.update({
           where: {
@@ -1317,8 +1341,30 @@ Approval Date: ${dayjs(user.updatedAt).format()}
     }
   }
 
+  async validateEmail(dto: ValidateEmailDto) {
+    try {
+      const user = await this.prisma.userMaster.findFirst({
+        where: {
+          email: {
+            equals: dto.email,
+            mode: 'insensitive',
+          },
+          userType: UserType.CUSTOMER,
+          isDeleted: false,
+        },
+      });
+
+      if (user) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async verify(token: string) {
-    console.log('token: ', token);
     return await this.jwt.verify(token, {
       secret: this.config.get('JWT_SECRET'),
     });
@@ -1525,14 +1571,14 @@ Approval Date: ${dayjs(user.updatedAt).format()}
     try {
       const payloads: SQSSendNotificationArgs<NotificationData> = {
         type: NotificationType.CustomerCreate,
-        userId: [user.customer.userMasterId],
+        userId: [user.userMasterId],
         data: {
           title: NotificationTitle.CUSTOMER_CREATE_ACCOUNT,
           body: NotificationBody.CUSTOMER_CREATE_ACCOUNT,
 
           type: NotificationType.CustomerCreate,
-          entityType: EntityType.VENDOR,
-          entityId: user.userMasterId,
+          entityType: EntityType.CUSTOMER,
+          entityId: user.customer.customerId,
         },
       };
       await this.notificationService.HandleNotifications(
@@ -1558,6 +1604,22 @@ Approval Date: ${dayjs(user.updatedAt).format()}
           tapCustomerId: tapCustomer.id,
         },
       });
+
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+        message:
+          'We are happy to have you on board! Now you can book Laundry & Car Wash service from the comfort of your home.',
+        name: user.customer.fullName,
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+
+      this.mail.sendEmail(
+        user.customer.email,
+        this.config.get('MAIL_NO_REPLY'),
+        'Welcome to Clevis',
+        'inactive',
+        context,
+      );
     } catch (error) {
       throw error;
     }

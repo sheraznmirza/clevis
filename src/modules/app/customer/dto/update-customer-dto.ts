@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -54,4 +55,9 @@ export class UpdateCustomerDto {
   @IsNumber()
   @IsOptional()
   userAddressId: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

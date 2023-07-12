@@ -27,6 +27,7 @@ export class ReviewService {
               review: {
                 where: {
                   customerId: user.userTypeId,
+                  bookingMasterId: createReviewDto.bookingMasterId,
                 },
               },
             },
@@ -40,11 +41,11 @@ export class ReviewService {
         );
       }
 
-      // if (booking?.vendor?.review?.length > 0) {
-      //   throw new BadRequestException(
-      //     'You have already given this booking a review.',
-      //   );
-      // }
+      if (booking?.vendor?.review?.length > 0) {
+        throw new BadRequestException(
+          'You have already given this booking a review.',
+        );
+      }
 
       await this.prisma.review.create({
         data: {
@@ -54,6 +55,7 @@ export class ReviewService {
           rating: createReviewDto.rating,
           customerId: user.userTypeId,
           vendorId: createReviewDto.vendorId,
+          bookingMasterId: createReviewDto.bookingMasterId,
         },
       });
 

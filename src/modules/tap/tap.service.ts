@@ -66,15 +66,38 @@ export class TapService {
             createdAt: true,
             bookingMaster: {
               select: {
+                pickupLocation: {
+                  select: { fullAddress: true },
+                },
+                dropoffLocation: {
+                  select: {
+                    fullAddress: true,
+                  },
+                },
                 bookingMasterId: true,
                 pickupDeliveryCharges: true,
                 dropoffDeliveryCharges: true,
                 totalPrice: true,
+                bookingPlatformFee: true,
                 customer: { select: { fullName: true } },
               },
             },
             job: {
-              select: { id: true, vendor: { select: { fullName: true } } },
+              select: {
+                jobType: true,
+                id: true,
+                vendor: { select: { fullName: true } },
+                bookingMaster: {
+                  select: {
+                    bookingMasterId: true,
+                    bookingPlatformFee: true,
+                    pickupDeliveryCharges: true,
+                    dropoffDeliveryCharges: true,
+                    totalPrice: true,
+                    customer: { select: { fullName: true } },
+                  },
+                },
+              },
             },
             userMaster: {
               select: {
@@ -118,12 +141,22 @@ export class TapService {
         if (earning.userMaster.userType === UserType.RIDER) {
           const context2 = {
             customer_name: earning.userMaster.rider.fullName,
-            message: `We would like to inform you that a payment has been credited to your Account. Please find below the details of the transaction`,
-            list: `<ul>
+            message: `Payment of${dto.amount} has been received for ${earning?.job?.id}`,
+            list: `<ul><em>Job Detail<em/>
               <li>Job ID: ${earning?.job?.id}</li>
-              <li>Job Vendor Name:${earning.job.vendor.fullName} </li>
+              <li>Booking ID: ${earning?.bookingMaster?.bookingMasterId}</li>
+              <li>Job Vendor Name:${earning?.job.vendor.fullName} </li>
+              <li>Job Type: ${earning?.job?.jobType}</li>
               <li>Credited Amount: ${dto.amount}</li>
               <li>Date: ${dayjs(earning.createdAt).format('DD-MM-YYYY')}</li>
+              <li>Time: ${dayjs(earning?.createdAt).format('HH:mm')}</li>
+              <li>Pickup Location: ${
+                earning?.bookingMaster?.pickupLocation?.fullAddress
+              }</li>
+              <li>Dropoff Location: ${
+                earning?.bookingMaster?.dropoffLocation?.fullAddress
+              }</li>
+              <li>Credited Amount: ${dto.amount}</li>
             </ul>`,
             app_name: this.config.get('APP_NAME'),
 
@@ -140,38 +173,51 @@ export class TapService {
         }
 
         if (+params.userMasterId === 1) {
-          const booking = await this.prisma.bookingMaster.findUnique({
-            where: {
-              bookingMasterId: +params.entityId,
-            },
-            select: {
-              bookingMasterId: true,
-              pickupDeliveryCharges: true,
-              bookingPlatformFee: true,
-              dropoffDeliveryCharges: true,
-              totalPrice: true,
-              customer: {
-                select: {
-                  fullName: true,
-                },
-              },
-            },
-          });
+          // const booking = await this.prisma.bookingMaster.findUnique({
+          //   where: {
+          //     bookingMasterId: +params.entityId,
+          //   },
+          //   select: {
+          //     bookingMasterId: true,
+          //     pickupDeliveryCharges: true,
+          //     dropoffDeliveryCharges: true,
+          //     totalPrice: true,
+          //     customer: {
+          //       select: {
+          //         fullName: true,
+          //       },
+          //     },
+          //   },
+          // });
 
           const context = {
             customer_name: 'Admin',
-            message: `We would like to inform you that a payment has been made by the customer for booking ${booking.bookingMasterId}. Please find below the details of the transaction`,
+            message: `We would like to inform you that a payment has been made by the customer for booking ${
+              earning.bookingMaster.bookingMasterId ||
+              earning.job.bookingMaster.bookingMasterId
+            }. Please find below the details of the transaction`,
             list: `<ul>
-                    <li> Booking ID: ${booking.bookingMasterId}</li>
-                    <li>Customer Name:${booking.customer.fullName} </li>
-                    <li>Service Amount: ${dto.amount}</li>
+                    <li> Booking ID: ${
+                      earning.bookingMaster.bookingMasterId ||
+                      earning.job.bookingMaster.bookingMasterId
+                    }</li>
+                    <li>Customer Name:${
+                      earning.bookingMaster.customer.fullName ||
+                      earning.job.bookingMaster.customer.fullName
+                    } </li>
+                    <li>Service Amount: ${
+                      earning.bookingMaster.totalPrice ||
+                      earning.job.bookingMaster.totalPrice
+                    }</li>
                     <li>Pickup Delivery Charges Amount: ${
-                      booking.pickupDeliveryCharges
+                      earning.bookingMaster.pickupDeliveryCharges ||
+                      earning.job.bookingMaster.pickupDeliveryCharges
                     }</li>
                     <li>Dropoff Delivery Charges Amount: ${
-                      booking.dropoffDeliveryCharges
+                      earning.bookingMaster.dropoffDeliveryCharges ||
+                      earning.job.bookingMaster.dropoffDeliveryCharges
                     }</li>
-                    <li>PlatformFee Amount: ${booking.bookingPlatformFee}</li>
+                    <li>PlatformFee Amount: ${earning.bookingMaster.bookingPlatformFee || earning.job.bookingMaster.bookingPlatformFee}</li>
                     <li>Date: ${dayjs(earning.createdAt).format(
                       'DD-MM-YYYY',
                     )}</li>  

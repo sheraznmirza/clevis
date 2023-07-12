@@ -22,9 +22,9 @@ export class CustomerService {
   //     }
   //   }
 
-  async getCustomerById(id: number) {
+  async getCustomerById(id: number, isCustomer?: boolean) {
     try {
-      return await this.repository.getCustomerById(id);
+      return await this.repository.getCustomerById(id, isCustomer);
     } catch (error) {
       throw error;
     }

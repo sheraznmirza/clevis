@@ -135,7 +135,7 @@ export class EarningService {
     }
   }
 
-  async getVendorEarning(vendorId: number, dto: VendorEarning) {
+  async getVendorEarning(userMasterId: number, dto: VendorEarning) {
     const {
       page = 1,
       take = 10,
@@ -164,12 +164,36 @@ export class EarningService {
       },
       where: {
         isRefunded: false,
+        userMasterId,
         bookingMaster: {
           vendor: {
-            vendorId,
             ...(serviceType && { serviceType: serviceType }),
-            ...(search && { fullName: { contains: search } }),
           },
+          ...(search && {
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                customer: {
+                  email: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }),
+          // customer: {
+          //   ...(search && {
+          //     fullName: { contains: search, mode: 'insensitive' },
+          //   }),
+          // },
         },
 
         ...(dateFrom &&
@@ -179,7 +203,6 @@ export class EarningService {
         id: true,
         createdAt: true,
         amount: true,
-        //////
         job: {
           select: {
             bookingMaster: {
@@ -187,7 +210,6 @@ export class EarningService {
             },
           },
         },
-        //////
         bookingMaster: {
           select: {
             totalPrice: true,
@@ -214,9 +236,20 @@ export class EarningService {
     const totalCount = await this.prisma.earnings.count({
       where: {
         isRefunded: false,
+        userMasterId,
         bookingMaster: {
-          vendorId,
+          vendor: {
+            ...(serviceType && { serviceType: serviceType }),
+          },
+          customer: {
+            ...(search && {
+              fullName: { contains: search, mode: 'insensitive' },
+            }),
+          },
         },
+
+        ...(dateFrom &&
+          dateTill && { createdAt: { gte: dateFrom, lte: dateTill } }),
       },
     });
 
@@ -240,7 +273,14 @@ export class EarningService {
         isRefunded: false,
         userMasterId: { not: 1 },
         job: {
-          rider: { riderId, ...(search && { fullName: { contains: search } }) },
+          rider: { riderId },
+          ...(search && {
+            bookingMaster: {
+              vendor: {
+                fullName: { contains: search, mode: 'insensitive' },
+              },
+            },
+          }),
           ...(jobType && { jobType: jobType }),
         },
         ...(timeFrom &&

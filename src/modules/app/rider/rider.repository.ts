@@ -15,6 +15,7 @@ import {
   Media,
   NotificationType,
   ServiceType,
+  Status,
   UserType,
   Vendor,
 } from '@prisma/client';
@@ -41,6 +42,20 @@ export class RiderRepository {
 
   async approveRider(id: number, dto: RiderUpdateStatusDto) {
     try {
+      const currentStatus = await this.prisma.rider.findUnique({
+        where: {
+          riderId: id,
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (currentStatus.status !== Status.PENDING) {
+        throw new BadRequestException(
+          'You cannot change the status again once you have already changed it once',
+        );
+      }
       const rider = await this.prisma.rider.update({
         where: {
           riderId: id,
@@ -713,30 +728,22 @@ export class RiderRepository {
       }
 
       if (
-        (dto.fullAddress ||
-          dto.cityId ||
-          typeof dto.longitude === 'number' ||
-          typeof dto.latitude === 'number') &&
-        !(
-          dto.fullAddress &&
-          dto.cityId &&
-          typeof dto.longitude === 'number' &&
-          typeof dto.latitude === 'number'
-        )
+        typeof dto.longitude === 'number' &&
+        typeof dto.latitude === 'number' &&
+        !(dto.fullAddress && dto.cityId)
       ) {
         throw new BadRequestException(
           "Please provide every parameter in the address (fullAddress, cityId, lat, long) to update the user's address",
         );
       }
 
-      if (dto.userAddressId) {
-        await this.prisma.userAddress.update({
+      if (dto?.latitude && dto?.longitude) {
+        await this.prisma.userAddress.updateMany({
           where: {
-            userAddressId: dto.userAddressId,
+            riderId: user.rider.riderId,
           },
           data: {
             isDeleted: true,
-            isActive: false,
           },
         });
       }

@@ -58,15 +58,9 @@ export class VendorRepository {
     private config: ConfigService,
   ) {}
 
-  async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
+  async createVendorService(dto: VendorCreateServiceDto, user: GetUserType) {
     try {
-      const vendor = await this.prisma.vendor.findUnique({
-        where: {
-          userMasterId,
-        },
-      });
-
-      await this.createCarWashVendorService(dto, vendor);
+      await this.createCarWashVendorService(dto, user);
 
       return true;
     } catch (error) {
@@ -132,6 +126,20 @@ export class VendorRepository {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
+      const currentStatus = await this.prisma.vendor.findUnique({
+        where: {
+          vendorId: id,
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (currentStatus.status !== Status.PENDING) {
+        throw new BadRequestException(
+          'You cannot change the status again once you have already changed it once',
+        );
+      }
       const vendor = await this.prisma.vendor.update({
         where: {
           vendorId: id,
@@ -342,17 +350,6 @@ export class VendorRepository {
         });
       }
 
-      if (dto.userAddressId) {
-        await this.prisma.userAddress.update({
-          where: {
-            userAddressId: dto.userAddressId,
-          },
-          data: {
-            isDeleted: true,
-          },
-        });
-      }
-
       if (dto.accountNumber && dto.accountTitle && dto.bankName) {
         await this.prisma.banking.updateMany({
           where: {
@@ -365,26 +362,19 @@ export class VendorRepository {
       }
 
       if (
-        (dto.fullAddress ||
-          dto.cityId ||
-          typeof dto.longitude === 'number' ||
-          typeof dto.latitude === 'number') &&
-        !(
-          dto.fullAddress &&
-          dto.cityId &&
-          typeof dto.longitude === 'number' &&
-          typeof dto.latitude === 'number'
-        )
+        typeof dto.longitude === 'number' &&
+        typeof dto.latitude === 'number' &&
+        !(dto.fullAddress && dto.cityId)
       ) {
         throw new BadRequestException(
           "Please provide every parameter in the address (fullAddress, cityId, lat, long) to update the user's address",
         );
       }
 
-      if (dto.userAddressId) {
-        await this.prisma.userAddress.update({
+      if (dto?.latitude && dto?.longitude) {
+        await this.prisma.userAddress.updateMany({
           where: {
-            userAddressId: dto.userAddressId,
+            vendorId: user.vendor.vendorId,
           },
           data: {
             isDeleted: true,
@@ -1569,6 +1559,17 @@ export class VendorRepository {
 
   async deleteVendorService(id: number) {
     try {
+      const vendorService = await this.prisma.vendorService.findUnique({
+        where: {
+          vendorServiceId: id,
+        },
+        select: {
+          isDeleted: true,
+        },
+      });
+      if (vendorService.isDeleted)
+        throw new BadRequestException('Vendor Service is already deleted.');
+
       await this.prisma.vendorService.update({
         where: {
           vendorServiceId: id,
@@ -1590,14 +1591,14 @@ export class VendorRepository {
 
   async createCarWashVendorService(
     dto: VendorCreateServiceDto,
-    vendor: Vendor,
+    user: GetUserType,
   ) {
     try {
       const serviceCount = await this.prisma.vendorService.count({
         where: {
           serviceId: dto.serviceId,
-          vendorId: vendor.vendorId,
-          service: { serviceType: vendor.serviceType },
+          vendorId: user.userTypeId,
+          service: { serviceType: user.serviceType },
           isDeleted: false,
         },
       });
@@ -1606,6 +1607,22 @@ export class VendorRepository {
         throw new ConflictException(
           'Service is already created, please update the current vendor service instead of creating duplicates',
         );
+      }
+
+      for await (const iterator of dto.allocatePrice) {
+        const categoryType = await this.prisma.category.findUnique({
+          where: {
+            categoryId: iterator.categoryId,
+          },
+          select: {
+            serviceType: true,
+          },
+        });
+        if (categoryType.serviceType !== user.serviceType) {
+          throw new BadRequestException(
+            `Vendor of service type: ${user.serviceType} is not allowed to create a service of service type: ${categoryType.serviceType}`,
+          );
+        }
       }
 
       const serviceImages = [];
@@ -1620,7 +1637,7 @@ export class VendorRepository {
       });
       const vendorService = await this.prisma.vendorService.create({
         data: {
-          vendorId: vendor.vendorId,
+          vendorId: user.userTypeId,
           serviceId: dto.serviceId,
           AllocatePrice: {
             createMany: {

@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { VendorRepository } from './vendor.repository';
 import {
   UpdateRequestDto,
@@ -77,7 +81,7 @@ export class VendorService {
 
       const vendorService = await this.repository.createVendorService(
         dto,
-        user.userMasterId,
+        user,
       );
       if (!vendorService) {
         throw new BadRequestException('Unable to create this vendor service');
@@ -119,8 +123,8 @@ export class VendorService {
 
   async approveVendor(id: number, dto: VendorUpdateStatusDto) {
     try {
+      // throw new InternalServerErrorException('ERROR');
       const user = await this.repository.approveVendor(id, dto);
-
       this.queue.createBusinessAndMerchantForVendorRider(
         user,
         dto,
@@ -128,9 +132,15 @@ export class VendorService {
       );
       return successResponse(
         200,
-        `Vendor successfully ${dto.status.toLowerCase()}.`,
+        `${
+          dto.status === Status.APPROVED
+            ? 'Vendor credentials sent for approval to Tap, you will receive an email confirmation'
+            : `Vendor successfully ${dto.status.toLowerCase()}`
+        }.`,
       );
     } catch (error) {
+      // console.log('ERRRRR');
+      // await this.sendEmailOnReject(user, error);
       throw error;
     }
   }
@@ -330,7 +340,6 @@ export class VendorService {
     dto: VendorUpdateStatusDto,
   ) {
     try {
-      console.log('vendor queue initiated');
       const user = await this.prisma.userMaster.findFirst({
         where: { vendor: { vendorId: vendor.vendorId } },
         select: {
@@ -341,6 +350,7 @@ export class VendorService {
           userType: true,
           vendor: {
             select: {
+              userMaster: { select: { email: true } },
               userMasterId: true,
               status: true,
               userAddress: {
@@ -388,82 +398,86 @@ export class VendorService {
           },
         },
       });
-      const payload: createBusinessRequestInterface = {
-        name: {
-          en: user.vendor.companyName,
-        },
-        type: 'corp',
-        entity: {
-          legal_name: {
+      if (user.vendor.status === Status.APPROVED) {
+        const payload: createBusinessRequestInterface = {
+          name: {
             en: user.vendor.companyName,
           },
-          is_licensed: false,
-          country: user.vendor.userAddress[0].city.State.country.shortName,
-          billing_address: {
-            recipient_name: user.vendor.fullName,
-            address_1: user.vendor.userAddress[0].fullAddress,
-            city: user.vendor.userAddress[0].city.cityName,
-            state: user.vendor.userAddress[0].city.State.stateName,
+          type: 'corp',
+          entity: {
+            legal_name: {
+              en: user.vendor.companyName,
+            },
+            is_licensed: false,
             country: user.vendor.userAddress[0].city.State.country.shortName,
-          },
-        },
-        contact_person: {
-          name: {
-            first: user.vendor.fullName,
-            last: 'Clevis',
-          },
-
-          contact_info: {
-            primary: {
-              email: user.email,
-              phone: {
-                country_code:
-                  user.vendor.userAddress[0].city.State.country.countryCode,
-                number: user.phone.replace('+', ''),
-              },
+            billing_address: {
+              recipient_name: user.vendor.fullName,
+              address_1: user.vendor.userAddress[0].fullAddress,
+              city: user.vendor.userAddress[0].city.cityName,
+              state: user.vendor.userAddress[0].city.State.stateName,
+              country: user.vendor.userAddress[0].city.State.country.shortName,
             },
           },
-          authorization: {
+          contact_person: {
             name: {
               first: user.vendor.fullName,
               last: 'Clevis',
             },
-          },
-        },
-        brands: [
-          {
-            name: {
-              en: user.vendor.companyName,
+
+            contact_info: {
+              primary: {
+                email: user.email,
+                phone: {
+                  country_code:
+                    user.vendor.userAddress[0].city.State.country.countryCode,
+                  number: user.phone.replace('+', ''),
+                },
+              },
+            },
+            authorization: {
+              name: {
+                first: user.vendor.fullName,
+                last: 'Clevis',
+              },
             },
           },
-        ],
-      };
-      const tapbusiness = await this.tapService.createBusniess(payload);
-      console.log('tap business: ', tapbusiness);
-      const merchantPayload: createMerchantRequestInterface = {
-        display_name: user.vendor.fullName,
-        branch_id: tapbusiness.entity.branches[0].id,
-        brand_id: tapbusiness.brands[0].id,
-        business_entity_id: tapbusiness.entity.id,
-        business_id: tapbusiness.id,
-      };
+          brands: [
+            {
+              name: {
+                en: user.vendor.companyName,
+              },
+            },
+          ],
+        };
+        const tapbusiness = await this.tapService.createBusniess(payload);
+        console.log('tap business: ', tapbusiness);
+        const merchantPayload: createMerchantRequestInterface = {
+          display_name: user.vendor.fullName,
+          branch_id: tapbusiness.entity.branches[0].id,
+          brand_id: tapbusiness.brands[0].id,
+          business_entity_id: tapbusiness.entity.id,
+          business_id: tapbusiness.id,
+        };
 
-      const merchantTap = await this.tapService.createMerchant(merchantPayload);
-      console.log('merchant tap: ', merchantTap);
-      await this.prisma.vendor.update({
-        where: {
-          vendorId: user.vendor.vendorId,
-        },
-        data: {
-          tapBusinessId: tapbusiness.id,
-          tapBranchId: tapbusiness.entity.branches[0].id,
-          tapBrandId: tapbusiness.brands[0].id,
-          tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
-          tapBusinessEntityId: tapbusiness.entity.id,
-          tapMerchantId: merchantTap.id,
-          tapWalletId: merchantTap.wallets.id,
-        },
-      });
+        const merchantTap = await this.tapService.createMerchant(
+          merchantPayload,
+        );
+        console.log('merchant tap: ', merchantTap);
+        await this.prisma.vendor.update({
+          where: {
+            vendorId: user.vendor.vendorId,
+          },
+          data: {
+            tapBusinessId: tapbusiness.id,
+            tapBranchId: tapbusiness.entity.branches[0].id,
+            tapBrandId: tapbusiness.brands[0].id,
+            tapPrimaryWalletId: tapbusiness.entity.wallets[0].id,
+            tapBusinessEntityId: tapbusiness.entity.id,
+            tapMerchantId: merchantTap.id,
+            tapWalletId: merchantTap.wallets.id,
+          },
+        });
+      }
 
       const context = {
         app_name: this.config.get('APP_NAME'),
@@ -481,39 +495,46 @@ export class VendorService {
           ? 'Application Rejected'
           : '';
       await this.mail.sendEmail(
-        user.email,
+        user.vendor.userMaster.email,
         this.config.get('MAIL_NO_REPLY'),
         status,
         'vendorApprovedRejected',
         context, // `.hbs` extension is appended automatically
       );
 
-      const payloads: SQSSendNotificationArgs<NotificationData> = {
-        type: NotificationType.VendorStatus,
-        userId: [user.vendor.userMasterId],
-        data: {
-          title:
-            dto.status === 'APPROVED'
-              ? NotificationTitle.ADMIN_APPROVED
-              : NotificationTitle.ADMIN_REJECTED,
-          body:
-            dto.status === 'APPROVED'
-              ? NotificationBody.ADMIN_APPROVED
-              : NotificationBody.ADMIN_REJECTED,
-          type: NotificationType.BookingStatus,
-          entityType: EntityType.VENDOR,
-          entityId: user.vendor.vendorId,
-        },
-      };
-      await this.notificationService.HandleNotifications(
-        payloads,
-        UserType.VENDOR,
-      );
+      // const payloads: SQSSendNotificationArgs<NotificationData> = {
+      //   type: NotificationType.VendorStatus,
+      //   userId: [user.vendor.userMasterId],
+      //   data: {
+      //     title:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationTitle.ADMIN_APPROVED
+      //         : NotificationTitle.ADMIN_REJECTED,
+      //     body:
+      //       dto.status === 'APPROVED'
+      //         ? NotificationBody.ADMIN_APPROVED
+      //         : NotificationBody.ADMIN_REJECTED,
+      //     type: NotificationType.BookingStatus,
+      //     entityType: EntityType.VENDOR,
+      //     entityId: user.vendor.vendorId,
+      //   },
+      // };
+      // await this.notificationService.HandleNotifications(
+      //   payloads,
+      //   UserType.VENDOR,
+      // );
     } catch (error) {
       console.log(
         'error in queue: ',
-        error.response.data.errors[0].description,
+        // error.response.data.errors[0].description,
       );
+      await this.sendEmailOnReject(vendor, error);
+      console.log('ERRRRRRRRRRRRRRRRRRRR');
+    }
+  }
+
+  async sendEmailOnReject(vendor, error) {
+    try {
       await this.prisma.vendor.update({
         where: {
           vendorId: vendor.vendorId,
@@ -522,46 +543,36 @@ export class VendorService {
           status: Status.REJECTED,
         },
       });
-      if (error.response.data) {
-        const context = {
-          app_name: this.config.get('APP_NAME'),
-          first_name: vendor.fullName,
-          message: `Your account has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
-          copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        };
 
-        console.log('context: ', context);
-        await this.mail.sendEmail(
-          vendor.userMaster.email,
-          this.config.get('MAIL_NO_REPLY'),
-          `${
-            vendor.userMaster.userType[0] +
-            vendor.userMaster.userType.slice(1).toLowerCase()
-          } ${Status.REJECTED.toLowerCase()}`,
-          'vendorApprovedRejected',
-          context, // `.hbs` extension is appended automatically
-        );
+      const context = {
+        app_name: this.config.get('APP_NAME'),
+        first_name: vendor.fullName,
+        message: `Your account has been rejected due to the following reason:${error.response.data.errors[0].description}. Please contact our support for further information.`,
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
 
-        const context2 = {
-          app_name: this.config.get('APP_NAME'),
-          first_name: '',
-          message: `The account of ${vendor.fullName} has been rejected due to the following reason: ${error.response.data.errors[0].description}. Please contact our support for further information.`,
-          copyright_year: this.config.get('COPYRIGHT_YEAR'),
-        };
-        console.log('context2: ', context2);
+      this.mail.sendEmail(
+        vendor.userMaster.email,
+        this.config.get('MAIL_NO_REPLY'),
+        `Vendor Rejected`,
+        'vendorApprovedRejected',
+        context, // `.hbs` extension is appended automatically
+      );
 
-        await this.mail.sendEmail(
-          this.config.get('MAIL_ADMIN'),
-          this.config.get('MAIL_NO_REPLY'),
-          `${
-            vendor.userMaster.userType[0] +
-            vendor.userMaster.userType.slice(1).toLowerCase()
-          } ${Status.REJECTED.toLowerCase()}`,
-          'vendorApprovedRejected',
-          context2, // `.hbs` extension is appended automatically
-        );
-      }
-      throw error;
-    }
+      const context2 = {
+        app_name: this.config.get('APP_NAME'),
+        first_name: '',
+        message: `The account of ${vendor.fullName} has been rejected due to the following reason:${error.response.data.errors[0].description}. Please contact our support for further information.`,
+        copyright_year: this.config.get('COPYRIGHT_YEAR'),
+      };
+
+      this.mail.sendEmail(
+        this.config.get('MAIL_ADMIN'),
+        this.config.get('MAIL_NO_REPLY'),
+        `Vendor Rejected`,
+        'vendorApprovedRejected',
+        context2, // `.hbs` extension is appended automatically
+      );
+    } catch (error) {}
   }
 }

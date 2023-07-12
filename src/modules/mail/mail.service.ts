@@ -28,7 +28,7 @@ export class MailService {
 
       const data = {
         from: this.config.get('MAIL_ADMIN'),
-        subject: `${this.config.get('APP_NAME')} - Complete Your Registration`,
+        subject: `${this.config.get('APP_NAME')} - Verify Email`,
       };
 
       await this.mailerService.sendMail({

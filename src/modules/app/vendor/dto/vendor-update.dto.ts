@@ -56,11 +56,6 @@ export class UpdateVendorDto {
   @IsOptional()
   longitude: number;
 
-  @ApiProperty()
-  @IsNumber()
-  @IsOptional()
-  userAddressId: number;
-
   @ApiProperty({
     isArray: true,
     type: MediaFormat,

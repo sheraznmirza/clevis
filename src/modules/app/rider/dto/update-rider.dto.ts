@@ -115,11 +115,6 @@ export class RiderUpdateDto {
   longitude: number;
 
   @ApiProperty()
-  @IsNumber()
-  @IsOptional()
-  userAddressId: number;
-
-  @ApiProperty()
   @IsOptional()
   @IsBoolean()
   isActive: boolean;

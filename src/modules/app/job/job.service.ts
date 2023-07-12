@@ -298,10 +298,7 @@ export class JobService {
     } = listingParams;
     try {
       const rider = await this.prisma.userAddress.findFirst({
-        where: {
-          riderId: riderId,
-          isDeleted: false,
-        },
+        where: { isActive: true, riderId: riderId, isDeleted: false },
         select: {
           cityId: true,
         },
@@ -375,6 +372,7 @@ export class JobService {
               userAddress: {
                 some: {
                   cityId: rider.cityId,
+                  isDeleted: false,
                 },
               },
             },
@@ -413,6 +411,9 @@ export class JobService {
               },
               vendor: {
                 select: {
+                  userAddress: {
+                    select: { fullAddress: true },
+                  },
                   fullName: true,
                 },
               },
@@ -580,8 +581,14 @@ export class JobService {
           jobStatus: true,
           jobType: true,
           riderId: true,
+
           vendor: {
             select: {
+              userMaster: {
+                select: {
+                  email: true,
+                },
+              },
               fullName: true,
               userMasterId: true,
             },
@@ -784,7 +791,7 @@ export class JobService {
         (booking.jobStatus === RiderJobStatus.Pending &&
           dto.jobStatus === RiderJobStatus.Accepted)
       ) {
-        await this.prisma.job.update({
+        const riderDetails = await this.prisma.job.update({
           where: {
             id: jobId,
           },
@@ -792,7 +799,18 @@ export class JobService {
             jobStatus: dto.jobStatus,
             riderId: user.userTypeId,
           },
+          select: {
+            rider: {
+              select: {
+                fullName: true,
+                userMasterId: true,
+                tapMerchantId: true,
+              },
+            },
+          },
         });
+
+        booking.rider = riderDetails.rider;
 
         const payload: SQSSendNotificationArgs<NotificationData> = {
           type: NotificationType.RiderJob,
@@ -853,24 +871,36 @@ export class JobService {
                 ? NotificationBody.JOB_PICKUP_ACCEPT.replace(
                     '{rider}',
                     riderDetail?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : dto.jobStatus === RiderJobStatus.Accepted &&
                   booking.jobType === JobType.DELIVERY
                 ? NotificationBody.JOB_DELIVERY_ACCEPT.replace(
                     '{rider}',
                     riderDetail?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : dto.jobStatus === RiderJobStatus.Completed &&
                   booking.jobType === JobType.PICKUP
                 ? NotificationBody.JOB_PICKUP_COMPLETED.replace(
                     '{rider}',
                     booking?.rider?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : dto.jobStatus === RiderJobStatus.Completed &&
                   booking.jobType === JobType.DELIVERY
                 ? NotificationBody.JOB_DELIVERY_COMPLETED.replace(
                     '{rider}',
                     booking?.rider?.fullName,
+                  ).replace(
+                    '{id}',
+                    booking.bookingMaster.bookingMasterId.toString(),
                   )
                 : null,
             type: NotificationType.RiderJob,
@@ -898,20 +928,20 @@ export class JobService {
               booking.jobType === JobType.DELIVERY
             ? 'The rider has successfully completed the dropoff for your job.'
             : '',
-        list: `<h1><em>Please find job details below: </em></h1>
+        list: `<em>Please find job details below: </em>
       <ul>
       <li> 
       Job ID:${jobId} </li>
-      <li> Booking ID:${booking.bookingMaster.bookingMasterId} </li>
-       <li> Rider Name:${booking.rider.fullName} </li>
-<li> Pickup Location:${booking.bookingMaster.pickupLocation.fullAddress} </li> 
-<li> Dropoff Location:${booking.bookingMaster.dropoffLocation.fullAddress} </li>
+      <li> Booking ID: ${booking.bookingMaster.bookingMasterId} </li>
+       <li> Rider Name: ${booking?.rider?.fullName || 'N/A'} </li>
+<li> Pickup Location: ${booking.bookingMaster.pickupLocation.fullAddress} </li> 
+<li> Dropoff Location: ${
+          booking.bookingMaster.dropoffLocation.fullAddress
+        } </li>
 <li>Amount: ${
-          dto.jobStatus === RiderJobStatus.Completed &&
           booking.jobType === JobType.DELIVERY
             ? booking.bookingMaster.dropoffDeliveryCharges
-            : dto.jobStatus === RiderJobStatus.Completed &&
-              booking.jobType === JobType.PICKUP
+            : booking.jobType === JobType.PICKUP
             ? booking.bookingMaster.pickupDeliveryCharges
             : ''
         }</li>
@@ -932,7 +962,7 @@ export class JobService {
           : '';
 
       await this.mail.sendEmail(
-        user.email,
+        booking.vendor.userMaster.email,
         this.config.get('MAIL_NO_REPLY'),
         status,
         'rider-job-status',
