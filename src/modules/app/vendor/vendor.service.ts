@@ -81,7 +81,7 @@ export class VendorService {
 
       const vendorService = await this.repository.createVendorService(
         dto,
-        user.userMasterId,
+        user,
       );
       if (!vendorService) {
         throw new BadRequestException('Unable to create this vendor service');

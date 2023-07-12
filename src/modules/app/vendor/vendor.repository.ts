@@ -58,15 +58,9 @@ export class VendorRepository {
     private config: ConfigService,
   ) {}
 
-  async createVendorService(dto: VendorCreateServiceDto, userMasterId: number) {
+  async createVendorService(dto: VendorCreateServiceDto, user: GetUserType) {
     try {
-      const vendor = await this.prisma.vendor.findUnique({
-        where: {
-          userMasterId,
-        },
-      });
-
-      await this.createCarWashVendorService(dto, vendor);
+      await this.createCarWashVendorService(dto, user);
 
       return true;
     } catch (error) {
@@ -1551,6 +1545,17 @@ export class VendorRepository {
 
   async deleteVendorService(id: number) {
     try {
+      const vendorService = await this.prisma.vendorService.findUnique({
+        where: {
+          vendorServiceId: id,
+        },
+        select: {
+          isDeleted: true,
+        },
+      });
+      if (vendorService.isDeleted)
+        throw new BadRequestException('Vendor Service is already deleted.');
+
       await this.prisma.vendorService.update({
         where: {
           vendorServiceId: id,
@@ -1572,14 +1577,14 @@ export class VendorRepository {
 
   async createCarWashVendorService(
     dto: VendorCreateServiceDto,
-    vendor: Vendor,
+    user: GetUserType,
   ) {
     try {
       const serviceCount = await this.prisma.vendorService.count({
         where: {
           serviceId: dto.serviceId,
-          vendorId: vendor.vendorId,
-          service: { serviceType: vendor.serviceType },
+          vendorId: user.userTypeId,
+          service: { serviceType: user.serviceType },
           isDeleted: false,
         },
       });
@@ -1588,6 +1593,22 @@ export class VendorRepository {
         throw new ConflictException(
           'Service is already created, please update the current vendor service instead of creating duplicates',
         );
+      }
+
+      for await (const iterator of dto.allocatePrice) {
+        const categoryType = await this.prisma.category.findUnique({
+          where: {
+            categoryId: iterator.categoryId,
+          },
+          select: {
+            serviceType: true,
+          },
+        });
+        if (categoryType.serviceType !== user.serviceType) {
+          throw new BadRequestException(
+            `Vendor of service type: ${user.serviceType} is not allowed to create a service of service type: ${categoryType.serviceType}`,
+          );
+        }
       }
 
       const serviceImages = [];
@@ -1602,7 +1623,7 @@ export class VendorRepository {
       });
       const vendorService = await this.prisma.vendorService.create({
         data: {
-          vendorId: vendor.vendorId,
+          vendorId: user.userTypeId,
           serviceId: dto.serviceId,
           AllocatePrice: {
             createMany: {
