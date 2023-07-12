@@ -65,7 +65,6 @@ export class VendorLocationDto {
     description: 'The latitude',
   })
   @IsNumber()
-  @IsNumber()
   @IsOptional()
   latitude?: number;
 
@@ -104,6 +103,11 @@ export class VendorLocationDto {
   @Type(() => ServiceNames)
   @IsOptional()
   services?: ServiceNames[];
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  rating: number;
 
   // @ApiProperty({
   //   required: false,
