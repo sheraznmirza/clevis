@@ -169,11 +169,31 @@ export class EarningService {
           vendor: {
             ...(serviceType && { serviceType: serviceType }),
           },
-          customer: {
-            ...(search && {
-              fullName: { contains: search, mode: 'insensitive' },
-            }),
-          },
+          ...(search && {
+            OR: [
+              {
+                customer: {
+                  fullName: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+              {
+                customer: {
+                  email: {
+                    contains: search,
+                    mode: 'insensitive',
+                  },
+                },
+              },
+            ],
+          }),
+          // customer: {
+          //   ...(search && {
+          //     fullName: { contains: search, mode: 'insensitive' },
+          //   }),
+          // },
         },
 
         ...(dateFrom &&
