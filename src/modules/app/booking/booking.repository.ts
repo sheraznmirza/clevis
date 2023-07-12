@@ -905,25 +905,6 @@ export class BookingRepository {
         bookedDates = bookings.map((booking) => booking.bookingDate);
       }
 
-      // const platformFee = await this.prisma.platformSetup.findFirst({
-      //   where: {
-      //     isDeleted: false,
-      //   },
-      //   orderBy: {
-      //     createdAt: 'desc',
-      //   },
-      //   select: {
-      //     fee: true,
-      //   },
-      // });
-
-      // const mappedBookings = bookings.map((booking) => {
-      //   return {
-      //     ...booking,
-      //     platformFee: platformFee.fee,
-      //   };
-      // });
-
       return {
         data: bookings,
         page: +page,
@@ -1060,17 +1041,6 @@ export class BookingRepository {
         },
       });
 
-      // const platformFee = await this.prisma.platformSetup.findFirst({
-      //   where: {
-      //     isDeleted: false,
-      //   },
-      //   orderBy: {
-      //     createdAt: 'desc',
-      //   },
-      //   select: {
-      //     fee: true,
-      //   },
-      // });
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
@@ -1271,6 +1241,7 @@ export class BookingRepository {
         },
         select: {
           bookingMasterId: true,
+          bookingPlatformFee: true,
           isWithDelivery: true,
           customer: {
             select: {
@@ -1449,24 +1420,11 @@ export class BookingRepository {
         delete result.job;
       }
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
-
       return {
         ...result,
         totalItems,
         canPickup,
         canDeliver,
-        platformFee: platformFee.fee,
       };
     } catch (error) {
       if (error?.code === 'P2025') {
@@ -2388,20 +2346,6 @@ export class BookingRepository {
           },
         },
       });
-
-      // const platformFee = await this.prisma.platformSetup.findFirst({
-      //   where: {
-      //     isDeleted: false,
-      //   },
-      //   orderBy: {
-      //     createdAt: 'desc',
-      //   },
-      //   select: {
-      //     fee: true,
-      //   },
-      // });
-
-      console.log('bookings: ', bookings);
 
       this.queue.bookingEmailAlertForVendor(bookings);
     } catch (error) {

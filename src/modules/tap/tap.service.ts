@@ -217,7 +217,7 @@ export class TapService {
                       earning.bookingMaster.dropoffDeliveryCharges ||
                       earning.job.bookingMaster.dropoffDeliveryCharges
                     }</li>
-                    <li>PlatformFee Amount: ${earning.bookingMaster.bookingPlatformFee || earning.job.bookingMaster.bookingPlatformFee}</li>
+                    <li>Platform Fee Amount: ${earning.bookingMaster.bookingPlatformFee || earning.job.bookingMaster.bookingPlatformFee}</li>
                     <li>Date: ${dayjs(earning.createdAt).format(
                       'DD-MM-YYYY',
                     )}</li>  
