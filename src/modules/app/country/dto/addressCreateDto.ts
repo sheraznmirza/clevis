@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  Min,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class addressCreateDto {
@@ -15,6 +21,7 @@ export class addressCreateDto {
   @ApiProperty()
   @IsNumber()
   @IsOptional()
+  @Min(1)
   cityId?: number;
 
   @ApiProperty()
