@@ -81,7 +81,7 @@ export class VendorService {
 
       const vendorService = await this.repository.createVendorService(
         dto,
-        user.userMasterId,
+        user,
       );
       if (!vendorService) {
         throw new BadRequestException('Unable to create this vendor service');
@@ -132,7 +132,11 @@ export class VendorService {
       );
       return successResponse(
         200,
-        `Vendor successfully ${dto.status.toLowerCase()}.`,
+        `${
+          dto.status === Status.APPROVED
+            ? 'Vendor credentials sent for approval to Tap, you will receive an email confirmation'
+            : `Vendor successfully ${dto.status.toLowerCase()}`
+        }.`,
       );
     } catch (error) {
       // console.log('ERRRRR');

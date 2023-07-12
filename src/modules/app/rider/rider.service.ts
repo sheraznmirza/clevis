@@ -60,7 +60,11 @@ export class RiderService {
 
       return successResponse(
         200,
-        `Rider successfully ${dto.status.toLowerCase()}.`,
+        `${
+          dto.status === Status.APPROVED
+            ? 'Rider credentials sent for approval to Tap, you will receive an email confirmation'
+            : `Rider successfully ${dto.status.toLowerCase()}`
+        }.`,
       );
     } catch (error) {
       throw unknowError(417, error, ERROR_MESSAGE.MSG_417);
