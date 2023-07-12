@@ -606,6 +606,7 @@ model BookingMaster {
   dropoffDeliveryCharges Float?               @default(0)
   vat                    Float?               @default(0)
   totalPrice             Float
+  bookingPlatformFee Float?
   tapAuthId              String               @unique
   isWithDelivery         Boolean              @default(false)
   tapPaymentStatus       PaymentStatus        @default(UNPAID)

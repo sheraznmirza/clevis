@@ -147,6 +147,7 @@ export class TapService {
             select: {
               bookingMasterId: true,
               pickupDeliveryCharges: true,
+              bookingPlatformFee: true,
               dropoffDeliveryCharges: true,
               totalPrice: true,
               customer: {
@@ -163,14 +164,14 @@ export class TapService {
             list: `<ul>
                     <li> Booking ID: ${booking.bookingMasterId}</li>
                     <li>Customer Name:${booking.customer.fullName} </li>
-                    <li>Service Amount: ${booking.totalPrice}</li>
+                    <li>Service Amount: ${dto.amount}</li>
                     <li>Pickup Delivery Charges Amount: ${
                       booking.pickupDeliveryCharges
                     }</li>
                     <li>Dropoff Delivery Charges Amount: ${
                       booking.dropoffDeliveryCharges
                     }</li>
-                    <li>PlatformFee Amount: ${dto.amount}</li>
+                    <li>PlatformFee Amount: ${booking.bookingPlatformFee}</li>
                     <li>Date: ${dayjs(earning.createdAt).format(
                       'DD-MM-YYYY',
                     )}</li>  

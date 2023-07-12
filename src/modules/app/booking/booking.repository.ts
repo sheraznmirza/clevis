@@ -220,6 +220,18 @@ export class BookingRepository {
         totalPrice += bookingDetailPrice[i];
       }
 
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
@@ -246,6 +258,7 @@ export class BookingRepository {
               dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
           isWithDelivery: dto.isWithDelivery,
+          bookingPlatformFee:platformFee.fee
         },
         select: {
           bookingMasterId: true,
@@ -457,6 +470,18 @@ export class BookingRepository {
         totalPrice += bookingDetailPrice[i];
       }
 
+      const platformFee = await this.prisma.platformSetup.findFirst({
+        where: {
+          isDeleted: false,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          fee: true,
+        },
+      });
+
       const bookingMaster = await this.prisma.bookingMaster.create({
         data: {
           customerId,
@@ -477,6 +502,7 @@ export class BookingRepository {
             // dropoffTimeFrom: dayjs(dto.dropoffLocation.timeFrom).utc().format(),
             // dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
           },
+          bookingPlatformFee: platformFee.fee
         },
         select: {
           bookingMasterId: true,
@@ -647,6 +673,7 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           status: true,
+          bookingPlatformFee: true,
           bookingDate: true,
           totalPrice: true,
           pickupDeliveryCharges: true,
@@ -728,27 +755,27 @@ export class BookingRepository {
         bookedDates = bookings.map((booking) => booking.bookingDate);
       }
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
+      // const platformFee = await this.prisma.platformSetup.findFirst({
+      //   where: {
+      //     isDeleted: false,
+      //   },
+      //   orderBy: {
+      //     createdAt: 'desc',
+      //   },
+      //   select: {
+      //     fee: true,
+      //   },
+      // });
 
-      const mappedBookings = bookings.map((booking) => {
-        return {
-          ...booking,
-          platformFee: platformFee.fee,
-        };
-      });
+      // const mappedBookings = bookings.map((booking) => {
+      //   return {
+      //     ...booking,
+      //     platformFee: platformFee.fee,
+      //   };
+      // });
 
       return {
-        data: mappedBookings,
+        data: bookings,
         page: +page,
         take: +take,
         totalCount,
@@ -774,6 +801,7 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           carNumberPlate: true,
+          bookingPlatformFee: true,
           pickupDeliveryCharges: true,
           dropoffDeliveryCharges: true,
           tapPaymentStatus: true,
@@ -882,21 +910,21 @@ export class BookingRepository {
         },
       });
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
+      // const platformFee = await this.prisma.platformSetup.findFirst({
+      //   where: {
+      //     isDeleted: false,
+      //   },
+      //   orderBy: {
+      //     createdAt: 'desc',
+      //   },
+      //   select: {
+      //     fee: true,
+      //   },
+      // });
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return { ...result, platformFee: platformFee.fee };
+      return result ;
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -1280,6 +1308,7 @@ export class BookingRepository {
           status: true,
           tapAuthId: true,
           isWithDelivery: true,
+          bookingPlatformFee:true,
           vendor: {
             select: {
               fullName: true,
@@ -1366,14 +1395,6 @@ export class BookingRepository {
         console.log('createCharge: ', createCharge);
 
         if (!findBooking.isWithDelivery) {
-          const platform = await this.prisma.platformSetup.findFirst({
-            orderBy: {
-              createdAt: 'desc',
-            },
-            where: {
-              isDeleted: false,
-            },
-          });
 
           const admin = await this.prisma.admin.findUnique({
             where: {
@@ -1392,7 +1413,7 @@ export class BookingRepository {
           });
 
           const adminChargePayload: createChargeRequestInterface = {
-            amount: platform.fee,
+            amount: findBooking.bookingPlatformFee,
             currency: 'SAR',
             customer: {
               id: findBooking.customer.tapCustomerId,
@@ -2143,6 +2164,7 @@ export class BookingRepository {
         select: {
           bookingMasterId: true,
           bookingDate: true,
+          bookingPlatformFee: true,
           // bookingDetail: {
           //   select: {
           //     allocatePrice: {
@@ -2174,21 +2196,21 @@ export class BookingRepository {
         },
       });
 
-      const platformFee = await this.prisma.platformSetup.findFirst({
-        where: {
-          isDeleted: false,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          fee: true,
-        },
-      });
+      // const platformFee = await this.prisma.platformSetup.findFirst({
+      //   where: {
+      //     isDeleted: false,
+      //   },
+      //   orderBy: {
+      //     createdAt: 'desc',
+      //   },
+      //   select: {
+      //     fee: true,
+      //   },
+      // });
 
       console.log('bookings: ', bookings);
 
-      this.queue.bookingEmailAlertForVendor(bookings, platformFee.fee);
+      this.queue.bookingEmailAlertForVendor(bookings);
     } catch (error) {
       throw error;
     }
