@@ -392,21 +392,31 @@ export class CustomerRepository {
       distance = 10000000000,
       currentDay,
       vendorStatus,
+      rating = 0,
     } = dto;
     try {
       const dayObj = currentDateToVendorFilter(currentDay);
       if (dto.latitude && dto.longitude) {
         const vendors: Array<{ vendorId: number }> = await this.prisma
-          .$queryRaw`select "public"."Vendor"."vendorId" from "public"."UserAddress" INNER JOIN "public"."Vendor" ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId" AND "public"."Vendor"."serviceType"::text = ${
-          dto.serviceType
-        } where ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
-          dto.longitude,
-        )}, ${Number(dto.latitude)}))) < ${+distance}
+          .$queryRaw`SELECT "public"."Vendor"."vendorId"
+          FROM "public"."UserAddress"
+           INNER JOIN 
+           "public"."Vendor" 
+           ON "public"."UserAddress"."vendorId" = "public"."Vendor"."vendorId"
+            AND "public"."Vendor"."serviceType"::text = ${dto.serviceType}
+         WHERE "public"."UserAddress"."isDeleted" = false 
+         AND ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
+           dto.longitude,
+         )}, ${Number(
+          dto.latitude,
+        )}))) < ${+distance} AND "public"."Vendor"."avgRating" >= ${rating}
         ORDER BY ST_Distance(geography(ST_MakePoint("public"."UserAddress"."longitude", "public"."UserAddress"."latitude")),geography(ST_MakePoint(${Number(
           dto.longitude,
-        )}, ${Number(dto.latitude)}))) ASC Limit ${BigInt(take)} offset ${
-          (Number(page) - 1) * Number(take)
-        }`;
+        )}, ${Number(
+          dto.latitude,
+        )}))) ASC, "public"."Vendor"."avgRating" DESC Limit ${BigInt(
+          take,
+        )} offset ${(Number(page) - 1) * Number(take)}`;
 
         const vendorIds = vendors.map((vendor) => vendor.vendorId);
         let serviceIds: number[] = [];
@@ -580,12 +590,65 @@ export class CustomerRepository {
 
         const totalCount = await this.prisma.userMaster.count({
           where: {
-            isEmailVerified: true,
             isDeleted: false,
-            userType: UserType.VENDOR,
+            isActive: true,
             vendor: {
-              serviceType: dto.serviceType,
-
+              AND: [
+                {
+                  vendorId: {
+                    in: vendorIds,
+                  },
+                },
+                { serviceType: dto.serviceType },
+                {
+                  ...(serviceIds &&
+                    serviceIds.length > 0 && {
+                      vendorService: {
+                        some: {
+                          isDeleted: false,
+                          status: VendorServiceStatus.Available,
+                          serviceId: {
+                            in: serviceIds,
+                          },
+                        },
+                      },
+                    }),
+                },
+              ],
+              companySchedule: {
+                some: {
+                  day: dayObj.currentDay,
+                  ...(vendorStatus === VendorStatus.OPEN && {
+                    startTime: {
+                      gte: dayObj.currentTime,
+                    },
+                    endTime: {
+                      lt: dayObj.currentTime,
+                    },
+                  }),
+                  ...(vendorStatus === VendorStatus.CLOSED && {
+                    OR: [
+                      {
+                        startTime: {
+                          lt: dayObj.currentTime,
+                        },
+                        endTime: {
+                          gte: dayObj.currentTime,
+                        },
+                      },
+                    ],
+                  }),
+                },
+              },
+              ...(vendorStatus === VendorStatus.BUSY && {
+                isBusy: true,
+              }),
+              ...(search && {
+                companyName: {
+                  contains: search,
+                  mode: 'insensitive',
+                },
+              }),
               NOT: {
                 vendorService: {
                   none: {},
@@ -711,11 +774,16 @@ export class CustomerRepository {
                   none: {},
                 },
               },
+              ...(rating && {
+                avgRating: {
+                  gte: rating,
+                },
+              }),
             },
           },
           orderBy: {
             vendor: {
-              companyName: 'asc',
+              avgRating: 'desc',
             },
           },
           select: {
@@ -814,6 +882,8 @@ export class CustomerRepository {
                 serviceIds.length > 0 && {
                   vendorService: {
                     some: {
+                      isDeleted: false,
+                      status: VendorServiceStatus.Available,
                       serviceId: {
                         in: serviceIds,
                       },
@@ -851,16 +921,13 @@ export class CustomerRepository {
                     },
                   },
                 }),
-              ...(vendorStatus &&
-                vendorStatus === VendorStatus.BUSY && {
-                  isBusy: true,
-                }),
-
               ...((vendorStatus === VendorStatus.CLOSED ||
                 vendorStatus === VendorStatus.OPEN) && {
                 isBusy: false,
               }),
-
+              ...(vendorStatus === VendorStatus.BUSY && {
+                isBusy: true,
+              }),
               ...(search && {
                 companyName: {
                   contains: search,
@@ -872,6 +939,11 @@ export class CustomerRepository {
                   none: {},
                 },
               },
+              ...(rating && {
+                avgRating: {
+                  gte: rating,
+                },
+              }),
             },
           },
         });

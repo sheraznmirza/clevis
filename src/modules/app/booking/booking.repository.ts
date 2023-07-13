@@ -258,7 +258,7 @@ export class BookingRepository {
               dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
             }),
           isWithDelivery: dto.isWithDelivery,
-          bookingPlatformFee:platformFee.fee
+          bookingPlatformFee: platformFee.fee,
         },
         select: {
           pickupDeliveryCharges: true,
@@ -302,22 +302,22 @@ export class BookingRepository {
       });
 
       if (dto.attachments && dto.attachments.length > 0) {
-        dto.attachments.forEach(async (item) => {
+        for await (const iterator of dto.attachments) {
           const result = await this.prisma.media.create({
-            data: item,
+            data: iterator,
             select: {
               id: true,
             },
           });
-          attachments.push(result);
-        });
+          attachments.push(result.id);
+        }
       }
 
       if (attachments && attachments.length > 0) {
         await this.prisma.bookingAttachments.createMany({
           data: attachments.map((item) => ({
             bookingMasterId: bookingMaster.bookingMasterId,
-            mediaId: item.id,
+            mediaId: item,
           })),
         });
       }
@@ -544,7 +544,7 @@ export class BookingRepository {
             // dropoffTimeFrom: dayjs(dto.dropoffLocation.timeFrom).utc().format(),
             // dropoffTimeTo: dayjs(dto.dropoffLocation.timeTill).utc().format(),
           },
-          bookingPlatformFee: platformFee.fee
+          bookingPlatformFee: platformFee.fee,
         },
         select: {
           pickupDeliveryCharges: true,
@@ -1044,7 +1044,7 @@ export class BookingRepository {
       if (!result) {
         throw unknowError(417, {}, 'BookingMasterId does not exist');
       }
-      return result ;
+      return result;
     } catch (error) {
       if (error?.code === 'P2025') {
         throw new BadRequestException('The following booking does not exist');
@@ -1455,7 +1455,7 @@ export class BookingRepository {
           status: true,
           tapAuthId: true,
           isWithDelivery: true,
-          bookingPlatformFee:true,
+          bookingPlatformFee: true,
           vendor: {
             select: {
               fullName: true,
@@ -1542,7 +1542,6 @@ export class BookingRepository {
         console.log('createCharge: ', createCharge);
 
         if (!findBooking.isWithDelivery) {
-
           const admin = await this.prisma.admin.findUnique({
             where: {
               userMasterId: 1,
